@@ -40,31 +40,32 @@ export default {
         can_export: false,
         can_maintain: false,
       },
-      rolePermissions: [],
     };
   },
   methods: {
     async savePermission() {
-        try {
-            const response = await axios.post('/api/backend/role_permissions/', {
-                ...this.newPermission,
-                role_id: this.$route.params.roleId // Ensure permission is linked to the specific role
-            });
-            if (response.status === 201) {
-                alert('新增成功');
-                this.$router.push(`/management/edit_role/${this.$route.params.roleId}`);
-            } else {
-                alert('新增失敗');
-            }
-        } catch (error) {
-            console.error('Error saving permission:', error.response ? error.response.data : error.message);
-            alert('新增失敗');
+      try {
+        const response = await axios.post('/api/backend/role_permissions/', {
+          ...this.newPermission,
+          role: this.$route.params.roleId,
+        });
+        if (response.status >= 200 && response.status < 300) {
+          alert('新增成功');
+          this.$emit('permission-saved');  // 通知父組件權限已經保存
+          this.$router.back();  // 返回到上一个页面
+        } else {
+          alert('新增失敗');
         }
+      } catch (error) {
+        console.error('Error saving permission:', error.response ? error.response.data : error.message);
+        alert(`新增失敗: ${error.response ? error.response.data.detail : error.message}`);
+      }
     },
     cancelPermission() {
-      this.$emit('close');
+      this.$emit('permission-cancelled');  // 通知父組件取消了新增權限
+      this.$router.back();  // 返回到上一个页面
     },
-  },
+  }
 };
 </script>
 

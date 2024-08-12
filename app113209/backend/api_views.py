@@ -102,24 +102,38 @@ class RoleViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         data = request.data.copy()
+
+        # 更新角色基本信息
         module_id = data.get('module')
         users_ids = data.get('users', [])
-
         if module_id:
             module = get_object_or_404(Module, id=module_id)
             instance.module = module
-        
         if users_ids:
             users = User.objects.filter(id__in=users_ids)
             instance.users.set(users)
 
         instance.name = data.get('name', instance.name)
         instance.is_active = data.get('is_active', instance.is_active)
+
+        # 更新权限
+        permissions = data.get('permissions', [])
+        for perm_data in permissions:
+            permission = get_object_or_404(RolePermission, id=perm_data['id'])
+            permission.can_add = perm_data.get('can_add', permission.can_add)
+            permission.can_delete = perm_data.get('can_delete', permission.can_delete)
+            permission.can_edit = perm_data.get('can_edit', permission.can_edit)
+            permission.can_export = perm_data.get('can_export', permission.can_export)
+            permission.can_maintain = perm_data.get('can_maintain', permission.can_maintain)
+            permission.can_print = perm_data.get('can_print', permission.can_print)
+            permission.can_query = perm_data.get('can_query', permission.can_query)
+            permission.can_view = perm_data.get('can_view', permission.can_view)
+            permission.save()
+
         instance.save()
-        
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-
+    
     @action(detail=False, methods=['get'], url_path='get_roles_by_module/(?P<pk>\d+)')
     def get_roles_by_module(self, request, pk=None):
         if pk:
@@ -163,6 +177,73 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
         if role_id:
             return self.queryset.filter(role_id=role_id)
         return self.queryset
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        role_id = data.get('role')
+        permission_name = data.get('permission_name')
+
+        if not role_id or not permission_name:
+            return Response({'error': 'Role and permission name are required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        role = get_object_or_404(Role, id=role_id)
+        permission = RolePermission.objects.create(
+            role=role,
+            permission_name=permission_name,
+            can_add=data.get('can_add', False),
+            can_query=data.get('can_query', False),
+            can_view=data.get('can_view', False),
+            can_edit=data.get('can_edit', False),
+            can_delete=data.get('can_delete', False),
+            can_print=data.get('can_print', False),
+            can_export=data.get('can_export', False),
+            can_maintain=data.get('can_maintain', False)
+        )
+
+        serializer = self.get_serializer(permission)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        
+        # 更新角色基本信息
+        module_id = data.get('module')
+        users_ids = data.get('users', [])
+        if module_id:
+            module = get_object_or_404(Module, id=module_id)
+            instance.module = module
+        if users_ids:
+            users = User.objects.filter(id__in=users_ids)
+            instance.users.set(users)
+        
+        instance.name = data.get('name', instance.name)
+        instance.is_active = data.get('is_active', instance.is_active)
+        
+        # 更新权限
+        permissions = data.get('permissions', [])
+        for perm_data in permissions:
+            permission = get_object_or_404(RolePermission, id=perm_data['id'])
+            permission.can_add = perm_data.get('can_add', permission.can_add)
+            permission.can_delete = perm_data.get('can_delete', permission.can_delete)
+            permission.can_edit = perm_data.get('can_edit', permission.can_edit)
+            permission.can_export = perm_data.get('can_export', permission.can_export)
+            permission.can_maintain = perm_data.get('can_maintain', permission.can_maintain)
+            permission.can_print = perm_data.get('can_print', permission.can_print)
+            permission.can_query = perm_data.get('can_query', permission.can_query)
+            permission.can_view = perm_data.get('can_view', permission.can_view)
+            permission.save()
+        
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class RoleDetailView(APIView):
     def put(self, request, pk, format=None):

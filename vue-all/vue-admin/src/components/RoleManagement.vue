@@ -42,7 +42,7 @@
           <td>{{ role.module_name ? role.module_name : '未知模組' }}</td>
           <td>
             <button class="permissions-btn" @click="openEditRoleModal(role.id)">
-              角色權限
+              編輯角色
             </button>
             <button class="delete-btn" @click="deleteRole(role.id)">
               刪除

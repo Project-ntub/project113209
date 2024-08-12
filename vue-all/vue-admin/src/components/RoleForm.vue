@@ -102,13 +102,17 @@ export default {
       try {
         const roleData = {
           ...this.localRole,
-          users: this.localRole.users
+          users: this.localRole.users,
+          permissions: this.rolePermissions  // 确保权限数据包含在请求中
         };
+        console.log("Sending role data:", roleData);
         const response = this.isEdit
           ? await axios.put(`/api/backend/roles/${this.localRole.id}/`, roleData)
           : await axios.post("/api/backend/roles/", roleData);
+
         if (response.status === 200 || response.status === 201) {
           alert("保存成功");
+          await this.fetchRolePermissions(this.localRole.id);
           this.$emit('role-saved');
           this.$emit('close');
         } else {
@@ -165,6 +169,10 @@ export default {
         if (response.status === 204) {
           // 成功刪除後，從本地權限列表中移除該權限
           this.rolePermissions = this.rolePermissions.filter(permission => permission.id !== permissionId);
+          
+          // 強制更新以反映變更
+          this.$forceUpdate();
+          
           alert('刪除成功');
         } else {
           alert('刪除失敗');

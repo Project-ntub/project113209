@@ -15,6 +15,15 @@ export default {
       type: Boolean,
       required: true
     }
+  },
+  watch: {
+    // 监听路由变化
+    $route(to, from) {
+      // 判断是否返回到角色编辑页面，如果是则关闭模态框
+      if (from.name === 'add-permission' && to.name === 'role-edit') {
+        this.$emit('close');
+      }
+    }
   }
 };
 </script>
