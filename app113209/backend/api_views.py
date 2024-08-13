@@ -18,20 +18,32 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def assign_role_and_module(self, request, pk=None):
         user = self.get_object()
-        module = request.data.get('module')
-        role = request.data.get('role')
-        user.module_id = module
-        user.role_id = role
+        module_id = request.data.get('module')
+        role_ids = request.data.get('roles', [])  # 支持多个角色的分配
+
+        if module_id:
+            module = get_object_or_404(Module, id=module_id)
+            roles = Role.objects.filter(id__in=role_ids, module=module)
+            user.roles.set(roles)
+        else:
+            user.roles.clear()  # 如果沒有選擇模組或角色，清除用戶角色
+        
         user.save()
         return Response({'success': True})
     
     @action(detail=False, methods=['get'])
-    def get_role_users(self, request, role_id=None):
+    def get_role_users(self, request):
         role_id = request.query_params.get('role_id')
         users = User.objects.filter(roles__id=role_id)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
     
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True  # 或者你可以直接刪除用戶
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
 class PendingUserListView(generics.ListAPIView):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
@@ -43,24 +55,13 @@ class ModuleViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.save()
-        print(f"Module {instance.id} is marked as deleted")
+        logger.info(f"Module {instance.id} is marked as deleted")
         
-    def list(self, request, *args, **kwargs):
-        modules = Module.objects.all()
-        print("Modules from backend:", modules)  # 打印後端模組數據
-        serializer = self.get_serializer(modules, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     @action(detail=False, methods=['get'])
     def get_modules(self, request):
         modules = Module.objects.all()
         serializer = self.get_serializer(modules, many=True)
         return Response(serializer.data)
-        
-    def list(self, request, *args, **kwargs):
-        modules = Module.objects.all()
-        serializer = self.get_serializer(modules, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def delete_module(self, request, pk=None):
@@ -74,49 +75,65 @@ class RoleViewSet(viewsets.ModelViewSet):
     serializer_class = RoleSerializer
     permission_classes = [IsAuthenticated]
 
-    
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         module_id = data.get('module')
         users_ids = data.get('users', [])
-        
+
         # Validate module
         if not module_id:
             return Response({'error': 'Module is required'}, status=status.HTTP_400_BAD_REQUEST)
         
-        try:
-            module = Module.objects.get(id=module_id)
-            data['module'] = ModuleSerializer(module).data
-        except Module.DoesNotExist:
-            return Response({'error': 'Module not found'}, status=status.HTTP_400_BAD_REQUEST)
+        module = get_object_or_404(Module, id=module_id)
+        role = Role.objects.create(
+            name=data['name'],
+            module=module,
+            is_active=data.get('is_active', True),
+        )
         
-        # Validate users
-        valid_users = []
-        for user_id in users_ids:
-            try:
-                user = User.objects.get(id=user_id)
-                valid_users.append(user)
-            except User.DoesNotExist:
-                return Response({'error': f'User with id {user_id} not found'}, status=status.HTTP_400_BAD_REQUEST)
+        # Assign users
+        if users_ids:
+            users = User.objects.filter(id__in=users_ids)
+            role.users.set(users)
         
-        data['users'] = valid_users
-
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        serializer = self.get_serializer(role)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        data = request.data
-        data['module'] = Module.objects.get(id=data['module'])
-        data['users'] = User.objects.filter(id__in=data['users'])
-        serializer = self.get_serializer(instance, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        data = request.data.copy()
 
+        # 更新角色基本信息
+        module_id = data.get('module')
+        users_ids = data.get('users', [])
+        if module_id:
+            module = get_object_or_404(Module, id=module_id)
+            instance.module = module
+        if users_ids:
+            users = User.objects.filter(id__in=users_ids)
+            instance.users.set(users)
+
+        instance.name = data.get('name', instance.name)
+        instance.is_active = data.get('is_active', instance.is_active)
+
+        # 更新权限
+        permissions = data.get('permissions', [])
+        for perm_data in permissions:
+            permission = get_object_or_404(RolePermission, id=perm_data['id'])
+            permission.can_add = perm_data.get('can_add', permission.can_add)
+            permission.can_delete = perm_data.get('can_delete', permission.can_delete)
+            permission.can_edit = perm_data.get('can_edit', permission.can_edit)
+            permission.can_export = perm_data.get('can_export', permission.can_export)
+            permission.can_maintain = perm_data.get('can_maintain', permission.can_maintain)
+            permission.can_print = perm_data.get('can_print', permission.can_print)
+            permission.can_query = perm_data.get('can_query', permission.can_query)
+            permission.can_view = perm_data.get('can_view', permission.can_view)
+            permission.save()
+
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['get'], url_path='get_roles_by_module/(?P<pk>\d+)')
     def get_roles_by_module(self, request, pk=None):
         if pk:
@@ -136,15 +153,19 @@ class RoleViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
-
-        # Add the users and module information
-        data['users'] = UserSerializer(instance.users.all(), many=True).data
-        data['module'] = ModuleSerializer(instance.module).data if instance.module else None
         return Response(data)
     
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.prefetch_related('users')
+    
+    @action(detail=True, methods=['post'])
+    def delete(self, request, pk=None):
+        role = get_object_or_404(Role, pk=pk)
+        role.is_deleted = True
+        role.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class RolePermissionViewSet(viewsets.ModelViewSet):
     queryset = RolePermission.objects.filter(is_deleted=False)
@@ -155,15 +176,81 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
         role_id = self.request.query_params.get('role_id')
         if role_id:
             return self.queryset.filter(role_id=role_id)
-        return self.queryset.none()
+        return self.queryset
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        role_id = data.get('role')
+        permission_name = data.get('permission_name')
+
+        if not role_id or not permission_name:
+            return Response({'error': 'Role and permission name are required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        role = get_object_or_404(Role, id=role_id)
+        permission = RolePermission.objects.create(
+            role=role,
+            permission_name=permission_name,
+            can_add=data.get('can_add', False),
+            can_query=data.get('can_query', False),
+            can_view=data.get('can_view', False),
+            can_edit=data.get('can_edit', False),
+            can_delete=data.get('can_delete', False),
+            can_print=data.get('can_print', False),
+            can_export=data.get('can_export', False),
+            can_maintain=data.get('can_maintain', False)
+        )
+
+        serializer = self.get_serializer(permission)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        
+        # 更新角色基本信息
+        module_id = data.get('module')
+        users_ids = data.get('users', [])
+        if module_id:
+            module = get_object_or_404(Module, id=module_id)
+            instance.module = module
+        if users_ids:
+            users = User.objects.filter(id__in=users_ids)
+            instance.users.set(users)
+        
+        instance.name = data.get('name', instance.name)
+        instance.is_active = data.get('is_active', instance.is_active)
+        
+        # 更新权限
+        permissions = data.get('permissions', [])
+        for perm_data in permissions:
+            permission = get_object_or_404(RolePermission, id=perm_data['id'])
+            permission.can_add = perm_data.get('can_add', permission.can_add)
+            permission.can_delete = perm_data.get('can_delete', permission.can_delete)
+            permission.can_edit = perm_data.get('can_edit', permission.can_edit)
+            permission.can_export = perm_data.get('can_export', permission.can_export)
+            permission.can_maintain = perm_data.get('can_maintain', permission.can_maintain)
+            permission.can_print = perm_data.get('can_print', permission.can_print)
+            permission.can_query = perm_data.get('can_query', permission.can_query)
+            permission.can_view = perm_data.get('can_view', permission.can_view)
+            permission.save()
+        
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class RoleDetailView(APIView):
     def put(self, request, pk, format=None):
         role = get_object_or_404(Role, pk=pk)
-        serializer = RoleSerializer(role, data=request.data)
+        serializer = RoleSerializer(role, data=request.data, partial=True)
         if serializer.is_valid():
             role = serializer.save()
-            # 更新角色的成員關係
             role.users.set(request.data.get('users', []))
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -172,12 +259,11 @@ class RoleDetailView(APIView):
         serializer = RoleSerializer(data=request.data)
         if serializer.is_valid():
             role = serializer.save()
-            # 設定新角色的成員
             role.users.set(request.data.get('users', []))
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 你還可以保留 generics 視圖來處理更多CRUD操作：
+# 保留 generics 視圖來處理更多CRUD操作：
 class RoleListCreateView(generics.ListCreateAPIView):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
@@ -201,4 +287,3 @@ class ModuleListCreateView(generics.ListCreateAPIView):
 class ModuleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
-

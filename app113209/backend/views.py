@@ -389,14 +389,14 @@ def module_management(request):
 @permission_classes([IsAuthenticated])
 def create_role(request):
     role_data = request.data.get('role', {})
-    role_permissions_data = request.data.get('role_permissions', [])
+    role_permission_data = request.data.get('role_permission', [])
 
     serializer = RoleSerializer(data=role_data)
     if serializer.is_valid():
         role = serializer.save()
 
         # 處理權限
-        for perm_data in role_permissions_data:
+        for perm_data in role_permission_data:
             RolePermission.objects.create(
                 role=role,
                 permission_name=perm_data.get('permission_name'),
@@ -420,7 +420,7 @@ def edit_role(request, role_id):
     try:
         role = get_object_or_404(Role, id=role_id)
         role_data = request.data['role']
-        role_permissions_data = request.data.get('role_permissions', [])
+        role_permission_data = request.data.get('role_permission', [])
 
         role.name = role_data['name']
         role.is_active = role_data['is_active']
@@ -428,7 +428,7 @@ def edit_role(request, role_id):
         role.save()
 
         role.rolepermission_set.all().delete()
-        for perm_data in role_permissions_data:
+        for perm_data in role_permission_data:
             RolePermission.objects.create(
                 role=role,
                 permission_name=perm_data['permission_name'],

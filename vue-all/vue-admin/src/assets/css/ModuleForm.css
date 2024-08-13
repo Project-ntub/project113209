@@ -1,4 +1,4 @@
-/* CreateModule.css */
+/* src/assets/css/ModuleForm.css */
 
 .container {
     max-width: 800px;
@@ -13,21 +13,6 @@
     text-align: left;
 }
 
-label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
 .btn {
     padding: 10px 20px;
     border: none;
@@ -38,6 +23,14 @@ input[type="text"] {
     margin-right: 10px;
 }
 
+.btn.secondary {
+    background-color: #6c757d;
+}
+
 .btn:hover {
+    background-color: #5a6268;
+}
+
+.btn.secondary:hover {
     background-color: #5a6268;
 }
