@@ -1,43 +1,50 @@
 <template>
-  <div class="container">
-    <div class="header">
-      <h2>儀表板管理</h2>
-      <div class="buttons">
-        <button>新增圖表</button>
-        <button>編輯圖表</button>
+  <div>
+    <Sidebar :isSidebarActive="isSidebarActive" />
+    <div class="container" :class="{ shifted: isSidebarActive }">
+      <div class="header">
+        <h2>儀表板管理</h2>
+        <div class="buttons">
+          <button>新增圖表</button>
+          <button>編輯圖表</button>
+        </div>
       </div>
-    </div>
-    <div class="chart-grid">
-      <div class="chart">
-        <h3>銷售額</h3>
-        <canvas id="salesChart"></canvas>
-      </div>
-      <div class="chart">
-        <h3>營業額</h3>
-        <canvas id="usersChart"></canvas>
-      </div>
-      <div class="chart">
-        <h3>庫存量</h3>
-        <canvas id="storageChart"></canvas>
-      </div>
-      <div class="chart">
-        <h3>其他圖表</h3>
-        <canvas id="otherChart"></canvas>
+      <div class="chart-grid">
+        <div class="chart">
+          <h3>銷售額</h3>
+          <canvas id="salesChart"></canvas>
+        </div>
+        <div class="chart">
+          <h3>營業額</h3>
+          <canvas id="usersChart"></canvas>
+        </div>
+        <div class="chart">
+          <h3>庫存量</h3>
+          <canvas id="storageChart"></canvas>
+        </div>
+        <div class="chart">
+          <h3>其他圖表</h3>
+          <canvas id="otherChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// import '../assets/Dashboard.css';
 import { ref, onMounted } from 'vue';
 import { Chart, registerables } from 'chart.js';
+import Sidebar from './SideBar.vue';  // 引入 Sidebar.vue
 
 Chart.register(...registerables);
 
 export default {
   name: 'AppDashboard',
+  components: {
+    Sidebar,  // 注册 Sidebar 组件
+  },
   setup() {
+    const isSidebarActive = ref(false);
     const salesChart = ref(null);
     const usersChart = ref(null);
     const storageChart = ref(null);
@@ -113,11 +120,17 @@ export default {
       });
     });
 
+    const toggleSidebar = () => {
+      isSidebarActive.value = !isSidebarActive.value;
+    };
+
     return {
+      isSidebarActive,
       salesChart,
       usersChart,
       storageChart,
-      otherChart
+      otherChart,
+      toggleSidebar,
     };
   }
 };

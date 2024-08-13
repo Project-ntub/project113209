@@ -13,6 +13,9 @@ import ModuleManagement from '../components/ModuleManagement.vue';
 import RoleForm from '../components/RoleForm.vue'; 
 import ModuleForm from '../components/ModuleForm.vue';
 import RolePermissions from '../components/RolePermissions.vue';
+import HistoricalRecord from '@/components/HistoricalRecord.vue';
+import PersonalPreference from '@/components/PersonalPreference.vue';
+import Profile from '@/components/Profile.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -35,7 +38,10 @@ const routes = [
       { path: 'create-module', component: ModuleForm, name: 'createModule' },
       { path: 'edit_module/:moduleId', component: ModuleForm, name: 'editModule' },
       { path: 'role_permissions/:roleId', component: RolePermissions, name: 'rolePermissions' },
-    ],
+      { path: 'history', component: HistoricalRecord, name: 'history'},    
+      { path: 'preferences', component: PersonalPreference, name: 'preference'},
+      { path: 'profile', component: Profile, name: 'profile'}
+    ],  
   },
 ];
 
