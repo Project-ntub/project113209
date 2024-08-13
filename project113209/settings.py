@@ -146,8 +146,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = '11236017@ntub.edu.tw'
-EMAIL_HOST_PASSWORD = 'cxur tzpv jiwm yytp'
+EMAIL_HOST_USER = 'testntub0806@gmail.com'
+EMAIL_HOST_PASSWORD = 'kcov akht qigk wftx'
 
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -165,7 +165,7 @@ CACHES = {
 # 认证后端
 AUTHENTICATION_BACKENDS = (
     'app113209.backends.EmailBackend',
-    'two_factor.auth_backend.TwoFactorBackend',
+    # 'two_factor.auth_backend.TwoFactorBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 

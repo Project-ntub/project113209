@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginPage from '@/views/LoginPage.vue';
 import RegisterPage from '@/views/RegisterPage.vue';
-import ForgetPasswordPage from '@/views/ForgetPasswordPage.vue';
+import ForgetPasswordPage from '@/views/ForgetPasswordPage.vue';  // 確保名稱一致
 import HomePage from '@/views/HomePage.vue';
 import ProfilePage from '@/views/ProfilePage.vue';
 import AccountSettings from '@/views/AccountSettings.vue';
@@ -15,7 +15,7 @@ const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', name: 'Login', component: LoginPage, meta: { hideNavbar: true, hideSidebar: true } },
   { path: '/register', name: 'Register', component: RegisterPage, meta: { hideNavbar: true, hideSidebar: true } },
-  { path: '/forgetpassword', name: 'ForgetPassword', component: ForgetPasswordPage, meta: { hideNavbar: true, hideSidebar: true } },
+  { path: '/forgot_password', name: 'ForgetPassword', component: ForgetPasswordPage, meta: { hideNavbar: true, hideSidebar: true } },  // 修改為 'forgot_password'
   { path: '/home', name: '首頁', component: HomePage },
   { path: '/profile', name: '個人資訊', component: ProfilePage },
   { path: '/accountsettings', name: '帳號設定', component: AccountSettings },
@@ -28,7 +28,6 @@ const routes = [
 ];
 
 const router = createRouter({
-  // history: createWebHistory(process.env.BASE_URL),
   history: createWebHistory(),
   routes,
 });

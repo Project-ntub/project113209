@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import axios from 'axios'; // 直接从 axios 库中导入 axios
+
 export default {
   data() {
     return {
@@ -40,10 +42,32 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      // 模擬登錄成功的邏輯，無論輸入什麼都認為登錄成功
-      this.loginFeedback = '登入成功';
-      this.$router.push('/home'); // 成功登錄後重定向到首頁
+    async handleLogin() {
+      try {
+        // POST 請求到 Django 後端的 /api/token/ 端點
+        const response = await axios.post('http://127.0.0.1:8000/api/token/', {
+          email: this.email,
+          password: this.password
+        });
+        
+        if (response.status === 200) {
+          // 保存 token 到 localStorage 或 sessionStorage
+          localStorage.setItem('token', response.data.access);
+          if (this.rememberMe) {
+            localStorage.setItem('refreshToken', response.data.refresh);
+          } else {
+            sessionStorage.setItem('refreshToken', response.data.refresh);
+          }
+          this.loginFeedback = '登入成功';
+          this.$router.push('/home'); // 成功登錄後重定向到首頁
+        }
+      } catch (error) {
+        if (error.response && error.response.data) {
+          this.loginFeedback = error.response.data.detail || '登入失敗，請檢查您的電子郵件和密碼';
+        } else {
+          this.loginFeedback = '登入失敗，請稍後再試';
+        }
+      }
     },
     togglePasswordVisibility(inputId) {
       const passwordInput = document.getElementById(inputId);
@@ -57,4 +81,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/LoginPage.css"></style>
+<style scoped src="../assets/css/LoginPage.css"></style>

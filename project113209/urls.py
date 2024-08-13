@@ -2,10 +2,11 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-import two_factor.urls
-
+# import two_factor.urls
+from django.shortcuts import redirect
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', lambda request: redirect('/frontend/login/')), 
     path('api/', include('app113209.backend.api_urls')),
     path('frontend/', include('app113209.frontend.urls', namespace='frontend')),
     path('backend/', include('app113209.backend.urls', namespace='backend')),

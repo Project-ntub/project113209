@@ -4,27 +4,9 @@ body {
   margin: 0;
   padding: 0;
 }
-.header-bar {
-  width: 100%;
-  background-color: black;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 18px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-}
-.content {
-  margin-top: 60px;
-  padding: 20px;
-}
 .container {
   max-width: 400px;
-  margin: 100px auto 50px;
+  margin: 50px auto;
   padding: 20px;
   background-color: #fff;
   border-radius: 10px;
@@ -39,9 +21,6 @@ label {
   display: block;
   margin-bottom: 5px;
 }
-.password-container {
-  position: relative;
-}
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -53,16 +32,6 @@ button {
   border-radius: 5px;
   border: 1px solid #ccc;
   box-sizing: border-box;
-}
-.password-container input[type="password"] {
-  padding-right: 40px;
-}
-.password-container .toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
 }
 button {
   background-color: #007bff;
@@ -82,13 +51,17 @@ input[type="submit"] {
 input[type="submit"]:hover {
   background-color: #218838;
 }
-.feedback {
+.terms {
   font-size: 12px;
-  color: red;
   text-align: center;
 }
-.password-example {
-  font-size: 12px;
-  color: #666;
+.terms a {
+  color: #007bff;
+  text-decoration: none;
+}
+.error {
+  color: red;
+  margin-top: -15px;
   margin-bottom: 20px;
+  text-align: center;
 }
