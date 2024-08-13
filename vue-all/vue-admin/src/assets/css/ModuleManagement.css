@@ -16,14 +16,23 @@ body {
 
 .header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-start;
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
+.header h2 {
+    margin: 0;
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
 .header button {
-    margin-right: 10px;
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
@@ -41,35 +50,31 @@ body {
     background-color: #007bff;
 }
 
-.header button.inactive {
-    background-color: #6c757d;
-}
-
-.module-table, .role-table {
+.module-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
-.module-table th, .module-table td, .role-table th, .role-table td {
+.module-table th, .module-table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
 }
 
-.module-table th, .role-table th {
+.module-table th {
     background-color: #f2f2f2;
 }
 
-.module-table tr:nth-child(even), .role-table tr:nth-child(even) {
+.module-table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.module-table tr:hover, .role-table tr:hover {
+.module-table tr:hover {
     background-color: #ddd;
 }
 
-.delete-btn, .edit-btn, .status-btn, .permissions-btn {
+button {
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
@@ -79,36 +84,17 @@ body {
     margin: 2px;
 }
 
-.delete-btn {
+button.edit {
+    background-color: #007bff;
+}
+
+button.delete {
     background-color: #dc3545;
 }
 
-.delete-btn:hover {
-    background-color: #c82333;
-}
-
-.edit-btn {
-    background-color: #007bff;
-}
-
-.edit-btn:hover {
-    background-color: #0056b3;
-}
-
-.status-btn {
-    background-color: #007bff;
-}
-
-.status-btn:hover {
-    background-color: #0056b3;
-}
-
-.permissions-btn {
-    background-color: #28a745;
-}
-
-.permissions-btn:hover {
-    background-color: #218838;
+button.edit:hover, 
+button.delete:hover {
+    opacity: 0.8;
 }
 
 .modal {
@@ -144,20 +130,4 @@ body {
     color: black;
     text-decoration: none;
     cursor: pointer;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
 }

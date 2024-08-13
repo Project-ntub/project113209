@@ -1,11 +1,14 @@
 <template>
   <div class="container">
     <div class="header">
-      <button class="btn" @click="navigateToRoleManagement">角色</button>
-      <button class="btn" @click="navigateToModuleManagement">模組</button>
+      <h2>模組管理</h2>
+      <div class="btn-group">
+        <button id="add-module-btn" class="btn" @click="openCreateModuleModal">新增模組</button>
+        <button class="btn" @click="navigateToRoleManagement">角色</button>
+        <button class="btn" @click="navigateToModuleManagement">模組</button>
+      </div>
     </div>
-    <h2>模組管理</h2>
-    <button id="add-module-btn" class="btn" @click="openCreateModuleModal">新增模組</button>
+    
     <table class="module-table">
       <thead>
         <tr>

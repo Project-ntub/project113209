@@ -1,11 +1,11 @@
 <template>
   <div class="container">
     <div class="header">
+      <h2>角色管理</h2>
+      <button id="add-role-btn" class="btn" @click="openCreateRoleModal">新增角色</button>
       <button class="btn" @click="navigateToRoleManagement">角色</button>
       <button class="btn" @click="navigateToModuleManagement">模組</button>
     </div>
-    <h2>角色管理</h2>
-    <button id="add-role-btn" class="btn" @click="openCreateRoleModal">新增角色</button>
     <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal">
       <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
     </RoleModal>
