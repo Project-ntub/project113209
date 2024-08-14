@@ -2,14 +2,13 @@
   <div class="container">
     <div class="header">
       <h2>角色管理</h2>
-      <button id="add-role-btn" class="btn" @click="openCreateRoleModal">新增角色</button>
+      <button id="add-role-btn" class="btn add-role-btn" @click="openCreateRoleModal">新增角色</button>
       <button class="btn" @click="navigateToRoleManagement">角色</button>
       <button class="btn" @click="navigateToModuleManagement">模組</button>
     </div>
     <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal">
       <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
     </RoleModal>
-    <label for="chart-module-select">圖表模組:</label>
     <select id="chart-module-select" v-model="selectedModule" @change="filterRolesByModule">
       <option value="all">所有模組</option>
       <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
@@ -29,9 +28,10 @@
         <tr v-for="role in filteredRoles" :key="role.id" :data-module="role.module.id">
           <td>{{ role.name }}</td>
           <td>
-            <button class="status-btn" @click="toggleStatus(role.id, !role.is_active)">
-              {{ role.is_active ? '關閉' : '開啟' }}
-            </button>
+            <label class="switch">
+              <input type="checkbox" :checked="role.is_active" @change="toggleStatus(role.id, !role.is_active)">
+              <span class="slider"></span>
+            </label>
           </td>
           <td>{{ role.users.length }}</td>
           <td>
@@ -80,11 +80,17 @@ export default {
     };
   },
   computed: {
-    filteredRoles() {
-      return this.roles.filter(role => {
-        return this.selectedModule === 'all' || role.module.id === this.selectedModule;
-      });
-    }
+      filteredRoles() {
+          console.log('Selected Module:', this.selectedModule);
+          if (this.selectedModule === 'all') {
+              return this.roles;
+          }
+          const filtered = this.roles.filter(role => {
+              return role.module == this.selectedModule;
+          });
+          console.log('Filtered roles:', filtered);
+          return filtered;
+      }
   },
   methods: {
     async fetchRoles() {
@@ -101,11 +107,14 @@ export default {
     async fetchModules() {
       try {
         const response = await axios.get('/api/backend/modules/');
-        this.modules = response.data;
+        this.modules = response.data.filter(module => !module.is_deleted); // 过滤已删除的模组
       } catch (error) {
         console.error('Error fetching modules:', error);
       }
     },
+    filterRolesByModule() {
+      this.filteredRoles; // 确保计算属性生效
+    }, 
     openCreateRoleModal() {
       this.showCreateRoleModal = true;
     },

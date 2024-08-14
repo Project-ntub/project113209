@@ -32,7 +32,17 @@ body {
     margin-left: auto;
 }
 
-.header button {
+/* 新增模組按鈕樣式 */
+.add-module-btn {
+    background-color: #28a745; /* 使用綠色，與新增角色一致 */
+}
+
+.add-module-btn:hover {
+    background-color: #218838;
+}
+
+/* 角色和模組按鈕樣式 */
+.btn {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
@@ -42,12 +52,8 @@ body {
     font-size: 16px;
 }
 
-.header button:hover {
+.btn:hover {
     background-color: #5a6268;
-}
-
-.header button.active {
-    background-color: #007bff;
 }
 
 .module-table {
@@ -74,27 +80,33 @@ body {
     background-color: #ddd;
 }
 
-button {
+/* 編輯和刪除按鈕的樣式 */
+.edit-btn {
+    background-color: #007bff; /* 藍色 */
+    color: white;
     padding: 8px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    color: white;
-    font-size: 14px;
     margin: 2px;
 }
 
-button.edit {
-    background-color: #007bff;
+.edit-btn:hover {
+    background-color: #0056b3;
 }
 
-button.delete {
+.delete-btn {
     background-color: #dc3545;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 2px;
 }
 
-button.edit:hover, 
-button.delete:hover {
-    opacity: 0.8;
+.delete-btn:hover {
+    background-color: #c82333;
 }
 
 .modal {

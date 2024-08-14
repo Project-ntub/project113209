@@ -3,7 +3,7 @@
     <div class="header">
       <h2>模組管理</h2>
       <div class="btn-group">
-        <button id="add-module-btn" class="btn" @click="openCreateModuleModal">新增模組</button>
+        <button id="add-module-btn" class="btn add-module-btn" @click="openCreateModuleModal">新增模組</button>
         <button class="btn" @click="navigateToRoleManagement">角色</button>
         <button class="btn" @click="navigateToModuleManagement">模組</button>
       </div>
@@ -22,8 +22,8 @@
           <td>{{ module.name }}</td>
           <td>{{ getUserCount(module.id) }}</td>
           <td>
-            <button @click="openEditModuleModal(module.id, module.name)">編輯</button>
-            <button @click="deleteModule(module.id)">刪除</button>
+            <button class="edit-btn" @click="openEditModuleModal(module.id, module.name)">編輯</button>
+            <button class="delete-btn" @click="deleteModule(module.id)">刪除</button>
           </td>
         </tr>
       </tbody>

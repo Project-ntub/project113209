@@ -5,9 +5,24 @@ body {
   padding: 0;
 }
 
+.add-role-btn {
+  background-color: #28a745; /* 綠色按鈕 */
+}
+
+.add-role-btn:hover {
+  background-color: #218838; /* 綠色hover效果 */
+}
+
+.btn {
+  background-color: #6c757d; /* 其他按鈕保持原樣 */
+}
+
+.btn:hover {
+  background-color: #5a6268; /* 其他按鈕hover效果 */
+}
+
 .container {
   width: 90%;
-  /* max-width: 1200px; */
   margin: 20px auto;
   background-color: #ffffff;
   padding: 20px;
@@ -73,6 +88,7 @@ body {
   background-color: #ddd;
 }
 
+/* 用戶管理的黃色 */
 .status-btn {
   padding: 8px 15px;
   border: none;
@@ -81,13 +97,14 @@ body {
   color: white;
   font-size: 14px;
   margin: 2px;
-  background-color: #007bff;
+  background-color: #ffc107; /* 狀態按鈕的黃色 */
 }
 
 .status-btn:hover {
-  background-color: #0056b3;
+  background-color: #e0a800;
 }
 
+/* 編輯角色改成藍色 */
 .permissions-btn {
   padding: 8px 15px;
   border: none;
@@ -96,13 +113,14 @@ body {
   color: white;
   font-size: 14px;
   margin: 2px;
-  background-color: #28a745;
+  background-color: #007bff; /* 編輯按鈕的藍色 */
 }
 
 .permissions-btn:hover {
-  background-color: #218838;
+  background-color: #0056b3;
 }
 
+/* 刪除按鈕保持紅色 */
 .delete-btn {
   padding: 8px 15px;
   border: none;
@@ -200,3 +218,51 @@ select {
       margin: 5px 0;
   }
 }
+
+/* 開關樣式 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;  /* 調整寬度 */
+  height: 20px; /* 調整高度 */
+  margin: 0 auto;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 20px;  /* 調整半徑以配高度 */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px; /* 調整高度 */
+  width: 14px;  /* 調整寬度 */
+  left: 3px;    /* 調整位置 */
+  bottom: 3px;  /* 調整位置 */
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #007bff;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);  /* 根據開關寬度調整移動距離 */
+}
+
