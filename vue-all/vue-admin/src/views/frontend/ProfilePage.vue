@@ -86,4 +86,4 @@ export default {
 };
 </script>
 
-<style scoped src="../assets/css/ProfilePage.css"></style>
+<style scoped src="@/assets/css/frontend/ProfilePage.css"></style>

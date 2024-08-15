@@ -2,12 +2,34 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import axios from './axios'; // 確保你正確地匯入了 axios 實例
+import axios from './axios'; 
 
 const app = createApp(App);
 
+// 通用的配置
 app.use(router);
 app.use(store);
-app.config.globalProperties.$axios = axios; // 將 axios 實例掛載到全域屬性中
 
-app.mount('#app');
+// 判斷前台還是後台
+const isBackend = window.location.pathname.startsWith('/admin');
+
+// 根據判斷加載不同的配置
+if (isBackend) {
+  // 後台特有的配置
+  app.config.globalProperties.$axios = axios; 
+} else {
+  // 前台特有的配置
+  import('@fortawesome/fontawesome-svg-core').then(({ library }) => {
+    import('@fortawesome/vue-fontawesome').then(({ FontAwesomeIcon }) => {
+      import('@fortawesome/free-solid-svg-icons').then(({ fas }) => {
+        library.add(fas);
+        app.component('font-awesome-icon', FontAwesomeIcon);
+        app.mount('#app');
+      });
+    });
+  });
+}
+
+if (isBackend) {
+  app.mount('#app');
+}

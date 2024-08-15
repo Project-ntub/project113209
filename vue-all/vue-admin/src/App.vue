@@ -1,12 +1,40 @@
 <template>
   <div id="app">
-    <router-view></router-view>
+    <!-- 只有在不是後台並且需要顯示導航欄時才顯示 TopNavbar -->
+    <TopNavbar v-if="!isBackend && showTopNavbar" />
+    
+    <!-- 根據 isBackend 條件來渲染不同的 Sidebar -->
+    <SidebarPage v-if="!isBackend && !$route.meta.hideSidebar" />
+    <SidebarBackend v-if="isBackend" />
+
+    <!-- 渲染當前路由對應的組件 -->
+    <router-view />
   </div>
 </template>
 
 <script>
+// 引入前台和後台的 Sidebar 組件
+import TopNavbar from '@/components/frontend/TopNavbar.vue';
+import SidebarPage from '@/components/frontend/SidebarPage.vue';
+import SidebarBackend from '@/components/backend/SideBar.vue';
+
 export default {
   name: 'App',
+  components: {
+    TopNavbar,
+    SidebarPage,
+    SidebarBackend
+  },
+  computed: {
+    // 判斷當前路由是否屬於後台
+    isBackend() {
+      return this.$route.path.startsWith('/backend');
+    },
+    // 判斷是否顯示前台的 TopNavbar
+    showTopNavbar() {
+      return !this.isBackend && !this.$route.meta.hideNavbar;
+    }
+  }
 };
 </script>
 

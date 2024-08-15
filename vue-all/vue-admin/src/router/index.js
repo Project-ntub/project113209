@@ -1,48 +1,73 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from '../components/Login.vue';
-import Register from '../components/Register.vue';
-import ForgetPasswordPage from '../components/ForgetPasswordPage.vue';
-import Management from '../components/Management.vue';
-import Dashboard from '../components/Dashboard.vue';
-import UserManagement from '../components/UserManagement.vue';
-import RoleManagement from '../components/RoleManagement.vue';
-import PendingList from '../components/PendingList.vue';
-import EditUser from '../components/EditUser.vue';
-import AssignRole from '@/components/AssignRole.vue';
-import ModuleManagement from '../components/ModuleManagement.vue';
-import RoleForm from '../components/RoleForm.vue'; 
-import ModuleForm from '../components/ModuleForm.vue';
-import RolePermissions from '../components/RolePermissions.vue';
-import HistoricalRecord from '@/components/HistoricalRecord.vue';
-import PersonalPreference from '@/components/PersonalPreference.vue';
-import Profile from '@/components/Profile.vue';
+
+// Frontend Views
+import LoginPage from '@/views/frontend/LoginPage.vue';
+import RegisterPage from '@/views/frontend/RegisterPage.vue';
+import ForgetPasswordPage from '@/views/frontend/ForgetPasswordPage.vue';
+import HomePage from '@/views/frontend/HomePage.vue';
+import ProfilePage from '@/views/frontend/ProfilePage.vue';
+import AccountSettings from '@/views/frontend/AccountSettings.vue';
+import ChangePassword from '@/views/frontend/ChangePassword.vue';
+import PreferenceSetting from '@/views/frontend/PreferenceSetting.vue';
+import HistoryPage from '@/views/frontend/HistoryPage.vue';
+import HistoryDetails from '@/views/frontend/HistoryDetails.vue';
+import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
+
+// Backend Views
+import Login from '@/views/backend/Login.vue';
+import Register from '@/views/backend/Register.vue';
+import ForgetPassword from '@/views/backend/ForgetPassword.vue';
+import Management from '@/views/backend/Management.vue';
+import Dashboard from '@/views/backend/Dashboard.vue';
+import UserManagement from '@/views/backend/UserManagement.vue';
+import RoleManagement from '@/views/backend/RoleManagement.vue';
+import PendingList from '@/views/backend/PendingList.vue';
+import EditUser from '@/components/backend/EditUser.vue';
+import AssignRole from '@/components/backend/AssignRole.vue';
+import ModuleManagement from '@/views/backend/ModuleManagement.vue';
+import RoleForm from '@/components/backend/RoleForm.vue';
+import ModuleForm from '@/components/backend/ModuleForm.vue';
+import RolePermissions from '@/components/backend/RolePermissions.vue';
+import HistoricalRecord from '@/views/backend/HistoricalRecord.vue';
+import PersonalPreference from '@/views/backend/PersonalPreference.vue';
+import Profile from '@/views/backend/Profile.vue';
 
 const routes = [
-  { path: '/', redirect: '/login' },
-  { path: '/login', component: Login },
-  { path: '/register', component: Register },
-  { path: '/forgetpassword', component: ForgetPasswordPage },
-  {
-    path: '/management',
-    component: Management,
-    children: [
-      { path: 'dashboard', component: Dashboard },
-      { path: 'user-management', component: UserManagement, name: 'userManagement' },
-      { path: 'role-management', component: RoleManagement, name: 'roleManagement' },
-      { path: 'pending_list', component: PendingList, name: 'pendingList' },
-      { path: 'edit_user/:userId', component: EditUser, name: 'editUser' },
-      { path: 'assign_role/:userId', component: AssignRole, name: 'assignRole' },
-      { path: 'module-management', component: ModuleManagement, name: 'moduleManagement' },
-      { path: 'create_role', component: RoleForm, name: 'createRole' },
-      { path: 'edit_role/:roleId', component: RoleForm, name: 'editRole' },
-      { path: 'create-module', component: ModuleForm, name: 'createModule' },
-      { path: 'edit_module/:moduleId', component: ModuleForm, name: 'editModule' },
-      { path: 'role_permissions/:roleId', component: RolePermissions, name: 'rolePermissions' },
-      { path: 'history', component: HistoricalRecord, name: 'history'},    
-      { path: 'preferences', component: PersonalPreference, name: 'preference'},
-      { path: 'profile', component: Profile, name: 'profile'}
-    ],  
-  },
+  // Frontend Routes
+  { path: '/', redirect: '/frontend/login' },
+  { path: '/frontend/login', name: 'FrontendLogin', component: LoginPage, meta: { hideNavbar: true, hideSidebar: true } },
+  { path: '/frontend/register', name: 'FrontendRegister', component: RegisterPage, meta: { hideNavbar: true, hideSidebar: true } },
+  { path: '/frontend/forgot_password', name: 'FrontendForgetPassword', component: ForgetPasswordPage, meta: { hideNavbar: true, hideSidebar: true } },
+  { path: '/frontend/home', name: 'FrontendHome', component: HomePage },
+  { path: '/frontend/profile', name: 'FrontendProfile', component: ProfilePage },
+  { path: '/frontend/accountsettings', name: 'FrontendAccountSettings', component: AccountSettings },
+  { path: '/frontend/changepassword', name: 'FrontendChangePassword', component: ChangePassword },
+  { path: '/frontend/preferences', name: 'FrontendPreferences', component: PreferenceSetting },
+  { path: '/frontend/historydetails', name: 'FrontendHistoryDetails', component: HistoryDetails },
+  { path: '/frontend/detail/:id', name: 'FrontendDetail', component: HistoryDetails },
+  { path: '/frontend/history', name: 'FrontendHistory', component: HistoryPage },
+  { path: '/frontend/resetpassword', name: 'FrontendResetPassword', component: ResetPasswordPage },
+
+  // Backend Routes
+  { path: '/backend/login', name: 'BackendLogin', component: Login },
+  { path: '/backend/register', name: 'BackendRegister', component: Register },
+  { path: '/backend/forgetpassword', name: 'BackendForgetPassword', component: ForgetPassword },
+  { path: '/backend/management', name: 'BackendManagement', component: Management },
+  { path: '/backend/dashboard', name: 'BackendDashboard', component: Dashboard },
+  { path: '/backend/user-management', name: 'BackendUserManagement', component: UserManagement },
+  { path: '/backend/role-management', name: 'BackendRoleManagement', component: RoleManagement },
+  { path: '/backend/pending_list', name: 'BackendPendingList', component: PendingList },
+  { path: '/backend/edit_user/:userId', name: 'BackendEditUser', component: EditUser },
+  { path: '/backend/assign_role/:userId', name: 'BackendAssignRole', component: AssignRole },
+  { path: '/backend/module-management', name: 'BackendModuleManagement', component: ModuleManagement },
+  { path: '/backend/create_role', name: 'BackendCreateRole', component: RoleForm },
+  { path: '/backend/edit_role/:roleId', name: 'BackendEditRole', component: RoleForm },
+  { path: '/backend/create-module', name: 'BackendCreateModule', component: ModuleForm },
+  { path: '/backend/edit_module/:moduleId', name: 'BackendEditModule', component: ModuleForm },
+  { path: '/backend/role_permissions/:roleId', name: 'BackendRolePermissions', component: RolePermissions },
+  { path: '/backend/history', name: 'BackendHistory', component: HistoricalRecord },    
+  { path: '/backend/preferences', name: 'BackendPreference', component: PersonalPreference },
+  { path: '/backend/profile', name: 'BackendProfile', component: Profile }
 ];
 
 const router = createRouter({
