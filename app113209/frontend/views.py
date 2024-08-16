@@ -11,6 +11,8 @@ from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.decorators import api_view
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SendVerificationCodeView(View):
@@ -116,3 +118,28 @@ class FrontendLoginView(View):
 def csrf_token_view(request):
     csrf_token = get_token(request)
     return JsonResponse({'csrfToken': csrf_token})
+
+
+@api_view(['GET', 'PUT'])
+def user_profile (request):
+    if request.method == 'GET':
+        user = request.user
+        data = {
+            "username": user.username,
+            "email": user.email,
+            "phone": user.phone,
+            "department_name": user.department_id,
+            "position_name": user.position_id
+        }
+        return JsonResponse
+    
+    if request.method == "PUT":
+        user = request.user
+        data = json.loads(request.body)
+        user.email = data.get("email", user.email)
+        user.phone = data.get("phone", user.phone)
+        user.department_id = data.get("department_id", user.department_id)
+        user.position_id = data.get("position_id", user.position_id)
+        user.save()
+        return JsonResponse
+    
