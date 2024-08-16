@@ -1,6 +1,5 @@
 <template>
   <div class="app-container">
-    <Sidebar :isSidebarActive="isSidebarActive" />
     <div class="app-content" :class="{ shifted: isSidebarActive }">
       <h1>個人偏好管理</h1>
       <form @submit.prevent="updatePreferences">
@@ -138,13 +137,8 @@
 </template>
 
 <script>
-import Sidebar from '@/components/backend/SideBar.vue';
-
 export default {
   name: 'PersonalPreference',
-  components: {
-    Sidebar
-  },
   data() {
     return {
       preferences: {

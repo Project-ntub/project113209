@@ -2,7 +2,7 @@
   <div class="container">
     <h2>登入</h2>
     <form @submit.prevent="login">
-      <input type="hidden" name="next" value="/management" />
+      <input type="hidden" name="next" value="/backend/management" />
       <div class="form-group">
         <label for="email">帳號:</label>
         <input type="email" id="email" v-model="email" required />
@@ -18,10 +18,10 @@
       <button type="submit" class="btn-login">登入</button>
     </form>
     <p>
-      還未擁有帳號? <router-link to="/register">註冊</router-link>
+      還未擁有帳號? <router-link to="/frontend/register">註冊</router-link>
     </p>
     <p>
-      忘記密碼? <router-link to="/forgetpassword">重置密碼</router-link>
+      忘記密碼? <router-link to="/frontend/forgot_password">重置密碼</router-link>
     </p>
     <p v-if="error">{{ error }}</p>
   </div>

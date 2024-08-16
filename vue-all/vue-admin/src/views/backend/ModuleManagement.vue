@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Sidebar :isSidebarActive="isSidebarActive" @toggleSidebar="toggleSidebar" />
     <div class="container" :class="{ shifted: isSidebarActive }">
       <div class="header">
         <h2>模組管理</h2>
@@ -40,13 +39,11 @@
 <script>
 import axios from '@/axios'; 
 import ModuleForm from '@/components/backend/ModuleForm.vue';
-import Sidebar from '@/components/backend/SideBar.vue';
 
 export default {
   name: "ModuleManagement",
   components: {
     ModuleForm,
-    Sidebar
   },
   data() {
     return {
@@ -130,10 +127,10 @@ export default {
       }
     },
     navigateToRoleManagement() {
-      this.$router.push('/role-management');
+      this.$router.push('/backend/role-management');
     },
     navigateToModuleManagement() {
-      this.$router.push('/module-management');
+      this.$router.push('/backend/module-management');
     },
     getUserCount(moduleId) {
       const module = this.modules.find(m => m.id === moduleId);

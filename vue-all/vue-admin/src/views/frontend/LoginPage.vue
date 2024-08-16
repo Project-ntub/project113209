@@ -19,12 +19,12 @@
             <input type="checkbox" id="rememberMe" v-model="rememberMe" />
             記住我
           </label>
-          <router-link to="/forgetpassword">忘記密碼?</router-link>
+          <router-link to="/frontend/forgetpassword">忘記密碼?</router-link>
         </div>
         <input type="submit" value="登入" class="submit-button" />
         <div id="login-feedback" class="feedback">{{ loginFeedback }}</div>
       </form>
-      <p>還未擁有帳號？ <router-link to="/register">註冊</router-link></p>
+      <p>還未擁有帳號？ <router-link to="/frontend/register">註冊</router-link></p>
     </div>
   </div>
 </template>
@@ -59,7 +59,7 @@ export default {
             sessionStorage.setItem('refreshToken', response.data.refresh);
           }
           this.loginFeedback = '登入成功';
-          this.$router.push('/home'); // 成功登錄後重定向到首頁
+          this.$router.push('/frontend/home'); // 成功登錄後重定向到首頁
         }
       } catch (error) {
         if (error.response && error.response.data) {

@@ -136,7 +136,7 @@ export default {
 
         if (response.data.success) {
           alert('註冊成功！');
-          this.$router.push('/login');
+          this.$router.push('/frontend/login');
         } else {
           alert(response.data.message || '註冊失敗，請重試。');
         }

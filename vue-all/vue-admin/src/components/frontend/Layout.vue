@@ -11,8 +11,8 @@
   </template>
   
   <script>
-  import SidebarPage from './SidebarPage.vue'; // 导入侧边栏组件
-  import TopNavbar from './TopNavbar.vue'; // 导入顶部导航栏组件
+import SidebarPage from '@/components/frontend/SidebarPage.vue';
+import TopNavbar from '@/components/frontend/TopNavbar.vue';
   
   export default {
     name: 'AppLayout', // 更改组件名称以符合 ESLint 规则

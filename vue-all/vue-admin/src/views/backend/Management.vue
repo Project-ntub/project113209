@@ -1,11 +1,8 @@
 <!-- AppManagement.vue -->
 <template>
   <div>
-    <div class="hamburger-menu" @click="toggleSidebar">
-      <div class="hamburger-icon">☰</div>
-    </div>
-    <Sidebar :isSidebarActive="isSidebarActive" />
-    <div class="main-content" :class="{ shifted: isSidebarActive }" id="main-content">
+    <Sidebar :isSidebarActive="isSidebarActive" @toggle-sidebar="toggleSidebar" />
+    <div class="main-content" :class="{ shifted: isSidebarActive }">
       <router-view v-slot="{ Component }">
         <component :is="Component" v-if="Component" />
       </router-view>

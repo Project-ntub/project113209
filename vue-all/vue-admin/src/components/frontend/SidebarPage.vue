@@ -6,19 +6,19 @@
         <span>王曉明</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
-      <router-link to="/home">
+      <router-link to="/frontend/home">
         <font-awesome-icon icon="tachometer-alt" class="icon" />
         <span class="text">儀錶板管理</span>
       </router-link>
-      <router-link to="/profile">
+      <router-link to="/frontend/profile">
         <font-awesome-icon icon="user" class="icon" />
         <span class="text">個人資訊</span>
       </router-link>
-      <router-link to="/accountsettings">
+      <router-link to="/frontend/accountsettings">
         <font-awesome-icon icon="users" class="icon" />
         <span class="text">帳號設定</span>
       </router-link>
-      <router-link to="/history">
+      <router-link to="/frontend/history">
         <font-awesome-icon icon="history" class="icon" />
         <span class="text">歷史紀錄</span>
       </router-link>
@@ -53,7 +53,7 @@ export default {
     },
     logout() {
       alert("已登出");
-      this.$router.push('/login');
+      this.$router.push('/frontend/login');
     }
   }
 };

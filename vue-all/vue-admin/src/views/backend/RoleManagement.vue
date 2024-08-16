@@ -1,63 +1,60 @@
 <template>
-  <div>
-    <Sidebar :isSidebarActive="isSidebarActive" @toggleSidebar="toggleSidebar" />
-    <div class="container" :class="{ shifted: isSidebarActive }">
-      <div class="header">
-        <h2>角色管理</h2>
-        <button id="add-role-btn" class="btn add-role-btn" @click="openCreateRoleModal">新增角色</button>
-        <button class="btn" @click="navigateToRoleManagement">角色</button>
-        <button class="btn" @click="navigateToModuleManagement">模組</button>
-      </div>
-      <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal">
-        <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
-      </RoleModal>
-      <select id="chart-module-select" v-model="selectedModule" @change="filterRolesByModule">
-        <option value="all">所有模組</option>
-        <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
-      </select>
-      <table class="role-table">
-        <thead>
-          <tr>
-            <th>角色名稱</th>
-            <th>角色狀態</th>
-            <th>用戶數</th>
-            <th>角色成員</th>
-            <th>模組</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="role-tbody">
-          <tr v-for="role in filteredRoles" :key="role.id" :data-module="role.module.id">
-            <td>{{ role.name }}</td>
-            <td>
-              <label class="switch">
-                <input type="checkbox" :checked="role.is_active" @change="toggleStatus(role.id, !role.is_active)">
-                <span class="slider"></span>
-              </label>
-            </td>
-            <td>{{ role.users.length }}</td>
-            <td>
-              <select v-model="role.selectedUser">
-                <option v-for="user in role.users" :key="user.id" :value="user.id">{{ user.username }}</option>
-              </select>
-            </td>
-            <td>{{ role.module_name ? role.module_name : '未知模組' }}</td>
-            <td>
-              <button class="permissions-btn" @click="openEditRoleModal(role.id)">
-                編輯角色
-              </button>
-              <button class="delete-btn" @click="deleteRole(role.id)">
-                刪除
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <RoleModal :isVisible="showEditRoleModal" @close="closeEditRoleModal">
-        <RoleForm :roleId="editingRoleId" @role-saved="fetchRoles" @close="closeEditRoleModal" />
-      </RoleModal>
+  <div class="container">
+    <div class="header">
+      <h2>角色管理</h2>
+      <button id="add-role-btn" class="btn add-role-btn" @click="openCreateRoleModal">新增角色</button>
+      <button class="btn" @click="navigateToRoleManagement">角色</button>
+      <button class="btn" @click="navigateToModuleManagement">模組</button>
     </div>
+    <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal">
+      <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
+    </RoleModal>
+    <select id="chart-module-select" v-model="selectedModule" @change="filterRolesByModule">
+      <option value="all">所有模組</option>
+      <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
+    </select>
+    <table class="role-table">
+      <thead>
+        <tr>
+          <th>角色名稱</th>
+          <th>角色狀態</th>
+          <th>用戶數</th>
+          <th>角色成員</th>
+          <th>模組</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="role-tbody">
+        <tr v-for="role in filteredRoles" :key="role.id" :data-module="role.module.id">
+          <td>{{ role.name }}</td>
+          <td>
+            <label class="switch">
+              <input type="checkbox" :checked="role.is_active" @change="toggleStatus(role.id, !role.is_active)">
+              <span class="slider"></span>
+            </label>
+          </td>
+          <td>{{ role.users.length }}</td>
+          <td>
+            <select v-model="role.selectedUser">
+              <option v-for="user in role.users" :key="user.id" :value="user.id">{{ user.username }}</option>
+            </select>
+          </td>
+          <td>{{ role.module_name ? role.module_name : '未知模組' }}</td>
+          <td>
+            <button class="permissions-btn" @click="openEditRoleModal(role.id)">
+              編輯角色
+            </button>
+            <button class="delete-btn" @click="deleteRole(role.id)">
+              刪除
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <RoleModal :isVisible="showEditRoleModal" @close="closeEditRoleModal">
+      <RoleForm :roleId="editingRoleId" @role-saved="fetchRoles" @close="closeEditRoleModal" />
+    </RoleModal>
   </div>
 </template>
 
@@ -65,14 +62,12 @@
 import axios from '@/axios'; 
 import RoleModal from '@/components/backend/RoleModal.vue';
 import RoleForm from '@/components/backend/RoleForm.vue';
-import Sidebar from '@/components/backend/SideBar.vue';
 
 export default {
   name: 'RoleManagement',
   components: {
     RoleModal,
-    RoleForm,
-    Sidebar
+    RoleForm
   },
   data() {
     return {
@@ -81,50 +76,18 @@ export default {
       selectedModule: 'all',
       showCreateRoleModal: false,
       showEditRoleModal: false,
-      editingRoleId: null,
-      isSidebarActive: false
+      editingRoleId: null
     };
   },
   computed: {
     filteredRoles() {
-      console.log('Selected Module:', this.selectedModule);
       if (this.selectedModule === 'all') {
         return this.roles;
       }
-      const filtered = this.roles.filter(role => {
-        return role.module == this.selectedModule;
-      });
-      console.log('Filtered roles:', filtered);
-      return filtered;
+      return this.roles.filter(role => role.module == this.selectedModule);
     }
   },
   methods: {
-    applyFilters() {
-      console.log('Filters applied');
-    },
-    handleSearch(event) {
-      if (event.key === 'Enter') {
-        this.applyFilters();
-      }
-    },
-    navigateToPendingList() {
-      this.$router.push('/pending_list');
-    },
-    navigateToEditUser(userId) {
-      this.$router.push(`/edit_user/${userId}`);
-    },
-    navigateToAssignRole(userId) {
-      this.$router.push(`/assign_role/${userId}`);
-    },
-    fetchUsers() {
-      axios.get('/api/backend/users/')
-        .then(response => {
-          this.users = response.data;
-        })
-        .catch(error => {
-          console.error('Error fetching users:', error);
-        });
-    },
     fetchRoles() {
       axios.get('/api/backend/roles/')
         .then(response => {
@@ -140,14 +103,14 @@ export default {
     fetchModules() {
       axios.get('/api/backend/modules/')
         .then(response => {
-          this.modules = response.data.filter(module => !module.is_deleted); // 过滤已删除的模组
+          this.modules = response.data.filter(module => !module.is_deleted);
         })
         .catch(error => {
           console.error('Error fetching modules:', error);
         });
     },
     filterRolesByModule() {
-      this.filteredRoles; // 确保计算属性生效
+      this.filteredRoles; // 触发计算属性
     },
     openCreateRoleModal() {
       this.showCreateRoleModal = true;
@@ -163,14 +126,11 @@ export default {
       this.showEditRoleModal = false;
       this.editingRoleId = null;
     },
-    toggleSidebar() {
-      this.isSidebarActive = !this.isSidebarActive;
-    },
     toggleStatus(roleId, isActive) {
       axios.post(`/api/backend/toggle_role_status/${roleId}/`, { is_active: isActive })
         .then(response => {
           if (response.data.success) {
-            this.fetchRoles(); // Reload roles list
+            this.fetchRoles(); // 刷新角色列表
           } else {
             alert('切換狀態失敗');
           }
@@ -181,10 +141,10 @@ export default {
         });
     },
     navigateToRoleManagement() {
-      this.$router.push('/role-management');
+      this.$router.push('/backend/role-management');
     },
     navigateToModuleManagement() {
-      this.$router.push('/module-management');
+      this.$router.push('/backend/module-management');
     },
     deleteRole(roleId) {
       if (confirm('確定要刪除此角色嗎？')) {

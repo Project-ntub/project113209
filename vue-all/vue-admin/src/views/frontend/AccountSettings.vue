@@ -10,12 +10,12 @@
           <!-- 用户名 -->
           <h3>wang</h3>
           <!-- 修改密码链接 -->
-          <router-link to="/changepassword" class="setting-option">
+          <router-link to="/frontend/changepassword" class="setting-option">
             <img src="https://img.icons8.com/ios-filled/50/000000/lock.png" alt="修改密碼">
             修改密碼
           </router-link>
           <!-- 偏好设置链接 -->
-          <router-link to="/preferences" class="setting-option">
+          <router-link to="/frontend/preferences" class="setting-option">
             <img src="https://img.icons8.com/ios-filled/50/000000/settings.png" alt="偏好設定">
             偏好設定
           </router-link>

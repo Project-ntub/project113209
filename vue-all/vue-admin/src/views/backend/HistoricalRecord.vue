@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Sidebar :isSidebarActive="isSidebarActive" />
     <div class="container" :class="{ shifted: isSidebarActive }">
       <!-- Search Box -->
       <div class="search-container">
@@ -56,13 +55,8 @@
 </template>
 
 <script>
-import Sidebar from '@/components/backend/SideBar.vue';
-
 export default {
   name: 'HistoricalRecord',
-  components: {
-    Sidebar
-  },
   data() {
     return {
       searchQuery: '',

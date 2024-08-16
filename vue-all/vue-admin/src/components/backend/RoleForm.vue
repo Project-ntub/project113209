@@ -161,7 +161,7 @@ export default {
       }
     },
     navigateToAddPermission() {
-      this.$router.push(`/role_permissions/${this.localRole.id}/`);
+      this.$router.push(`/backend/role_permissions/${this.localRole.id}/`);
     },
     async deletePermission(permissionId) {
       try {

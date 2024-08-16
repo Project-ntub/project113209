@@ -69,14 +69,14 @@ export default {
       const userId = this.$route.params.userId;
       axios.put(`/api/users/${userId}/`, this.user)
         .then(() => {
-          this.$router.push('/user-management');
+          this.$router.push('/backend/user-management');
         })
         .catch(error => {
           console.error('Error updating user:', error);
         });
     },
     cancelEdit() {
-      this.$router.push('/user-management');
+      this.$router.push('/backend/user-management');
     }
   },
   mounted() {

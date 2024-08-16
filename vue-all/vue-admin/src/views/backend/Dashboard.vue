@@ -1,7 +1,8 @@
 <template>
   <div>
-    <Sidebar :isSidebarActive="isSidebarActive" />
-    <div class="container" :class="{ shifted: isSidebarActive }">
+    <Sidebar :isSidebarActive="isSidebarActive" @toggle-sidebar="toggleSidebar" />
+    <div class="main-content" :class="{ shifted: isSidebarActive }">
+      <!-- Your main content goes here -->
       <div class="header">
         <h2>儀表板管理</h2>
         <div class="buttons">
@@ -31,28 +32,34 @@
   </div>
 </template>
 
+
 <script>
-import { ref, onMounted } from 'vue';
 import { Chart, registerables } from 'chart.js';
-import Sidebar from '@/components/backend/SideBar.vue';  // 引入 Sidebar.vue
+import Sidebar from '@/components/backend/SideBar.vue';
 
 Chart.register(...registerables);
 
 export default {
   name: 'AppDashboard',
   components: {
-    Sidebar,  // 注册 Sidebar 组件
+    Sidebar
   },
-  setup() {
-    const isSidebarActive = ref(false);
-    const salesChart = ref(null);
-    const usersChart = ref(null);
-    const storageChart = ref(null);
-    const otherChart = ref(null);
-
-    onMounted(() => {
+  data() {
+    return {
+      isSidebarActive: false,
+      salesChart: null,
+      usersChart: null,
+      storageChart: null,
+      otherChart: null
+    };
+  },
+  methods: {
+    toggleSidebar() {
+      this.isSidebarActive = !this.isSidebarActive;
+    },
+    initializeCharts() {
       const salesCtx = document.getElementById('salesChart').getContext('2d');
-      new Chart(salesCtx, {
+      this.salesChart = new Chart(salesCtx, {
         type: 'line',
         data: {
           labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -67,7 +74,7 @@ export default {
       });
 
       const usersCtx = document.getElementById('usersChart').getContext('2d');
-      new Chart(usersCtx, {
+      this.usersChart = new Chart(usersCtx, {
         type: 'line',
         data: {
           labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -82,7 +89,7 @@ export default {
       });
 
       const storageCtx = document.getElementById('storageChart').getContext('2d');
-      new Chart(storageCtx, {
+      this.storageChart = new Chart(storageCtx, {
         type: 'bar',
         data: {
           labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -97,7 +104,7 @@ export default {
       });
 
       const otherCtx = document.getElementById('otherChart').getContext('2d');
-      new Chart(otherCtx, {
+      this.otherChart = new Chart(otherCtx, {
         type: 'doughnut',
         data: {
           labels: ['Media', 'Document', 'Others'],
@@ -118,20 +125,11 @@ export default {
           }]
         }
       });
-    });
-
-    const toggleSidebar = () => {
-      isSidebarActive.value = !isSidebarActive.value;
-    };
-
-    return {
-      isSidebarActive,
-      salesChart,
-      usersChart,
-      storageChart,
-      otherChart,
-      toggleSidebar,
-    };
+    }
+  },
+  mounted() {
+    // this.isSidebarActive = false;
+    this.initializeCharts();
   }
 };
 </script>

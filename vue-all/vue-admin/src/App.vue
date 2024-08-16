@@ -3,9 +3,9 @@
     <!-- 只有在不是後台並且需要顯示導航欄時才顯示 TopNavbar -->
     <TopNavbar v-if="!isBackend && showTopNavbar" />
     
-    <!-- 根據 isBackend 條件來渲染不同的 Sidebar -->
+    <!-- 根據 isBackend 和 hideSidebar 渲染不同的 Sidebar -->
     <SidebarPage v-if="!isBackend && !$route.meta.hideSidebar" />
-    <SidebarBackend v-if="isBackend" />
+    <SidebarBackend v-if="isBackend && !$route.meta.hideSidebar" :isSidebarActive="isSidebarActive" @toggleSidebar="toggleSidebar" />
 
     <!-- 渲染當前路由對應的組件 -->
     <router-view />
@@ -25,6 +25,11 @@ export default {
     SidebarPage,
     SidebarBackend
   },
+  data() {
+    return {
+      isSidebarActive: false,
+    };
+  },
   computed: {
     // 判斷當前路由是否屬於後台
     isBackend() {
@@ -34,17 +39,11 @@ export default {
     showTopNavbar() {
       return !this.isBackend && !this.$route.meta.hideNavbar;
     }
+  },
+  methods: {
+    toggleSidebar() {
+      this.isSidebarActive = !this.isSidebarActive;
+    }
   }
 };
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>

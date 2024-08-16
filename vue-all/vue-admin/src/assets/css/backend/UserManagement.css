@@ -4,14 +4,40 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #333;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 20px;
+  position: fixed;
+  top: 0;
+  left: -250px;
+  height: 100%;
+  transition: left 0.3s ease;
+}
+
+.sidebar.active {
+  left: 0;
 }
 
 .container {
-  width: 100%;
+  max-width: 100%; /* Full width by default */
+  margin-left: 0; /* No margin by default */
   background-color: #ffffff;
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.container.shifted {
+  margin-left: 250px; /* Move content to the right when sidebar is active */
 }
 
 .header {
@@ -133,5 +159,10 @@ body {
   .filter-section input {
       width: 100%;
       margin-bottom: 5px;
+  }
+
+  .container {
+      width: 100%;
+      margin-left: 0;
   }
 }
