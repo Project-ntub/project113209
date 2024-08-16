@@ -46,8 +46,7 @@ const routes = [
   { path: '/frontend/historydetails', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/detail/:id', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/history', name: '歷史紀錄', component: HistoryPage },
-  { path: '/frontend/resetpassword', name: 'ResetPassword', component: ResetPasswordPage },
-
+  { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage,meta: { hideNavbar: true, hideSidebar: true } },
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
   { path: '/backend/register', name: 'BackendRegister', component: Register },
