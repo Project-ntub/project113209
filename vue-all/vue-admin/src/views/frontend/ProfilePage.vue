@@ -6,8 +6,8 @@
         <div v-if="!isEditing">
           <!-- <p>姓名：<span>{{ userData.username || 'N/A' }}</span></p> -->
           <p>帳號：<span>{{ userData.username || 'N/A' }}</span></p>
-          <p>部門：<span>{{ userData.department_name || 'N/A' }}</span></p>
-          <p>職位：<span>{{ userData.position_name || 'N/A' }}</span></p>
+          <p>部門：<span>{{ userData.department_id || 'N/A' }}</span></p>
+          <p>職位：<span>{{ userData.position_id || 'N/A' }}</span></p>
           <p>電話：<span>{{ userData.phone || 'N/A' }}</span></p>
           <p>電子郵件：<span>{{ userData.email || 'N/A'  }}</span></p>
           <div class="button-container">
