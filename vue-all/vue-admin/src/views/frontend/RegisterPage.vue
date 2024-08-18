@@ -62,7 +62,7 @@ export default {
     },
     async fetchCsrfToken() {
       try {
-        const response = await axios.post('http://127.0.0.1:8000/frontend/get-csrf-token/', {
+        const response = await axios.get('http://127.0.0.1:8000/frontend/register/', {
           withCredentials: true  // 确保包含cookies
         });
         this.csrfToken = response.data.csrfToken;
@@ -124,9 +124,9 @@ export default {
           username: this.username,
           email: this.email,
           password: this.password,
-          confirmPassword: this.confirmPassword,
+          confirmPassword: this.confirmPassword,  // 注意这里的下划线
           phone: this.phone,
-          verificationCode: this.verificationCode
+          verificationCode: this.verificationCode  // 注意这里的下划线
         }, {
           headers: {
             'X-CSRFToken': this.csrfToken
@@ -136,7 +136,7 @@ export default {
 
         if (response.data.success) {
           alert('註冊成功！');
-          this.$router.push('/frontend/login');
+          this.$router.push('/frontend/home');
         } else {
           alert(response.data.message || '註冊失敗，請重試。');
         }
@@ -152,50 +152,5 @@ export default {
 
 </script>
 
-<style scoped>
-.submit-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
-}
+<style scoped src="@/assets/css/frontend/RegisterPage.css"></style>
 
-.submit-button:hover {
-  background-color: #0056b3;
-}
-
-.password-container {
-  position: relative;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-}
-
-.password-example {
-  font-size: 12px;
-  color: #666;
-}
-
-.feedback {
-  font-size: 14px;
-  margin-top: 10px;
-}
-
-.feedback.success {
-  color: green;
-}
-
-.feedback.error {
-  color: red;
-}
-</style>

@@ -19,7 +19,7 @@
             <input type="checkbox" id="rememberMe" v-model="rememberMe" />
             記住我
           </label>
-          <router-link to="/frontend/forgetpassword">忘記密碼?</router-link>
+          <router-link to="/frontend/forgot_password">忘記密碼?</router-link>
         </div>
         <input type="submit" value="登入" class="submit-button" />
         <div id="login-feedback" class="feedback">{{ loginFeedback }}</div>
