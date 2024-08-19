@@ -15,11 +15,12 @@ from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
 from app113209.models import User
 # login
-from django.views.generic import TemplateView
-# forgetpassword
+from django.contrib.auth.hashers import check_password, make_password
+import re
 import string
-# resetpassword
-from django.contrib.auth.hashers import make_password
+from django.views.generic import TemplateView
+
+# 发送验证码
 @method_decorator(csrf_exempt, name='dispatch')
 class SendVerificationCodeView(View):
     def post(self, request, *args, **kwargs):
@@ -30,13 +31,10 @@ class SendVerificationCodeView(View):
             if not email:
                 return JsonResponse({'success': False, 'message': '電子郵件地址不能為空'}, status=400)
 
-            # 生成6位數的驗證碼
             verification_code = random.randint(100000, 999999)
 
-            # 將驗證碼存儲在緩存中，有效期為5分鐘
             cache.set(email, verification_code, timeout=300)
 
-            # 發送電子郵件
             send_mail(
                 '您的驗證碼',
                 f'您的驗證碼是 {verification_code}，有效期為5分鐘。',
@@ -77,9 +75,7 @@ class FrontendRegisterView(View):
             confirm_password = data.get('confirmPassword')
             phone = data.get('phone')
             verification_code = data.get('verificationCode') 
-            data = json.loads(request.body)
-            print("Received data:", data)  # 打印收到的数据
-
+            
             if password != confirm_password:
                 return JsonResponse({'success': False, 'message': '密碼和確認密碼不匹配'}, status=400)
 
@@ -96,10 +92,10 @@ class FrontendRegisterView(View):
                 return JsonResponse({'success': False, 'message': '用戶名已存在'}, status=400)
             if User.objects.filter(email=email).exists():
                 return JsonResponse({'success': False, 'message': '電子郵件已被註冊'}, status=400)
-            # 檢查電話號碼是否已經被使用
             if User.objects.filter(phone=phone).exists():
                 return JsonResponse({'success': False, 'message': '電話號碼已經被使用'}, status=400)
-            user = User.objects.create_user(username=username, email=email, password=password,phone=phone)
+            
+            user = User.objects.create_user(username=username, email=email, password=password, phone=phone)
             user.save()
 
             cache.delete(email)
@@ -123,7 +119,7 @@ class FrontendRegisterView(View):
         response.set_cookie('csrftoken', csrf_token)
         return response
 
-# login
+# 登錄
 class FrontendLoginView(View):
     def post(self, request, *args, **kwargs):
         try:
@@ -136,7 +132,8 @@ class FrontendLoginView(View):
                 login(request, user)
                 return JsonResponse({'success': True, 'message': '登錄成功'}, status=200)
             else:
-                return JsonResponse({'success': False, 'message': '用戶名或密碼錯誤'}, status=400)
+                # 自定义的错误消息
+                return JsonResponse({'success': False, 'message': '登入失敗，請檢查您的電子郵件和密碼'}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
 
@@ -145,10 +142,12 @@ class FrontendLoginView(View):
         response = JsonResponse({'csrfToken': csrf_token})
         response.set_cookie('csrftoken', csrf_token)
         return response
-# homepage
+
+# 首頁
 class HomePageView(TemplateView):
     template_name = "frontend/home.html"
-#  forgetpassword
+
+# 忘記密碼
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotPasswordView(View):
     def post(self, request, *args, **kwargs):
@@ -164,11 +163,9 @@ class ForgotPasswordView(View):
             except User.DoesNotExist:
                 return JsonResponse({'success': False, 'message': '此電子郵件未註冊'}, status=404)
 
-            # 生成一个随机密码重置代码
             reset_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
             cache.set(reset_code, email, timeout=180)
-            # 在这里你可以将密码重置代码存储在数据库或缓存中
-            # 并发送到用户的电子邮件
+            
             send_mail(
                 '您的密碼重置代碼',
                 f'您的密碼重置代碼是：{reset_code}',
@@ -185,27 +182,41 @@ class ForgotPasswordView(View):
     def get(self, request, *args, **kwargs):
         csrf_token = get_token(request)
         return JsonResponse({'csrfToken': csrf_token})
-# resetpassword
+
+# 重置密碼
 @method_decorator(csrf_exempt, name='dispatch')
 class ResetPasswordView(View):
+    def validate_password_strength(self, password):
+        if (len(password) < 8 or
+            not re.search(r'[A-Z]', password) or
+            not re.search(r'[a-z]', password) or
+            not re.search(r'\d', password) or
+            not re.search(r'[!@#$%^&*(),.?":{}|<>]', password)):
+            return False
+        return True
+
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
             reset_code = data.get('resetCode')
             new_password = data.get('newPassword')
             
-            # 从缓存中获取与重置代码对应的邮箱
             email = cache.get(reset_code)
             if not email:
                 return JsonResponse({'success': False, 'message': '重置代碼無效或已過期'}, status=400)
 
             try:
-                # 使用邮箱查找用户并更新密码
                 user = User.objects.get(email=email)
+                
+                if check_password(new_password, user.password):
+                    return JsonResponse({'success': False, 'message': '新密碼不能與舊密碼相同'}, status=400)
+
+                if not self.validate_password_strength(new_password):
+                    return JsonResponse({'success': False, 'message': '密碼必須至少包含8個字符，且包括大小寫字母、數字和特殊字符'}, status=400)
+
                 user.password = make_password(new_password)
                 user.save()
 
-                # 删除缓存中的重置代码
                 cache.delete(reset_code)
                 
                 return JsonResponse({'success': True, 'message': '密碼重置成功！'}, status=200)
@@ -242,3 +253,13 @@ def user_profile (request):
         user.save()
         return JsonResponse
     
+
+from django.http import JsonResponse
+from django.views import View
+from app113209.models import Branch
+
+class BranchListView(View):
+    def get(self, request, *args, **kwargs):
+        branches = Branch.objects.all().values('branch_id', 'branch_name')
+        return JsonResponse(list(branches), safe=False)
+

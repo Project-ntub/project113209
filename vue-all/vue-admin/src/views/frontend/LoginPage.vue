@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import axios from 'axios'; // 直接从 axios 库中导入 axios
+import axios from 'axios';
 
 export default {
   data() {
@@ -44,22 +44,26 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        // POST 請求到 Django 後端的 /api/token/ 端點
+        // 發送 POST 請求到 Django 後端的 /api/token/ 端點
         const response = await axios.post('http://127.0.0.1:8000/api/token/', {
           email: this.email,
           password: this.password
         });
         
         if (response.status === 200) {
-          // 保存 token 到 localStorage 或 sessionStorage
+          // 保存 token 和其他用户信息到 localStorage 或 sessionStorage
           localStorage.setItem('token', response.data.access);
+          localStorage.setItem('position', response.data.position);  // 保存职位信息
+          localStorage.setItem('branch_id', response.data.branch_id); // 保存分店 ID
+
           if (this.rememberMe) {
             localStorage.setItem('refreshToken', response.data.refresh);
           } else {
             sessionStorage.setItem('refreshToken', response.data.refresh);
           }
+
           this.loginFeedback = '登入成功';
-          this.$router.push('/frontend/home'); // 成功登錄後重定向到首頁
+          this.redirectUserBasedOnPosition(); // 成功登录后根据职位重定向用户
         }
       } catch (error) {
         if (error.response && error.response.data) {
@@ -76,9 +80,21 @@ export default {
       } else {
         passwordInput.type = 'password';
       }
+    },
+    redirectUserBasedOnPosition() {
+      const position = localStorage.getItem('position');
+
+      if (position === '經理') {
+        this.$router.push('/frontend/manager_dashboard'); // 經理儀表板
+      } else if (position === '員工') {
+        this.$router.push('/frontend/employee_dashboard'); // 員工儀表板
+      } else {
+        this.$router.push('/frontend/home'); // 其他情況下，跳轉到首頁
+      }
     }
   }
 };
 </script>
+
 
 <style scoped src="@/assets/css/frontend/LoginPage.css"></style>
