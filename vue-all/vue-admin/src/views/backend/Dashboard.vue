@@ -128,7 +128,6 @@ export default {
     }
   },
   mounted() {
-    // this.isSidebarActive = false;
     this.initializeCharts();
   }
 };

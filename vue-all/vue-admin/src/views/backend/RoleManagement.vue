@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div :class="['container', { shifted: isSidebarActive }]">
     <div class="header">
       <h2>角色管理</h2>
       <button id="add-role-btn" class="btn add-role-btn" @click="openCreateRoleModal">新增角色</button>
@@ -76,7 +76,8 @@ export default {
       selectedModule: 'all',
       showCreateRoleModal: false,
       showEditRoleModal: false,
-      editingRoleId: null
+      editingRoleId: null,
+      isSidebarActive: false,
     };
   },
   computed: {
