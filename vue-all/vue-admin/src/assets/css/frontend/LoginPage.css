@@ -1,115 +1,144 @@
+
+/* LoginPage.css */
+
 body, html {
-  margin: 0;
+  margin: 50px;
   padding: 0;
   height: 100%;
   width: 100%;
   font-family: 'Poppins', sans-serif;
   background-color: #f2f2f2;
   display: flex;
-  justify-content: center; /* 使內容水平置中 */
-  align-items: center; /* 使內容垂直置中 */
+  justify-content: center; 
+  align-items: center; 
+  overflow: hidden; 
+  box-sizing: border-box;
 }
 
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* height: 100%; */
-  width: 400px;
-}
+/* 登入容器 */
+/* .login-container { */
+  /* width: 100%; */
+  /* display: flex;
+  justify-content: center; 
+  align-items: center; 
+} */
 
+/* 登入表單 */
 .login-form {
   background-color: white;
-  padding: 40px;
+  padding: 30px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: left;
   width: 100%;
-  max-width: 400px; /* 調整這裡的寬度 */
+  max-width: 400px;
+  box-sizing: border-box;
+  text-align: left;
+  margin: 45px;
+  margin-left: 32%;
 }
 
+/* 標題 */
 .login-form h2 {
   margin-bottom: 20px;
   font-size: 24px;
   color: #333;
+  text-align: center;
 }
 
+/* 表單輸入欄位 */
 .input-group {
-  margin-bottom: 15px;
-  text-align: left;
+  margin-bottom: 20px;
 }
 
 .input-group label {
   display: block;
   margin-bottom: 5px;
-  font-size: 14px;
+  font-weight: 500;
   color: #333;
 }
 
 .input-group input {
   width: 100%;
   padding: 10px;
+  font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  font-size: 14px;
   box-sizing: border-box;
 }
 
+/* 密碼顯示切換圖標 */
 .input-container {
-  display: flex;
-  align-items: center;
+  position: relative;
 }
 
-.input-container .toggle-password {
-  margin-left: -30px;
+.input-container i {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
 }
 
-.remember-me-container {
-  display: flex;
-  align-items: center;
-  text-align: left;
-}
-
-.remember-me-container input[type="checkbox"] {
-  margin-left: 10px;
-}
-
-.submit-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  box-sizing: border-box;
-  margin-top: 10px;
-}
-
-.submit-button:hover {
-  background-color: #279e42;
-}
-
-.links {
-  margin-top: 10px;
+/* 額外選項 (記住我 & 忘記密碼) */
+.additional-options {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.links a {
+.additional-options label {
   font-size: 14px;
-  color: #6200ea;
+  color: #555;
+}
+
+.additional-options a {
+  font-size: 14px;
+  color: #007bff;
   text-decoration: none;
 }
 
-.links a:hover {
+.additional-options a:hover {
   text-decoration: underline;
 }
 
+/* 登入按鈕 */
+.submit-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 18px;
+  color: white;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background-color: #218838;
+}
+
+/* 登錄反饋訊息 */
 .feedback {
   margin-top: 10px;
   color: red;
   font-size: 14px;
+  text-align: center;
+}
+
+/* 註冊連結 */
+.login-form p {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.login-form p a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-form p a:hover {
+  text-decoration: underline;
 }

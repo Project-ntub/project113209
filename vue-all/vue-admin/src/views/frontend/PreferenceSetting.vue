@@ -1,13 +1,10 @@
 <template>
   <div>
-    <div class="header-bar">偏好設定</div>
     <button class="hamburger-menu" @click="toggleMenu">
       <div></div>
       <div></div>
       <div></div>
     </button>
-
-    <SidebarPage />
 
     <div class="content" id="content">
       <div class="container">
@@ -53,13 +50,8 @@
 </template>
 
 <script>
-import SidebarPage from '@/components/frontend/SidebarPage.vue';
-
 export default {
   name: 'PreferenceSetting',
-  components: {
-    SidebarPage,
-  },
   data() {
     return {
       fontSize: 'medium',
@@ -88,4 +80,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/frontend/PreferenceSetting.css"></style>
+<style src="@/assets/css/frontend/PreferenceSetting.css"></style>

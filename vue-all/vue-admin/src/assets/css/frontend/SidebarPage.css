@@ -1,22 +1,33 @@
-@import '~@fortawesome/fontawesome-free/css/all.css';
-
 .sidebar {
-  height: calc(100% - 60px);
-  width: 60px;
+  height: 100vh; /* 使整个侧边栏使用视口高度 */
+  width: 60px; 
   position: fixed;
-  top: 70px;
+  top: 0;
   left: 0;
   background-color: #636262;
   overflow-x: hidden;
-  transition: width 0.3s;
-  padding-top: 20px;
-  z-index: 1000;
+  transition: width 0.6s, margin-left 0.6s; /* 添加 margin-left 过渡效果 */
+  padding-top: 70px; 
+  z-index: 1001;
   display: flex;
   flex-direction: column;
 }
 
 .sidebar.open {
-  width: 200px;
+  width: 200px; /* 侧边栏展开时的宽度 */
+}
+
+.sidebar-header {
+  padding: 10px 15px;
+  font-size: 25px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-content {
+  flex-grow: 1; /* 使其他内容占据剩余空间 */
 }
 
 .sidebar a {
@@ -26,7 +37,7 @@
   display: flex;
   align-items: center;
   padding: 10px 15px;
-  transition: background 0.3s, color 0.3s;
+  position: relative;
 }
 
 .sidebar a:hover {
@@ -42,56 +53,34 @@
 }
 
 .sidebar.open a .text {
-  display: inline-block;
+  display: inline-block; /* 展开时显示文字 */
 }
 
 .sidebar a .text {
-  display: none;
+  display: none; /* 收起时隐藏文字 */
 }
 
 .sidebar .toggle-btn {
   position: absolute;
-  top: 10px;
-  left: -120px;
+  top: 20px;
+  left: 20px;
   font-size: 30px;
   cursor: pointer;
   color: white;
 }
 
-.sidebar-header {
-  margin-top: 30px;
-  padding: 10px 15px;
-  font-size: 25px;
-  color: white;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.sidebar-header img {
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 10px;
-}
-
-.sidebar a:not(.logout) {
-  flex-grow: 0.05;
-}
-
 .logout {
-  margin-top: auto;
+  margin-top: auto; /* 将登出按钮推到底部 */
   padding-bottom: 20px;
 }
 
 .content {
-  margin-left: 60px;
+  margin-left: 60px; /* 与侧边栏的默认宽度一致 */
   padding: 20px;
-  transition: margin-left 0.3s;
+  transition: margin-left 0.6s ease; /* 平滑的内容区移动效果 */
 }
 
-.content.shift {
-  margin-left: 200px;
+/* 展開時調整內容區域 */
+.sidebar.open ~ .content {
+  margin-left: 200px; /* 側邊欄展開時的寬度 */
 }

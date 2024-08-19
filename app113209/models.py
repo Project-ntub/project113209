@@ -42,6 +42,10 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    objects = CustomUserManager()
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -116,3 +120,14 @@ class RoleUser(models.Model):
     class Meta:
         db_table = 'role_users'
         unique_together = ('role', 'user')
+
+#frontend
+
+class Branch(models.Model):
+    branch_id = models.AutoField(primary_key=True)  # 主鍵
+    branch_name = models.CharField(max_length=100)  # 分店名稱
+    address = models.CharField(max_length=255)  # 地址
+    manager = models.CharField(max_length=100)  # 經理姓名
+
+    class Meta:
+        db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
