@@ -1,3 +1,4 @@
+# C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
 import logging
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, generics
@@ -43,13 +44,15 @@ class UserViewSet(viewsets.ModelViewSet):
         instance.is_deleted = True  # 或者你可以直接刪除用戶
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+   
         
 class PendingUserListView(generics.ListAPIView):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
 
 class ModuleViewSet(viewsets.ModelViewSet):
-    queryset = Module.objects.all()
+    queryset = Module.objects.filter(is_deleted = False)
     serializer_class = ModuleSerializer
 
     def perform_destroy(self, instance):
@@ -59,7 +62,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
         
     @action(detail=False, methods=['get'])
     def get_modules(self, request):
-        modules = Module.objects.all()
+        modules = Module.objects.filter(is_deleted = False)
         serializer = self.get_serializer(modules, many=True)
         return Response(serializer.data)
     
@@ -246,6 +249,7 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
 
 
 class RoleDetailView(APIView):
+
     def put(self, request, pk, format=None):
         role = get_object_or_404(Role, pk=pk)
         serializer = RoleSerializer(role, data=request.data, partial=True)

@@ -3,6 +3,7 @@ import json
 import random
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.http import JsonResponse
@@ -11,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.decorators import api_view
 from app113209.models import User
 # login
 from django.views.generic import TemplateView
@@ -47,6 +49,21 @@ class SendVerificationCodeView(View):
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
+
+@login_required
+def check_login_status(request):
+    return JsonResponse({'loggedIn': True})
+
+@login_required
+def get_history(request):
+    # 假設這裡有一些歷史記錄，這些記錄可能從數據庫中取得
+    history = [
+        {'id': 1, 'date': '2024/1/22 16:22:39', 'action': '編輯個人資訊', 'user': 'User1'},
+        {'id': 2, 'date': '2024/1/22 16:00:21', 'action': '查看首頁', 'user': 'User2'},
+        {'id': 3, 'date': '2024/1/28 16:00:21', 'action': '修改密碼', 'user': 'User2'},
+        {'id': 4, 'date': '2023/12/28 16:00:21', 'action': '忘記密碼', 'user': 'User2'},
+    ]
+    return JsonResponse(history, safe=False)
 
 # register
 @method_decorator(csrf_exempt, name='dispatch')
@@ -201,3 +218,27 @@ class ResetPasswordView(View):
     def get(self, request, *args, **kwargs):
         csrf_token = get_token(request)
         return JsonResponse({'csrfToken': csrf_token})
+    
+@api_view(['GET', 'PUT'])
+def user_profile (request):
+    if request.method == 'GET':
+        user = request.user
+        data = {
+            "username": user.username,
+            "email": user.email,
+            "phone": user.phone,
+            "department_name": user.department_id,
+            "position_name": user.position_id
+        }
+        return JsonResponse
+    
+    if request.method == "PUT":
+        user = request.user
+        data = json.loads(request.body)
+        user.email = data.get("email", user.email)
+        user.phone = data.get("phone", user.phone)
+        user.department_id = data.get("department_id", user.department_id)
+        user.position_id = data.get("position_id", user.position_id)
+        user.save()
+        return JsonResponse
+    

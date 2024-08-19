@@ -57,7 +57,7 @@ export default {
   methods: {
     fetchUser() {
       const userId = this.$route.params.userId;
-      axios.get(`/api/users/${userId}/`)
+      axios.get(`/api/backend/users/${userId}/`)
         .then(response => {
           this.user = response.data;
         })

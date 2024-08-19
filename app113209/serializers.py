@@ -15,22 +15,21 @@ class ModuleSerializer(serializers.ModelSerializer):
         return User.objects.filter(roles__module=obj, is_active=True).count()
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.StringRelatedField()  # 將 read_only=True 設為避免與巢狀序列化器衝突
-    module = serializers.StringRelatedField()
+    roles = serializers.SerializerMethodField()  # 將 read_only=True 設為避免與巢狀序列化器衝突
+    module = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'module', 'phone', 'is_verified', 'is_approved', 'department_id', 'position_id', 'branch_id', 'module', 'gender', 'is_staff', 'is_active', 'is_deleted', 'date_joined')
+        fields = ('id', 'username', 'email', 'roles', 'module', 'phone', 'is_verified', 'is_approved', 'department_id', 'position_id', 'branch_id', 'gender', 'is_staff', 'is_active', 'is_deleted', 'date_joined')
 
     def get_roles(self, obj):
-        # 取得與該使用者相關的所有角色
-        return [role.name for role in obj.roles.all()]
+        roles = Role.objects.filter(roleuser__user=obj, is_deleted=False)
+        return RoleSerializer(roles, many=True).data
 
     def get_module(self, obj):
-        # 取得使用者的模組（假設每個使用者只有一個模組，透過使用者的角色取得模組）
-        roles = obj.roles.all()
-        if roles.exists():
-            return roles[0].module.name
+        role = Role.objects.filter(roleuser__user=obj, is_deleted=False).first()
+        if role:
+            return ModuleSerializer(role.module).data
         return None
 
 
@@ -49,7 +48,6 @@ class RoleSerializer(serializers.ModelSerializer):
         }
 
 
-
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RolePermission
@@ -58,4 +56,3 @@ class RolePermissionSerializer(serializers.ModelSerializer):
             'role': {'required': True},
             'permission_name': {'required': True}
         }
-
