@@ -29,4 +29,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/frontend/AccountSettings.css"></style>
+<style scoped src="@/assets/css/frontend/AccountSettings.css"></style>

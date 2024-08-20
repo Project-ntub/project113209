@@ -48,20 +48,30 @@ class SendVerificationCodeView(View):
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
 
-@login_required
+@api_view(['GET'])
 def check_login_status(request):
-    return JsonResponse({'loggedIn': True})
+    if request.user.is_authenticated:
+        return JsonResponse({'loggedIn': True}, status=200)
+    else:
+        return JsonResponse({'loggedIn': False}, status=200)
 
-@login_required
-def get_history(request):
-    # 假設這裡有一些歷史記錄，這些記錄可能從數據庫中取得
-    history = [
-        {'id': 1, 'date': '2024/1/22 16:22:39', 'action': '編輯個人資訊', 'user': 'User1'},
-        {'id': 2, 'date': '2024/1/22 16:00:21', 'action': '查看首頁', 'user': 'User2'},
-        {'id': 3, 'date': '2024/1/28 16:00:21', 'action': '修改密碼', 'user': 'User2'},
-        {'id': 4, 'date': '2023/12/28 16:00:21', 'action': '忘記密碼', 'user': 'User2'},
-    ]
-    return JsonResponse(history, safe=False)
+api_view(['GET'])
+def user_history(request):
+    if request.method == 'GET':
+        user = request.user
+        logs = LogEntry.objects.filter(user_id=user.id).order_by('-action_time')
+
+        history_data = []
+        for log in logs:
+            history_data.append({
+                'id': log.id,
+                'date': log.action_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'action': log.object_repr, 
+                'changes': log.change_message, 
+                'user': user.username
+            })
+
+        return JsonResponse(history_data, safe=False)
 
 # register
 @method_decorator(csrf_exempt, name='dispatch')

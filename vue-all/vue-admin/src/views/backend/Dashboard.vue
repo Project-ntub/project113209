@@ -1,7 +1,5 @@
 <template>
   <div>
-    <Sidebar :isSidebarActive="isSidebarActive" @toggle-sidebar="toggleSidebar" />
-    <div class="main-content" :class="{ shifted: isSidebarActive }">
       <!-- Your main content goes here -->
       <div class="header">
         <h2>儀表板管理</h2>
@@ -29,21 +27,16 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 
 <script>
 import { Chart, registerables } from 'chart.js';
-import Sidebar from '@/components/backend/SideBar.vue';
 
 Chart.register(...registerables);
 
 export default {
   name: 'AppDashboard',
-  components: {
-    Sidebar
-  },
   data() {
     return {
       isSidebarActive: false,

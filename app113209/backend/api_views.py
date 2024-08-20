@@ -1,6 +1,7 @@
 # C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
 import logging
 from django.shortcuts import get_object_or_404
+from django.db import transaction  # 導入 transaction
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action
@@ -45,6 +46,22 @@ class UserViewSet(viewsets.ModelViewSet):
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    def post(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Profile updated successfully'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
    
         
 class PendingUserListView(generics.ListAPIView):

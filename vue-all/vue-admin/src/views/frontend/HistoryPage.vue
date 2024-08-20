@@ -47,7 +47,7 @@
 
 <script>
 import SidebarPage from '@/components/frontend/SidebarPage.vue'; // 確保引入 SidebarPage 組件
-import axios from 'axios';
+import axios from '@/axios';
 
 export default {
   name: 'HistoryPage',
@@ -82,6 +82,8 @@ export default {
         this.isLoggedIn = response.data.loggedIn;
         if (this.isLoggedIn) {
           this.fetchHistory(); // 如果已登入，則獲取歷史記錄
+        } else {
+          this.$router.pugh('/login');
         }
       } catch (error) {
         console.error('無法檢查登入狀態:', error);
@@ -89,7 +91,7 @@ export default {
     },
     async fetchHistory() {
       try {
-        const response = await axios.get('/api/frontend/history'); // 調用後端 API 獲取數據
+        const response = await axios.get('/api/frontend/history/'); // 調用後端 API 獲取數據
         this.items = response.data; // 將獲取到的數據賦值給 items
       } catch (error) {
         console.error('無法獲取歷史記錄:', error);

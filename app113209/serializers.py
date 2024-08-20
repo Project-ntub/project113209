@@ -14,8 +14,13 @@ class ModuleSerializer(serializers.ModelSerializer):
     def get_user_count(self, obj):
         return User.objects.filter(roles__module=obj, is_active=True).count()
 
+class SimpleRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id', 'name']
+
 class UserSerializer(serializers.ModelSerializer):
-    roles = serializers.SerializerMethodField()  # 將 read_only=True 設為避免與巢狀序列化器衝突
+    roles = serializers.SerializerMethodField()
     module = serializers.SerializerMethodField()
 
     class Meta:
@@ -24,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_roles(self, obj):
         roles = Role.objects.filter(roleuser__user=obj, is_deleted=False)
-        return RoleSerializer(roles, many=True).data
+        return SimpleRoleSerializer(roles, many=True).data
 
     def get_module(self, obj):
         role = Role.objects.filter(roleuser__user=obj, is_deleted=False).first()
@@ -32,21 +37,19 @@ class UserSerializer(serializers.ModelSerializer):
             return ModuleSerializer(role.module).data
         return None
 
-
 class RoleSerializer(serializers.ModelSerializer):
     module = serializers.PrimaryKeyRelatedField(queryset=Module.objects.all())
-    module_name = serializers.CharField(source='module.name', read_only=True) # 使用嵌套的 ModuleSerializer 來顯示模組詳細資訊
-    users = UserSerializer(many=True, read_only=True)  # 假設 Role 和 User 是多對多關係
+    module_name = serializers.CharField(source='module.name', read_only=True)
+    users = serializers.SerializerMethodField()
 
     class Meta:
         model = Role
-        fields = ['id', 'name', 'is_active', 'module', 'users', 'module_name']
-        extra_kwargs = {
-            'name': {'required': True},
-            'module': {'required': True},
-            'users': {'required': True}
-        }
+        fields = ['id', 'name', 'is_active', 'module', 'module_name', 'users']
 
+    def get_users(self, obj):
+        # 如果需要返回角色相關的用戶，可以返回用戶的基本信息，而不是完整的 UserSerializer
+        users = obj.users.all()
+        return [{'id': user.id, 'username': user.username} for user in users]
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:

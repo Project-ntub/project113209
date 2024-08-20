@@ -40,6 +40,8 @@ api_urlpatterns = [
     path('role_permissions/<int:pk>/', api_views.RolePermissionRetrieveUpdateDestroyView.as_view(), name='role-permission-retrieve-update-destroy'),
     path('modules/', api_views.ModuleListCreateView.as_view(), name='module-list-create'),
     path('modules/<int:pk>/', api_views.ModuleRetrieveUpdateDestroyView.as_view(), name='module-retrieve-update-destroy'),
+    path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
+
 ]
 
 urlpatterns += [
