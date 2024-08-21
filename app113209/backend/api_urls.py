@@ -31,6 +31,7 @@ api_urlpatterns = [
     path('modules/', api_views.ModuleListCreateView.as_view(), name='module-list-create'),
     path('modules/<int:pk>/', api_views.ModuleRetrieveUpdateDestroyView.as_view(), name='module-retrieve-update-destroy'),
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
+    path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
 ]
 
 urlpatterns = api_urlpatterns

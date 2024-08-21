@@ -16,15 +16,17 @@
 
 .selection-container {
   display: flex;
+  justify-content: space-between;
   justify-content: center; /* 调整为空间均匀分布 */
-  gap: 10px; /* 减少 gap 的大小 */
+  gap: 20px; /* 减少 gap 的大小 */
   margin-bottom: 20px;
 }
 
 .module-selection,
 .role-selection {
-  flex: 0 1 auto; /* 允许它们自动调整大小 */
+  flex: 1 1 auto; /* 允许它们自动调整大小 */
   max-width: 45%; /* 限制它们的最大宽度 */
+  min-width: 200px;
 }
 
 .chart-selection {
@@ -78,5 +80,9 @@
   .chart-selection button,
   .chart-actions button {
     width: 100%;
+  }
+
+  .main-content.shifted {
+    margin-left: 0;
   }
 }

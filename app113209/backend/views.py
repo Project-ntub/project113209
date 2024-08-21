@@ -1,7 +1,8 @@
 # C:\Users\user\OneDrive\桌面\project113209\app113209\backend\views.py
 import logging
 import uuid
-from app113209.models import User, Role, RolePermission, Module, UserPreference
+import json
+from app113209.models import User, Role, RolePermission, Module, UserPreference, UserHistory
 from app113209.serializers import UserSerializer, RoleSerializer, ModuleSerializer, RolePermissionSerializer
 from datetime import timedelta
 from django.contrib.auth import get_user_model
@@ -256,5 +257,7 @@ def query_preferences(request):
     results = list(preferences.values())
 
     return JsonResponse(results, safe=False)    
+
+
 
     

@@ -10,10 +10,24 @@
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   transform: translateX(-100%);
   transition: transform 0.3s ease;
+  z-index: 1000;
 }
 
 .sidebar.active {
   transform: translateX(0);
+}
+
+.hamburger-menu {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  cursor: pointer;
+  z-index: 1100; /* Ensure it's on top of the sidebar */
+}
+
+.hamburger-icon {
+  font-size: 35px;
+  color: #333;
 }
 
 .sidebar h2 {
@@ -51,20 +65,10 @@
   background-color: #c82333;
 }
 
-.hamburger-menu {
-  position: absolute;
-  top: 10px;
-  left: 20px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-.hamburger-icon {
-  font-size: 35px;
-  color: #333;
+.main-content {
+  transition: margin-left 0.3s ease;
 }
 
 .main-content.shifted {
   margin-left: 250px;
-  transition: margin-left 0.3s ease;
 }

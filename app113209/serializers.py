@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Module, Role, RolePermission
+from .models import User, Module, Role, RolePermission, UserHistory
 
 class ModuleSerializer(serializers.ModelSerializer):
     user_count = serializers.SerializerMethodField()
@@ -59,3 +59,8 @@ class RolePermissionSerializer(serializers.ModelSerializer):
             'role': {'required': True},
             'permission_name': {'required': True}
         }
+
+class UserHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserHistory
+        fields = ['id', 'user_id', 'action', 'timestamp']
