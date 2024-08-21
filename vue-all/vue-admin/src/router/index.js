@@ -53,6 +53,7 @@ const routes = [
   { path: '/backend/forgetpassword', name: 'BackendForgetPassword', component: ForgetPassword },
   { path: '/backend/management', name: 'BackendManagement', component: Management },
   { path: '/backend/dashboard', name: 'BackendDashboard', component: Dashboard },
+  { path: '/backend/dashboard', name: 'BackendDashboard', component: Dashboard },
   { path: '/backend/user-management', name: 'BackendUserManagement', component: UserManagement },
   { path: '/backend/role-management', name: 'BackendRoleManagement', component: RoleManagement },
   { path: '/backend/pending_list', name: 'BackendPendingList', component: PendingList },

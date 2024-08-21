@@ -133,4 +133,41 @@ class Branch(models.Model):
     class Meta:
         db_table = 'branches'  # 確保這裡的表名和你的資料庫中的表名一致
 
+class UserPreference(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    fontsize = models.CharField(max_length=10, default='medium')
+    notificationSettings = models.BooleanField(default=True)
+    autoLogin = models.BooleanField(default=False)
+    authentication = models.BooleanField(default=True)
 
+    class Meta:
+        db_table = 'userpreferences'
+
+    def __str__(self):
+        return f"{self.user.username}'s Preferences"
+    
+class Chart(models.Model):
+    CHART_TYPES = [
+        ('bar', 'Bar Chart'),
+        ('line', 'Line Chart'),
+        ('pie', 'Pie Chart'),
+        # 添加其他需要的图表类型
+    ]
+
+    id = models.AutoField(primary_key=True)
+    chart_type = models.CharField(max_length=50, choices=CHART_TYPES)
+    chart_name = models.CharField(max_length=255)
+    chart_data = models.JSONField()  # 存储图表数据，建议使用 JSON 字段来存储复杂数据
+    available = models.BooleanField(default=True)
+    create_id = models.ForeignKey('User', related_name='created_charts', on_delete=models.SET_NULL, null=True, blank=True)
+    modify_id = models.ForeignKey('User', related_name='modified_charts', on_delete=models.SET_NULL, null=True, blank=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True)
+    branch = models.ForeignKey('Branch', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, default='Default Chart Name')
+
+    class Meta:
+        db_table = 'charts'
+
+    def __str__(self):
+        return self.chart_name
