@@ -1,8 +1,5 @@
-# admin.py
 from django.contrib import admin
-from .models import ActionLog
+from .models import CustomUser
+from django.contrib.auth.admin import UserAdmin
 
-@admin.register(ActionLog)
-class ActionLogAdmin(admin.ModelAdmin):
-    list_display = ('user', 'action_type', 'timestamp', 'details')
-    search_fields = ('user__username', 'action_type', 'details')
+admin.site.register(CustomUser, UserAdmin)
