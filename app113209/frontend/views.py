@@ -53,7 +53,36 @@ class SendVerificationCodeView(View):
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
 
+<<<<<<< HEAD
 # 注册
+=======
+@api_view(['GET'])
+def check_login_status(request):
+    if request.user.is_authenticated:
+        return JsonResponse({'loggedIn': True}, status=200)
+    else:
+        return JsonResponse({'loggedIn': False}, status=200)
+
+api_view(['GET'])
+def user_history(request):
+    if request.method == 'GET':
+        user = request.user
+        logs = LogEntry.objects.filter(user_id=user.id).order_by('-action_time')
+
+        history_data = []
+        for log in logs:
+            history_data.append({
+                'id': log.id,
+                'date': log.action_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'action': log.object_repr, 
+                'changes': log.change_message, 
+                'user': user.username
+            })
+
+        return JsonResponse(history_data, safe=False)
+
+# register
+>>>>>>> 9e8bcbe0d766bbd0cd6fc4dbfbb99fe547af9fec
 @method_decorator(csrf_exempt, name='dispatch')
 class FrontendRegisterView(View):
     def post(self, request, *args, **kwargs):

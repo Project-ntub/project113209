@@ -1,135 +1,157 @@
 <template>
-  <div>
-    <Sidebar :isSidebarActive="isSidebarActive" @toggle-sidebar="toggleSidebar" />
-    <div class="main-content" :class="{ shifted: isSidebarActive }">
-      <!-- Your main content goes here -->
-      <div class="header">
-        <h2>儀表板管理</h2>
-        <div class="buttons">
-          <button>新增圖表</button>
-          <button>編輯圖表</button>
-        </div>
-      </div>
-      <div class="chart-grid">
-        <div class="chart">
-          <h3>銷售額</h3>
-          <canvas id="salesChart"></canvas>
-        </div>
-        <div class="chart">
-          <h3>營業額</h3>
-          <canvas id="usersChart"></canvas>
-        </div>
-        <div class="chart">
-          <h3>庫存量</h3>
-          <canvas id="storageChart"></canvas>
-        </div>
-        <div class="chart">
-          <h3>其他圖表</h3>
-          <canvas id="otherChart"></canvas>
-        </div>
+  <div class="dashboard-container">
+    <div class="header">
+      <h2>儀表板管理</h2>
+      <div class="chart-actions">
+        <button @click="openAddChartModal">新增圖表</button>
+        <button @click="openEditChartModal">編輯圖表</button>
       </div>
     </div>
+
+    <div class="module-selection">
+      <label for="module-select">選擇模組:</label>
+      <select id="module-select" v-model="selectedModule" @change="onModuleChange">
+        <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
+      </select>
+    </div>
+
+    <div class="role-selection">
+      <label for="role-select">選擇角色:</label>
+      <select id="role-select" v-model="selectedRole" @change="onRoleChange">
+        <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+      </select>
+    </div>
+
+    <div class="chart-selection">
+      <button @click="setCurrentChart('SalesChart')">銷售額</button>
+      <button @click="setCurrentChart('RevenueChart')">營業額</button>
+      <button @click="setCurrentChart('InventoryChart')">庫存量</button>
+    </div>
+
+    <div class="chart-container">
+      <component :is="currentChart" :role-id="selectedRole" />
+    </div>
+
+    <!-- 新增图表模态框 -->
+    <Modal v-if="showAddChartModal" @close="closeAddChartModal">
+      <template #header>
+        <h3>新增圖表</h3>
+      </template>
+      <template #body>
+        <form @submit.prevent="submitAddChartForm">
+          <div>
+            <label for="chartName">圖表名稱:</label>
+            <input type="text" id="chartName" v-model="newChart.name" required>
+          </div>
+          <button type="submit">提交</button>
+        </form>
+      </template>
+    </Modal>
+
+    <!-- 编辑图表模态框 -->
+    <Modal v-if="showEditChartModal" @close="closeEditChartModal">
+      <template #header>
+        <h3>編輯圖表</h3>
+      </template>
+      <template #body>
+        <form @submit.prevent="submitEditChartForm">
+          <div>
+            <label for="chartName">圖表名稱:</label>
+            <input type="text" id="chartName" v-model="editChart.name" required>
+          </div>
+          <button type="submit">提交</button>
+        </form>
+      </template>
+    </Modal>
   </div>
 </template>
 
-
 <script>
-import { Chart, registerables } from 'chart.js';
-import Sidebar from '@/components/backend/SideBar.vue';
-
-Chart.register(...registerables);
+import SalesChart from '@/Charts/SalesChart.vue';
+import RevenueChart from '@/Charts/RevenueChart.vue';
+import InventoryChart from '@/Charts/InventoryChart.vue';
+import Modal from '@/components/backend/ChartModal.vue'; // 引入 Modal 组件
+import axios from '@/axios';
 
 export default {
-  name: 'AppDashboard',
+  name: 'DashboardManager',
   components: {
-    Sidebar
+    SalesChart,
+    RevenueChart,
+    InventoryChart,
+    Modal,
   },
   data() {
     return {
-      isSidebarActive: false,
-      salesChart: null,
-      usersChart: null,
-      storageChart: null,
-      otherChart: null
+      currentChart: 'SalesChart',
+      modules: [],           // 用于存储模组
+      roles: [],             // 用于存储角色
+      selectedModule: null,  // 当前选中的模组
+      selectedRole: null,    // 当前选中的角色
+      showAddChartModal: false,
+      showEditChartModal: false,
+      newChart: {
+        name: '',
+      },
+      editChart: {
+        name: '',
+      },
     };
   },
   methods: {
-    toggleSidebar() {
-      this.isSidebarActive = !this.isSidebarActive;
+    async fetchModules() {
+      try {
+        const response = await axios.get('/api/backend/modules/');
+        this.modules = response.data;
+        this.selectedModule = this.modules.length > 0 ? this.modules[0].id : null;
+      } catch (error) {
+        console.error('Error fetching modules:', error);
+      }
     },
-    initializeCharts() {
-      const salesCtx = document.getElementById('salesChart').getContext('2d');
-      this.salesChart = new Chart(salesCtx, {
-        type: 'line',
-        data: {
-          labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-          datasets: [{
-            label: 'Sales',
-            data: [120, 190, 30, 50, 20, 30, 70],
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-          }]
-        }
-      });
-
-      const usersCtx = document.getElementById('usersChart').getContext('2d');
-      this.usersChart = new Chart(usersCtx, {
-        type: 'line',
-        data: {
-          labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-          datasets: [{
-            label: 'Users',
-            data: [300, 400, 350, 500, 600, 700, 800],
-            backgroundColor: 'rgba(153, 102, 255, 0.2)',
-            borderColor: 'rgba(153, 102, 255, 1)',
-            borderWidth: 1
-          }]
-        }
-      });
-
-      const storageCtx = document.getElementById('storageChart').getContext('2d');
-      this.storageChart = new Chart(storageCtx, {
-        type: 'bar',
-        data: {
-          labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-          datasets: [{
-            label: 'Storage',
-            data: [50, 75, 60, 90, 100, 110, 120],
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-            borderColor: 'rgba(255, 159, 64, 1)',
-            borderWidth: 1
-          }]
-        }
-      });
-
-      const otherCtx = document.getElementById('otherChart').getContext('2d');
-      this.otherChart = new Chart(otherCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Media', 'Document', 'Others'],
-          datasets: [{
-            label: 'File Types',
-            data: [50, 30, 20],
-            backgroundColor: [
-              'rgba(255, 206, 86, 0.2)',
-              'rgba(54, 162, 235, 0.2)',
-              'rgba(75, 192, 192, 0.2)'
-            ],
-            borderColor: [
-              'rgba(255, 206, 86, 1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(75, 192, 192, 1)'
-            ],
-            borderWidth: 1
-          }]
-        }
-      });
-    }
+    async fetchRoles() {
+      try {
+        const response = await axios.get(`/api/backend/get_roles_by_module/${this.selectedModule}/`);
+        this.roles = response.data;
+        this.selectedRole = this.roles.length > 0 ? this.roles[0].id : null;
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      }
+    },
+    setCurrentChart(chart) {
+      this.currentChart = chart;
+    },
+    onModuleChange() {
+      this.fetchRoles();  // 当模组变化时，重新获取角色
+      console.log('選擇的模組:', this.selectedModule);
+    },
+    onRoleChange() {
+      console.log('選擇的角色:', this.selectedRole);
+    },
+    openAddChartModal() {
+      this.showAddChartModal = true;
+    },
+    closeAddChartModal() {
+      this.showAddChartModal = false;
+    },
+    submitAddChartForm() {
+      console.log('提交新增图表表单:', this.newChart);
+      this.closeAddChartModal();
+    },
+    openEditChartModal() {
+      this.showEditChartModal = true;
+    },
+    closeEditChartModal() {
+      this.showEditChartModal = false;
+    },
+    submitEditChartForm() {
+      console.log('提交编辑图表表单:', this.editChart);
+      this.closeEditChartModal();
+    },
   },
-  mounted() {
-    this.initializeCharts();
-  }
+  async mounted() {
+    await this.fetchModules(); // 组件挂载后获取模组数据
+    await this.fetchRoles();   // 然后获取角色数据
+  },
 };
 </script>
 

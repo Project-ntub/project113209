@@ -24,6 +24,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, username, password, **extra_fields)
 
 class User(AbstractBaseUser):
+    name = models.CharField(max_length=255, blank=True, null=True)  
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True, null=False, blank=False, default='0000000000')
@@ -129,6 +130,7 @@ class Branch(models.Model):
     manager = models.CharField(max_length=100)  # 經理姓名
 
     class Meta:
+<<<<<<< HEAD
         db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
 
 class UserPreferences(models.Model):
@@ -148,3 +150,77 @@ class ActionHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.action} - {self.date}"
+=======
+        db_table = 'branches'  # 確保這裡的表名和你的資料庫中的表名一致
+
+class UserPreference(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    fontsize = models.CharField(max_length=10, default='medium')
+    notificationSettings = models.BooleanField(default=True)
+    autoLogin = models.BooleanField(default=False)
+    authentication = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'userpreferences'
+
+    def __str__(self):
+        return f"{self.user.username}'s Preferences"
+    
+class Chart(models.Model):
+    CHART_TYPES = [
+        ('bar', 'Bar Chart'),
+        ('line', 'Line Chart'),
+        ('pie', 'Pie Chart'),
+        # 添加其他需要的图表类型
+    ]
+
+    id = models.AutoField(primary_key=True)
+    chart_type = models.CharField(max_length=50, choices=CHART_TYPES)
+    chart_name = models.CharField(max_length=255)
+    chart_data = models.JSONField()  # 存储图表数据，建议使用 JSON 字段来存储复杂数据
+    available = models.BooleanField(default=True)
+    create_id = models.ForeignKey('User', related_name='created_charts', on_delete=models.SET_NULL, null=True, blank=True)
+    modify_id = models.ForeignKey('User', related_name='modified_charts', on_delete=models.SET_NULL, null=True, blank=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True)
+    branch = models.ForeignKey('Branch', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, default='Default Chart Name')
+
+    class Meta:
+        db_table = 'charts'
+
+    def __str__(self):
+        return self.chart_name
+    
+# class DjangoAdminLog(models.Model):
+#     action_time = models.DateTimeField(auto_now_add=True, verbose_name="Action Time")
+#     object_id = models.TextField(null=True, blank=True, verbose_name="Object ID")
+#     object_repr = models.CharField(max_length=200, verbose_name="Object Representation")
+#     action_flag = models.PositiveSmallIntegerField(verbose_name="Action Flag")
+#     change_message = models.TextField(verbose_name="Change Message")
+#     content_type_id = models.IntegerField(null=True, blank=True, verbose_name="Content Type ID")
+    
+#     # 定义一个外键，指向 Django 内置的 User 模型，用于记录执行操作的用户
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
+
+#     class Meta:
+#         db_table = 'django_admin_log'  # 定义数据库表名称
+#         verbose_name = "Django Admin Log"  # 人性化名称
+#         verbose_name_plural = "Django Admin Logs"  # 复数形式
+#         ordering = ['-action_time']  # 默认按时间倒序排序
+
+#     def __str__(self):
+#         return f"{self.object_repr} (Action: {self.action_flag}) at {self.action_time}"
+
+class UserHistory(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_id = models.IntegerField()
+    action = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'user_history'
+
+    def __str__(self):
+        return f"User {self.user_id} performed {self.action} at {self.timestamp}"
+>>>>>>> 9e8bcbe0d766bbd0cd6fc4dbfbb99fe547af9fec
