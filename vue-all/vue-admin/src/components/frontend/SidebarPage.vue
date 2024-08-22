@@ -3,26 +3,26 @@
     <div :class="['sidebar', { open: isSidebarOpen }]">
       <div class="sidebar-header">
         <font-awesome-icon icon="user" class="icon" />
-        <span v-if="isSidebarOpen">王曉明</span> <!-- 只在展开时显示 -->
+        <span v-if="isSidebarOpen">{{ username }}</span> <!-- 只在展开时显示 -->
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
-      <router-link to="/frontend/home" data-tooltip="儀錶板管理">
+      <router-link to="/frontend/home" class="sidebar-link">
         <font-awesome-icon icon="tachometer-alt" class="icon" />
         <span class="text">儀錶板管理</span>
       </router-link>
-      <router-link to="/frontend/profile" data-tooltip="個人資訊">
+      <router-link to="/frontend/profile" class="sidebar-link">
         <font-awesome-icon icon="user" class="icon" />
         <span class="text">個人資訊</span>
       </router-link>
-      <router-link to="/frontend/accountsettings" data-tooltip="帳號設定">
+      <router-link to="/frontend/accountsettings" class="sidebar-link">
         <font-awesome-icon icon="users" class="icon" />
         <span class="text">帳號設定</span>
       </router-link>
-      <router-link to="/frontend/history" data-tooltip="歷史紀錄">
+      <router-link to="/frontend/history" class="sidebar-link">
         <font-awesome-icon icon="history" class="icon" />
         <span class="text">歷史紀錄</span>
       </router-link>
-      <a href="#" @click.prevent="confirmLogout" data-tooltip="登出">
+      <a href="#" class="sidebar-link" @click.prevent="confirmLogout">
         <font-awesome-icon icon="sign-out-alt" class="icon" />
         <span class="text">登出</span>
       </a>
@@ -34,11 +34,14 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: "SidebarPage",
   data() {
     return {
-      isSidebarOpen: false
+      isSidebarOpen: false,
+      username: '' // 用来存储用户名
     };
   },
   methods: {
@@ -54,7 +57,18 @@ export default {
     logout() {
       alert("已登出");
       this.$router.push('/frontend/login');
+    },
+    async fetchUserData() {
+      try {
+        const response = await axios.get('/api/frontend/profile/'); // 替换为你的用户信息 API 路径
+        this.username = response.data.username;
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      }
     }
+  },
+  mounted() {
+    this.fetchUserData(); // 获取用户信息
   }
 };
 </script>

@@ -1,13 +1,17 @@
 .home-page {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 15px 80px;
+  position: fixed; 
+  margin-left: 60px; /* 默认情况下，内容距离左侧边栏60px */
+  transition: margin-left 0.4s ease; /* 平滑的过渡效果 */
 }
 
 .branch-selection {
-  margin-top: 60px;
+  position: fixed;
+  margin-top: 15px;
+  margin-right: 170px;
   margin-bottom: 20px;
-  position: absolute;
   right: 20px;
   top: 70px;
   z-index: 1000;
@@ -21,9 +25,12 @@
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-  margin-top: 100px;
+  margin-top: -35px;
 }
 
 .chart {
   height: 400px;
+}
+.sidebar.open ~ .home-page {
+  margin-left: 200px; /* 当侧边栏展开时，内容区域右移200px */
 }

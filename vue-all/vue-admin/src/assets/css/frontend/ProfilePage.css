@@ -1,87 +1,105 @@
-body {
-  font-family: Arial, sans-serif;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.header-bar {
-  width: 100%;
-  background-color: black;
-  height: 40px;
-  display: flex;
-  align-items: center;
+.profile-container {
+  display: fixed;
   justify-content: center;
-  color: white;
-  font-size: 18px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-}
-
-h2 {
-  text-align: center;
-  margin-top: 60px;
-}
-
-.info-container {
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  align-items: center;
+  height: 100vh;
   padding: 20px;
-  margin-top: 100px;
-  margin-bottom: 20px;
-  width: 80%;
-  max-width: 600px;
+  background-color: #f5f5f5;
+}
+
+.profile-card {
+  background-color: #4d678ab4;
+  color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-align: center;
+  width: 300px;
+  height: 360px;
+  position: fixed; /* 固定定位 */
+  top: 56%; /* 垂直居中 */
+  left: 50%; /* 水平居中 */
+  transform: translate(-50%, -50%); /* 将位置调整到真正的中心 */
+  font-size: 18px;
 }
 
-.info-container h3 {
-  margin-top: 0;
+.profile-image img {
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
 }
 
-.info-container p {
+.profile-info h2 {
+  margin: 20px 0 10px;
+}
+
+.profile-info p {
   margin: 5px 0;
 }
 
+.edit-button {
+  background-color: #585167c4;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.edit-button:hover {
+  background-color: #3700b3;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.edit-form {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+}
+
+.edit-form h3 {
+  margin-bottom: 20px;
+}
+
+.edit-form p {
+  margin: 10px 0;
+}
+
 .button-container {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
   margin-top: 20px;
 }
 
 .button-container button {
   padding: 10px 20px;
-  margin: 0 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-.button-container button.edit {
+.button-container .save {
   background-color: #4CAF50;
   color: white;
 }
 
-.button-container button.logout {
+.button-container .cancel {
   background-color: #f44336;
   color: white;
-}
-
-.content {
-  margin-left: 60px;
-  padding: 20px;
-  transition: margin-left 0.3s;
-}
-
-.content.shift {
-  margin-left: 200px;
-}
-
-input[type="text"], input[type="email"] {
-  width: 100%;
-  padding: 8px;
-  margin: 5px 0;
-  box-sizing: border-box;
 }

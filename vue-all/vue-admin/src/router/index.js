@@ -11,7 +11,7 @@ import ChangePassword from '@/views/frontend/ChangePassword.vue';
 import PreferenceSetting from '@/views/frontend/PreferenceSetting.vue';
 import HistoryPage from '@/views/frontend/HistoryPage.vue';
 import HistoryDetails from '@/views/frontend/HistoryDetails.vue';
-import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
+// import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
 
 // Backend Views
 import Login from '@/views/backend/Login.vue';
@@ -31,6 +31,8 @@ import RolePermissions from '@/components/backend/RolePermissions.vue';
 import HistoricalRecord from '@/views/backend/HistoricalRecord.vue';
 import PersonalPreference from '@/views/backend/PersonalPreference.vue';
 import Profile from '@/views/backend/Profile.vue';
+import ManagerHome from '@/views/frontend/ManagerHome.vue';
+import BranchManagerHome from '@/views/frontend/BranchManagerHome.vue';
 
 const routes = [
   // Frontend Routes
@@ -39,6 +41,8 @@ const routes = [
   { path: '/frontend/register', name: 'FrontendRegister', component: RegisterPage, meta: { hideNavbar: true, hideSidebar: true } },
   { path: '/frontend/forgot_password', name: 'FrontendForgetPassword', component: ForgetPasswordPage, meta: { hideNavbar: true, hideSidebar: true } },
   { path: '/frontend/home', name: '首頁', component: HomePage },
+  { path: '/frontend/manager_home', name: 'ManagerHome', component: ManagerHome },
+  { path: '/frontend/branch_manager_home', name: 'BranchManagerHome', component: BranchManagerHome },
   { path: '/frontend/profile', name: '個人資訊', component: ProfilePage },
   { path: '/frontend/accountsettings', name: '帳號設定', component: AccountSettings },
   { path: '/frontend/changepassword', name: '修改密碼', component: ChangePassword },
@@ -46,7 +50,7 @@ const routes = [
   { path: '/frontend/historydetails', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/detail/:id', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/history', name: '歷史紀錄', component: HistoryPage },
-  { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage,meta: { hideNavbar: true, hideSidebar: true } },
+  // { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage,meta: { hideNavbar: true, hideSidebar: true } },
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
   { path: '/backend/register', name: 'BackendRegister', component: Register },

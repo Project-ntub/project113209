@@ -53,23 +53,22 @@ export default {
   methods: {
     async fetchBranches() {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/branches/'); // 更新這個 URL 以符合你的後端 API
-        this.branches = response.data;
-        this.selectedBranch = this.branches.length > 0 ? this.branches[0].branch_id : null;
+          const response = await axios.get('/api/frontend/branches/');
+          this.branches = response.data;
+          this.selectedBranch = this.branches.length > 0 ? this.branches[0].branch_id : null;
       } catch (error) {
-        console.error('Error fetching branches:', error);
+          console.error('Error fetching branches:', error);
       }
     },
     setCurrentChart(chart) {
       this.currentChart = chart;
     },
     onBranchChange() {
-      // 当用户选择不同的分店时，可以触发这个方法
       console.log('Selected branch:', this.selectedBranch);
     },
   },
   async mounted() {
-    await this.fetchBranches(); // 组件挂载后获取分店数据
+    await this.fetchBranches();
   },
 };
 </script>

@@ -1,29 +1,32 @@
 <template>
   <div>
-    <div class="content" :class="{ shift: isSidebarOpen }" id="content">
-      <div class="info-container">
-        <h3>個人資訊</h3>
-        <div v-if="!isEditing">
-          <!-- <p>姓名：<span>{{ userData.username || 'N/A' }}</span></p> -->
-          <p>帳號：<span>{{ userData.username || 'N/A' }}</span></p>
-          <p>部門：<span>{{ userData.department_id || 'N/A' }}</span></p>
-          <p>職位：<span>{{ userData.position_id || 'N/A' }}</span></p>
-          <p>電話：<span>{{ userData.phone || 'N/A' }}</span></p>
-          <p>電子郵件：<span>{{ userData.email || 'N/A'  }}</span></p>
-          <div class="button-container">
-            <button class="edit" @click="editProfile">編輯</button>
-          </div>
+    <div class="profile-container">
+      <div class="profile-card">
+        <div class="profile-image">
+          <!-- 圓形的圖片容器 -->
+          <img src="https://via.placeholder.com/150" alt="Profile Image" />
         </div>
-        <div v-else>
-          <!-- <p>姓名：<input type="text" v-model="editData.username"></p> -->
-          <p>帳號：<input type="text" v-model="editData.username"></p>
-          <p>部門：<input type="text" v-model="editData.department_id"></p>
-          <p>職位：<input type="text" v-model="editData.position_id"></p>
-          <p>電話：<input type="text" v-model="editData.phone"></p>
-          <p>電子郵件：<input type="email" v-model="editData.email"></p>
+        <div class="profile-info">
+          <h2>{{ userData.username || 'N/A' }}</h2>
+          <p>{{ userData.position_id || 'N/A' }}</p>
+          <p>{{ userData.department_id || 'N/A' }}</p>
+          <p>{{ userData.email || 'N/A' }}</p>
+          <p>{{ userData.phone || 'N/A' }}</p>
+          <button class="edit-button" @click="editProfile">編輯</button>
+        </div>
+      </div>
+
+      <div v-if="isEditing" class="edit-modal">
+        <div class="edit-form">
+          <h3>編輯個人信息</h3>
+          <p>用戶名：<input type="text" v-model="editData.username" /></p>
+          <p>部門：<input type="text" v-model="editData.department_id" disabled /></p>
+          <p>職位：<input type="text" v-model="editData.position_id" disabled /></p>
+          <p>電話：<input type="text" v-model="editData.phone" /></p>
+          <p>電子郵件：<input type="email" v-model="editData.email" /></p>
           <div class="button-container">
-            <button class="save" @click="saveProfile">保存</button>
-            <button class="cancel" @click="cancelEdit">取消</button>
+            <button @click="saveProfile" class="save">保存</button>
+            <button @click="cancelEdit" class="cancel">取消</button>
           </div>
         </div>
       </div>
@@ -41,18 +44,14 @@ export default {
         username: '',
         email: '',
         phone: '',
-        department_name: '',
-        position_name: '',
+        department_id: '',
+        position_id: '',
       },
       editData: {},
-      isSidebarOpen: false,
       isEditing: false
     };
   },
   methods: {
-    toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    },
     async fetchUserProfile() {
       try {
         const response = await axios.get('/api/frontend/profile/');
@@ -86,4 +85,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/frontend/ProfilePage.css"></style>
+<style src="@/assets/css/frontend/ProfilePage.css"></style>

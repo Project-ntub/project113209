@@ -2,6 +2,7 @@
 
 from django.urls import path
 from . import views as frontend_views
+from .views import get_data  
 
 app_name = 'frontend'
 
@@ -12,6 +13,7 @@ urlpatterns = [
     path('home/', frontend_views.HomePageView.as_view(), name='frontend-home'),  
     path('forgot-password/', frontend_views.ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password/', frontend_views.ResetPasswordView.as_view(), name='reset-password'),
-    path('api/branches/', frontend_views.BranchListView.as_view(), name='get_branches'), 
-    # 其他 URL 配置
+    path('manager_home/', frontend_views.ManagerHomeView.as_view(), name='manager-home'),
+    # path('branch_manager_home/', frontend_views.BranchManagerHomeView.as_view(), name='branch-manager-home'),
+    path('get-data/', get_data, name='get_data'), 
 ]

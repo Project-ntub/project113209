@@ -130,4 +130,17 @@ class Branch(models.Model):
     manager = models.CharField(max_length=100)  # 經理姓名
 
     class Meta:
-        db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
+        db_table = 'branches' 
+    def __str__(self):
+        return self.branch_name
+
+class DataModel(models.Model):
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)  # 关联到分店
+    name = models.CharField(max_length=100)  # 数据名称
+    value = models.IntegerField()  # 数据值
+
+    class Meta:
+        db_table = 'data_model'  # 确保与数据库中的表名一致
+
+    def __str__(self):
+        return self.name
