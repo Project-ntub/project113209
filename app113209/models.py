@@ -46,7 +46,6 @@ class User(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
 
     objects = CustomUserManager()
-    objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -131,3 +130,21 @@ class Branch(models.Model):
 
     class Meta:
         db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
+
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    font_size = models.CharField(max_length=10, choices=[('small', 'Small'), ('medium', 'Medium'), ('large', 'Large')], default='medium')
+    notifications_enabled = models.BooleanField(default=False)
+    auto_login_enabled = models.BooleanField(default=False)
+    authentication_enabled = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} Preferences"
+class ActionHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    action = models.CharField(max_length=255)
+    changes = models.TextField(blank=True, null=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.action} - {self.date}"

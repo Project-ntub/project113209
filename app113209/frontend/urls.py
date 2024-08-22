@@ -1,5 +1,3 @@
-# app113209/frontend/urls.py
-
 from django.urls import path
 from . import views as frontend_views
 
@@ -12,10 +10,9 @@ urlpatterns = [
     path('home/', frontend_views.HomePageView.as_view(), name='frontend-home'),  
     path('forgot-password/', frontend_views.ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password/', frontend_views.ResetPasswordView.as_view(), name='reset-password'),
-    path('api/branches/', frontend_views.BranchListView.as_view(), name='get_branches'), 
-    path('reset-password/', frontend_views.ResetPasswordView.as_view(), name='reset-password'),  # 添加这一行
     path('profile/', frontend_views.user_profile, name='user-profile'),
     path('check_login_status/', frontend_views.check_login_status, name='check_login_status'),
     path('history/', frontend_views.get_history, name='get_history'),
-    # 其他 URL 配置
+    path('change_password/', frontend_views.change_password, name='change_password'),
+    path('preferences/', frontend_views.user_preferences, name='user_preferences'),
 ]

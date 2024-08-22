@@ -13,7 +13,7 @@ import HistoryPage from '@/views/frontend/HistoryPage.vue';
 import HistoryDetails from '@/views/frontend/HistoryDetails.vue';
 import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
 
-// Backend Views
+// Backend Views 保持不變...
 import Login from '@/views/backend/Login.vue';
 import Register from '@/views/backend/Register.vue';
 import ForgetPassword from '@/views/backend/ForgetPassword.vue';
@@ -47,6 +47,7 @@ const routes = [
   { path: '/frontend/detail/:id', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/history', name: '歷史紀錄', component: HistoryPage },
   { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage,meta: { hideNavbar: true, hideSidebar: true } },
+
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
   { path: '/backend/register', name: 'BackendRegister', component: Register },
