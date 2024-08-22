@@ -51,6 +51,9 @@ export default {
         axios.get(`/api/backend/get_roles_by_module/${this.selectedModule}/`)
           .then(response => {
             this.roles = response.data;
+            if (!this.roles.some(role => role.id === this.selectedRole)){
+              this.selectedRole = "";
+            }
           })
           .catch(error => {
             console.error('Error loading roles:', error);
@@ -80,22 +83,22 @@ export default {
       this.$router.go(-1);
     },
     loadUser() {
-      const userId = this.$route.params.userId;
-      axios.get(`/api/backend/users/${userId}/`)
-        .then(response => {
-          this.user = response.data;
-          console.log(this.user);
-          // 設定用戶目前的角色和模組
-          this.selectedModule = this.user.module ? this.user.module.id : "";
-          this.selectedRole = this.user.role ? this.user.role.id : "";
-          // 加載模組下的角色
-          if (this.selectedModule) {
-            this.loadRoles();
-          }
-        })
-        .catch(error => {
-          console.error('Error loading user:', error);
-        });
+        const userId = this.$route.params.userId;
+        axios.get(`/api/backend/users/${userId}/`)
+          .then(response => {
+            this.user = response.data;
+            console.log(this.user);
+            // 設定用戶目前的模組和角色
+            this.selectedModule = this.user.module ? this.user.module.id : "";
+            this.selectedRole = this.user.roles.length > 0 ? this.user.roles[0].id : "";  // 確保 roles 是一個陣列
+            // 加載模組下的角色
+            if (this.selectedModule) {
+              this.loadRoles();
+            }
+          })
+          .catch(error => {
+            console.error('載入用戶資料時發生錯誤:', error);
+          });
     }
   },
   mounted() {

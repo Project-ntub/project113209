@@ -11,6 +11,8 @@ import ChangePassword from '@/views/frontend/ChangePassword.vue';
 import PreferenceSetting from '@/views/frontend/PreferenceSetting.vue';
 import HistoryPage from '@/views/frontend/HistoryPage.vue';
 import HistoryDetails from '@/views/frontend/HistoryDetails.vue';
+import ManagerHome from '@/views/frontend/ManagerHome.vue';
+import BranchManagerHome from '@/views/frontend/BranchManagerHome.vue';
 // import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
 
 // Backend Views
@@ -31,8 +33,7 @@ import RolePermissions from '@/components/backend/RolePermissions.vue';
 import HistoricalRecord from '@/views/backend/HistoricalRecord.vue';
 import PersonalPreference from '@/views/backend/PersonalPreference.vue';
 import Profile from '@/views/backend/Profile.vue';
-import ManagerHome from '@/views/frontend/ManagerHome.vue';
-import BranchManagerHome from '@/views/frontend/BranchManagerHome.vue';
+
 
 const routes = [
   // Frontend Routes

@@ -1,8 +1,22 @@
 body {
     font-family: Arial, sans-serif;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
     background-color: #f4f4f4;
 }
+
+.profile-content {
+    flex: 1;
+    padding: 60px 20px 20px 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.profile-content.shifted {
+    margin-left: 250px;
+}
+
 .profile-container {
     max-width: 600px;
     margin: 0 auto;
@@ -11,18 +25,17 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
 }
+
 .profile-container h2 {
     margin-bottom: 20px;
     font-size: 24px;
 }
-.profile-container p {
-    margin: 10px 0;
-    font-size: 18px;
-}
+
 .profile-container label {
     display: block;
     margin: 5px 0;
 }
+
 .profile-container input {
     width: 100%;
     padding: 8px;
@@ -30,6 +43,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
 .profile-container button {
     padding: 10px 20px;
     margin-right: 10px;
@@ -39,15 +53,19 @@ body {
     border-radius: 4px;
     cursor: pointer;
 }
+
 .profile-container button:hover {
     background-color: #2980b9;
 }
+
 .profile-container .logout-btn {
     background-color: #e74c3c;
 }
+
 .profile-container .logout-btn:hover {
     background-color: #c0392b;
 }
+
 .modal {
     display: none;
     position: fixed;
@@ -59,6 +77,7 @@ body {
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
 }
+
 .modal-content {
     background-color: #fff;
     margin: 15% auto;
@@ -68,12 +87,14 @@ body {
     max-width: 400px;
     border-radius: 8px;
 }
+
 .close {
     color: #aaa;
     float: right;
     font-size: 28px;
     font-weight: bold;
 }
+
 .close:hover,
 .close:focus {
     color: black;

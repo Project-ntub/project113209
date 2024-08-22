@@ -18,7 +18,12 @@ urlpatterns = [
     path('approve_user/<int:user_id>/', backend_views.approve_user, name='approve_user'),
     path('delete_user/<int:user_id>/', backend_views.delete_user, name='delete_user'),
     path('assign_role_and_module/<int:user_id>/', backend_views.assign_role_and_module, name='assign_role_and_module'),
-    path('delete_module/<int:module_id>/', api_views.ModuleViewSet.as_view({'post': 'delete_module'}), name='delete_module')
+    path('delete_module/<int:module_id>/', api_views.ModuleViewSet.as_view({'post': 'delete_module'}), name='delete_module'),
+    path('preferences/get_preferences/',backend_views.get_preferences, name='get_preferences'),
+    path('preferences/update_preference/', backend_views.update_preference, name='update_preference'),
+    path('preferences/add_preference/', backend_views.add_preference, name='add_preference'),
+    path('preferences/delete_preference/', backend_views.delete_preference, name='delete_preference'),
+    path('preferences/query_preferences/', backend_views.query_preferences, name='query_preferences'),
 ]
 
 api_urlpatterns = [
@@ -40,6 +45,8 @@ api_urlpatterns = [
     path('role_permissions/<int:pk>/', api_views.RolePermissionRetrieveUpdateDestroyView.as_view(), name='role-permission-retrieve-update-destroy'),
     path('modules/', api_views.ModuleListCreateView.as_view(), name='module-list-create'),
     path('modules/<int:pk>/', api_views.ModuleRetrieveUpdateDestroyView.as_view(), name='module-retrieve-update-destroy'),
+    path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
+    path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
 ]
 
 urlpatterns += [

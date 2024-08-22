@@ -1,11 +1,14 @@
+# C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
 import logging
+import json
 from django.shortcuts import get_object_or_404
+from django.db import transaction  # 導入 transaction
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from app113209.models import User, Module, Role, RolePermission
+from app113209.models import User, Module, Role, RolePermission, UserHistory
 from app113209.serializers import UserSerializer, ModuleSerializer, RoleSerializer, RolePermissionSerializer
 
 logger = logging.getLogger(__name__)
@@ -43,13 +46,31 @@ class UserViewSet(viewsets.ModelViewSet):
         instance.is_deleted = True  # 或者你可以直接刪除用戶
         instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    def post(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Profile updated successfully'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
         
 class PendingUserListView(generics.ListAPIView):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
 
 class ModuleViewSet(viewsets.ModelViewSet):
-    queryset = Module.objects.all()
+    queryset = Module.objects.filter(is_deleted = False)
     serializer_class = ModuleSerializer
 
     def perform_destroy(self, instance):
@@ -59,7 +80,7 @@ class ModuleViewSet(viewsets.ModelViewSet):
         
     @action(detail=False, methods=['get'])
     def get_modules(self, request):
-        modules = Module.objects.all()
+        modules = Module.objects.filter(is_deleted = False)
         serializer = self.get_serializer(modules, many=True)
         return Response(serializer.data)
     
@@ -246,6 +267,7 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
 
 
 class RoleDetailView(APIView):
+
     def put(self, request, pk, format=None):
         role = get_object_or_404(Role, pk=pk)
         serializer = RoleSerializer(role, data=request.data, partial=True)
@@ -287,3 +309,19 @@ class ModuleListCreateView(generics.ListCreateAPIView):
 class ModuleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
+
+class UserHistoryListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        records = UserHistory.objects.all().values()
+        return Response(records)
+
+    def post(self, request):
+        data = request.data
+        new_record = UserHistory.objects.create(
+            user_id=data['user_id'],
+            action=data['action'],
+            timestamp=data['timestamp']
+        )
+        return Response({"message": "Record added successfully", "record_id": new_record.id}, status=status.HTTP_201_CREATED)

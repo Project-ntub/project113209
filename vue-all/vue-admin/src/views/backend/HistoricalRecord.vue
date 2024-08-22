@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="container" :class="{ shifted: isSidebarActive }">
+    <div class="container" >
       <!-- Search Box -->
       <div class="search-container">
-        <input type="text" v-model="searchQuery" placeholder="查尋歷史紀錄...">
+        <input type="text" v-model="searchQuery" placeholder="查尋歷史紀錄..." />
         <button @click="searchHistory">查尋</button>
         <button @click="refreshPage">重整</button>
       </div>
@@ -14,13 +14,13 @@
           <span class="close" @click="closeModal('addRecordModal')">&times;</span>
           <form @submit.prevent="addRecord">
             <label for="userName">用戶:</label>
-            <input type="text" v-model="newRecord.userName" required><br><br>
+            <input type="text" v-model="newRecord.userName" required /><br /><br />
             <label for="userAction">操作:</label>
-            <input type="text" v-model="newRecord.userAction" required><br><br>
+            <input type="text" v-model="newRecord.userAction" required /><br /><br />
             <label for="userEmail">電子郵件:</label>
-            <input type="email" v-model="newRecord.userEmail" required><br><br>
+            <input type="email" v-model="newRecord.userEmail" required /><br /><br />
             <label for="timestamp">操作時間:</label>
-            <input type="datetime-local" v-model="newRecord.timestamp" required><br><br>
+            <input type="datetime-local" v-model="newRecord.timestamp" required /><br /><br />
             <button type="submit">新增紀錄</button>
           </form>
         </div>
@@ -42,10 +42,10 @@
           <tbody>
             <tr v-for="(record, index) in filteredRecords" :key="index">
               <td>{{ index + 1 }}</td>
-              <td>{{ record.userName }}</td>
-              <td>{{ record.userAction }}</td>
-              <td>{{ record.userEmail }}</td>
-              <td>{{ record.timestamp }}</td>
+              <td>{{ record.user_id }}</td>
+              <td>{{ record.action }}</td> <!-- 使用返回数据中的action字段 -->
+              <td>{{ record.userEmail || 'N/A' }}</td> <!-- 如果没有userEmail，显示N/A -->
+              <td>{{ formatDateTime(record.timestamp) }}</td>
             </tr>
           </tbody>
         </table>
@@ -55,32 +55,36 @@
 </template>
 
 <script>
+import axios from '@/axios';
+
 export default {
   name: 'HistoricalRecord',
   data() {
     return {
       searchQuery: '',
       isAddRecordModalVisible: false,
+      isLoading: false,
       newRecord: {
         userName: '',
         userAction: '',
         userEmail: '',
-        timestamp: ''
+        timestamp: '',
       },
-      records: [
-        { userName: '張三', userAction: '新增角色', userEmail: 'zhangsan@example.com', timestamp: '2024-05-30 10:00' },
-        { userName: '李四', userAction: '刪除角色', userEmail: 'lisi@example.com', timestamp: '2024-05-30 11:00' }
-        // 更多歷史紀錄
-      ],
-      isSidebarActive: false
+      records: [],
+      isSidebarActive: false,
     };
   },
   computed: {
     filteredRecords() {
-      return this.records.filter(record => {
-        return Object.values(record).some(val => val.toLowerCase().includes(this.searchQuery.toLowerCase()));
-      });
-    }
+      return this.records.filter((record) =>
+        ['user_id', 'userName', 'userAction', 'userEmail'].some((key) => {
+          const value = record[key];
+          return typeof value === 'string'
+            ? value.toLowerCase().includes(this.searchQuery.toLowerCase())
+            : String(value).includes(this.searchQuery); // 对非字符串类型，直接转换为字符串再进行匹配
+        })
+      );
+    },
   },
   methods: {
     openModal(modalName) {
@@ -93,24 +97,45 @@ export default {
         this.isAddRecordModalVisible = false;
       }
     },
-    addRecord() {
-      this.records.push({ ...this.newRecord });
-      this.newRecord = { userName: '', userAction: '', userEmail: '', timestamp: '' };
-      this.closeModal('addRecordModal');
+    async fetchRecords() {
+      this.isLoading = true;
+      try {
+        const { data } = await axios.get('/api/backend/user_history/');
+        console.log(data); // 調試用
+        this.records = data;
+      } catch (error) {
+        console.error('Failed to fetch records:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async addRecord() {
+      this.isLoading = true;
+      try {
+        await axios.post('/api/backend/user_history/', this.newRecord);
+        this.records.push({ ...this.newRecord });
+        this.newRecord = { userName: '', userAction: '', userEmail: '', timestamp: '' };
+        this.closeModal('addRecordModal');
+      } catch (error) {
+        alert('Failed to add record: ' + error.response.data.message || 'Unknown error');
+        console.error('Failed to add record:', error);
+      } finally {
+        this.isLoading = false;
+      }
     },
     searchHistory() {
       // 搜尋功能由 computed: filteredRecords 處理
     },
     refreshPage() {
-      window.location.reload();
+      this.fetchRecords();
     },
-    collectAndSendData() {
-      // 假設這裡有邏輯收集並發送數據到後端
-    }
+    formatDateTime(timestamp) {
+      return new Date(timestamp).toLocaleString();
+    },
   },
   mounted() {
-    this.collectAndSendData();
-  }
+    this.fetchRecords();
+  },
 };
 </script>
 
