@@ -21,22 +21,22 @@
           <div class="form-group">
             <label for="notification">通知設定</label>
             <select id="notification" v-model="notification">
-              <option value="enable">開啟通知</option>
-              <option value="disable">關閉通知</option>
+              <option value="true">開啟通知</option>
+              <option value="false">關閉通知</option>
             </select>
           </div>
           <div class="form-group">
             <label for="auto-login">自動登入</label>
             <select id="auto-login" v-model="autoLogin">
-              <option value="enable">自動登入</option>
-              <option value="disable">取消自動登入</option>
+              <option value="true">自動登入</option>
+              <option value="false">取消自動登入</option>
             </select>
           </div>
           <div class="form-group">
             <label for="authentication">認證設定</label>
             <select id="authentication" v-model="authentication">
-              <option value="enable">開啟認證</option>
-              <option value="disable">關閉認證</option>
+              <option value="true">開啟認證</option>
+              <option value="false">關閉認證</option>
             </select>
           </div>
           <div class="buttons">
@@ -50,32 +50,56 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'PreferenceSetting',
   data() {
     return {
       fontSize: 'medium',
-      notification: 'disable',
-      autoLogin: 'disable',
-      authentication: 'disable',
+      notification: 'false',
+      autoLogin: 'false',
+      authentication: 'false',
     };
   },
   methods: {
+    async fetchPreferences() {
+      try {
+        const response = await axios.get('/frontend/preferences/');
+        const preferences = response.data;
+        this.fontSize = preferences.fontSize || 'medium';
+        this.notification = preferences.notification ? 'true' : 'false';
+        this.autoLogin = preferences.autoLogin ? 'true' : 'false';
+        this.authentication = preferences.authentication ? 'true' : 'false';
+      } catch (error) {
+        console.error('無法獲取偏好設置:', error);
+      }
+    },
+    async submitChanges() {
+      try {
+        const response = await axios.post('/frontend/preferences/', {
+          fontSize: this.fontSize,
+          notification: this.notification === 'true',
+          autoLogin: this.autoLogin === 'true',
+          authentication: this.authentication === 'true',
+        });
+        if (response.data.success) {
+          alert('偏好設定已更改');
+        }
+      } catch (error) {
+        console.error('無法更新偏好設置:', error);
+      }
+    },
+    cancelChanges() {
+      this.fetchPreferences(); // 重新從服務器加載當前偏好設定
+    },
     toggleMenu() {
       const dropdownContent = document.querySelector('.dropdown-content');
       dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
     },
-    cancelChanges() {
-      this.fontSize = 'medium';
-      this.notification = 'disable';
-      this.autoLogin = 'disable';
-      this.authentication = 'disable';
-    },
-    submitChanges() {
-      const fontSize = this.fontSize === 'large' ? '18px' : this.fontSize === 'small' ? '12px' : '16px';
-      document.body.style.fontSize = fontSize;
-      alert('偏好設定已更改');
-    }
+  },
+  mounted() {
+    this.fetchPreferences(); // 在組件加載時獲取當前偏好設定
   },
 };
 </script>

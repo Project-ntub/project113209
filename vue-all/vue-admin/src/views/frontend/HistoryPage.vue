@@ -5,19 +5,6 @@
         <input type="text" id="searchInput" placeholder="搜尋紀錄..." v-model="searchQuery">
         <button @click="filterTimeline">搜尋</button>
       </div>
-      <ul class="timeline" id="timeline">
-        <li class="timeline-item" v-for="item in filteredItems" :key="item.id" @click="showDetail(item.id)">
-          <div class="timeline-panel">
-            <div class="timeline-heading">
-              <h4>{{ item.date }}</h4>
-            </div>
-            <div class="timeline-body">
-              <p>{{ item.action }}</p>
-              <div class="timeline-user">使用者: {{ item.user }}</div>
-            </div>
-          </div>
-        </li>
-      </ul>
     </div>
   </div>
 </template>
@@ -41,16 +28,24 @@ export default {
     filteredItems() {
       return this.items.filter(item => {
         const query = this.searchQuery.trim().toUpperCase();
-        return item.action.toUpperCase().includes(query) || item.date.includes(query);
+        return item.action_description.toUpperCase().includes(query) || item.action_time.includes(query);
       });
     }
   },
   methods: {
-    filterTimeline() {
-      // 使用计算属性进行过滤，不需要额外的过滤逻辑
-    },
-    showDetail(id) {
-      this.$router.push(`/detail/${id}`);
+    getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
     },
     logout() {
       alert("已登出");

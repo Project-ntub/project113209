@@ -15,7 +15,7 @@ import ManagerHome from '@/views/frontend/ManagerHome.vue';
 import BranchManagerHome from '@/views/frontend/BranchManagerHome.vue';
 // import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
 
-// Backend Views
+// Backend Views 保持不變...
 import Login from '@/views/backend/Login.vue';
 import Register from '@/views/backend/Register.vue';
 import ForgetPassword from '@/views/backend/ForgetPassword.vue';
@@ -51,7 +51,12 @@ const routes = [
   { path: '/frontend/historydetails', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/detail/:id', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/history', name: '歷史紀錄', component: HistoryPage },
+<<<<<<< HEAD
   // { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage,meta: { hideNavbar: true, hideSidebar: true } },
+=======
+  { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage, meta: { hideNavbar: true, hideSidebar: true } },
+
+>>>>>>> dda5c7e (change)
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
   { path: '/backend/register', name: 'BackendRegister', component: Register },

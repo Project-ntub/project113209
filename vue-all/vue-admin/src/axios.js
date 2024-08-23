@@ -2,6 +2,7 @@ import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:8000'; // Django 伺服器的基礎 URL
 axios.defaults.withCredentials = true; // 允許跨域請求時攜帶憑證
+axios.defaults.headers.common['X-CSRFToken'] = getCookie('csrftoken');
 
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');

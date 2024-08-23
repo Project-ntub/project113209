@@ -44,8 +44,11 @@ class User(AbstractBaseUser):
 
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+# 需要新增的字段
+    failed_attempts = models.IntegerField(default=0)  # 密碼錯誤嘗試次數
+    is_locked = models.BooleanField(default=False)  # 帳戶是否被鎖定
+    last_failed_attempt = models.DateTimeField(null=True, blank=True)  # 記錄最後一次失敗的嘗試時間
 
-    objects = CustomUserManager()
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
