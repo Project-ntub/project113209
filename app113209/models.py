@@ -23,7 +23,10 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, username, password, **extra_fields)
 
-class User(AbstractBaseUser):
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models
+
+class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True, null=False, blank=False, default='0000000000')
@@ -38,9 +41,15 @@ class User(AbstractBaseUser):
     gender = models.CharField(max_length=10, blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+
+    # 新增的字段
+    failed_attempts = models.IntegerField(default=0)  # 密碼錯誤嘗試次數
+    is_locked = models.BooleanField(default=False)  # 帳戶是否被鎖定
+    last_failed_attempt = models.DateTimeField(null=True, blank=True)  # 記錄最後一次失敗的嘗試時間
 
     objects = CustomUserManager()
 
@@ -61,6 +70,7 @@ class User(AbstractBaseUser):
     def verify_otp(self, otp):
         totp = pyotp.TOTP(self.otp_secret)
         return totp.verify(otp)
+
 
 class Module(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -224,5 +234,24 @@ class DataModel(models.Model):
 
     def __str__(self):
         return self.name
+        db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
+
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    font_size = models.CharField(max_length=10, choices=[('small', 'Small'), ('medium', 'Medium'), ('large', 'Large')], default='medium')
+    notifications_enabled = models.BooleanField(default=False)
+    auto_login_enabled = models.BooleanField(default=False)
+    authentication_enabled = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} Preferences"
+class HistoryRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    action_time = models.DateTimeField(auto_now_add=True)
+    action_description = models.TextField()
+    additional_info = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.action_description} at {self.action_time}"
     
     

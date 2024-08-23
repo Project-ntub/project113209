@@ -1,46 +1,54 @@
 <template>
-  <div class="change-password-container">
+  <div>
     <h2>修改密碼</h2>
-    <form @submit.prevent="handleChangePassword">
-      <div class="input-group">
-        <label for="currentPassword">原密碼</label>
-        <input type="password" id="currentPassword" v-model="currentPassword" required />
+    <form @submit.prevent="changePassword">
+      <div>
+        <label for="currentPassword">當前密碼</label>
+        <input type="password" v-model="currentPassword" required />
       </div>
-      <div class="input-group">
+      <div>
         <label for="newPassword">新密碼</label>
-        <input type="password" id="newPassword" v-model="newPassword" required />
+        <input type="password" v-model="newPassword" required />
       </div>
-      <div class="input-group">
-        <label for="confirmNewPassword">確認新密碼</label>
-        <input type="password" id="confirmNewPassword" v-model="confirmNewPassword" required />
+      <div>
+        <label for="confirmPassword">確認新密碼</label>
+        <input type="password" v-model="confirmPassword" required />
       </div>
-      <button type="submit" class="submit-button">更改密碼</button>
-      <button type="button" class="cancel-button" @click="cancelChanges">取消變更</button>
-      <div id="feedback" class="feedback">{{ feedback }}</div>
+      <button type="submit">修改密碼</button>
     </form>
+    <p v-if="errorMessage">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+import router from '@/router';
+
 export default {
   data() {
     return {
       currentPassword: '',
       newPassword: '',
-      confirmNewPassword: '',
-      feedback: ''
+      confirmPassword: '',
+      errorMessage: ''
     };
   },
   methods: {
-    handleChangePassword() {
-      if (this.newPassword !== this.confirmNewPassword) {
-        this.feedback = '新密碼與確認密碼不匹配';
-      } else {
-        this.feedback = '密碼已更改';
+    async changePassword() {
+      if (this.newPassword !== this.confirmPassword) {
+        this.errorMessage = '新密碼與確認密碼不匹配';
+        return;
       }
-    },
-    cancelChanges() {
-      this.feedback = '您取消了變更密碼';
+      try {
+        const response = await axios.post('/api/frontend/changepassword/', {
+          current_password: this.currentPassword,
+          new_password: this.newPassword
+        });
+        alert(response.data.message);
+        router.push('/login'); // 密碼修改成功後跳轉到登入頁面
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || '密碼修改失敗，請稍後再試';
+      }
     }
   }
 };
@@ -65,5 +73,6 @@ export default {
 .feedback {
   margin-top: 1em;
   color: red;
+  font-size: 16px;
 }
 </style>

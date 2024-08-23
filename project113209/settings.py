@@ -146,8 +146,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'testntub0806@gmail.com'
-EMAIL_HOST_PASSWORD = 'kcov akht qigk wftx'
+EMAIL_HOST_USER = 'leewesley527@gmail.com'
+EMAIL_HOST_PASSWORD = 'evcajuubazrginrn'
 
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -219,7 +219,13 @@ LOGGING = {
         'level': 'DEBUG',
     },
 }
-
+# 確保以下設置適用於開發環境
+SESSION_COOKIE_SECURE = False  # 在開發環境中應設為 False，以允許通過 HTTP 傳遞
+CSRF_COOKIE_SECURE = False  # 在開發環境中應設為 False，以允許通過 HTTP 傳遞
+SESSION_COOKIE_HTTPONLY = True  # 確保會話 Cookie 不能通過 JavaScript 訪問
+CSRF_COOKIE_HTTPONLY = True  # 確保 CSRF Cookie 不能通過 JavaScript 訪問
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_NAME = 'sessionid'
 
 CORS_ALLOW_CREDENTIALS = True
 
