@@ -20,7 +20,7 @@ from django.views.generic import TemplateView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.decorators import api_view
-from app113209.models import UserPreferences  # 確保此模型存在
+from app113209.models import UserPreference  # 確保此模型存在
 from app113209.models import HistoryRecord
 from django.shortcuts import render, redirect
 from django.conf import settings
@@ -384,7 +384,7 @@ def user_preferences(request):
     user = request.user
     if request.method == 'GET':
         try:
-            preferences = UserPreferences.objects.get(user=user)
+            preferences = UserPreference.objects.get(user=user)
             data = {
                 "fontSize": preferences.font_size,
                 "notification": preferences.notifications_enabled,
@@ -392,12 +392,12 @@ def user_preferences(request):
                 "authentication": preferences.authentication_enabled
             }
             return JsonResponse(data, safe=False)
-        except UserPreferences.DoesNotExist:
+        except UserPreference.DoesNotExist:
             return JsonResponse({'error': 'Preferences not found'}, status=404)
 
     elif request.method == 'POST':
         data = json.loads(request.body)
-        preferences, created = UserPreferences.objects.get_or_create(user=user)
+        preferences, created = UserPreference.objects.get_or_create(user=user)
         preferences.font_size = data.get('fontSize', preferences.font_size)
         preferences.notifications_enabled = data.get('notification', preferences.notifications_enabled)
         preferences.auto_login_enabled = data.get('autoLogin', preferences.auto_login_enabled)
