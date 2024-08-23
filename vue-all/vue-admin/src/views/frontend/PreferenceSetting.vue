@@ -80,4 +80,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/frontend/PreferenceSetting.css"></style>
+<style scoped src="@/assets/css/frontend/PreferenceSetting.css"></style>

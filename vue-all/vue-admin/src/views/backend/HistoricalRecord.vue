@@ -1,11 +1,23 @@
 <template>
   <div>
-    <div class="container" >
+    <div class="container">
       <!-- Search Box -->
       <div class="search-container">
         <input type="text" v-model="searchQuery" placeholder="查尋歷史紀錄..." />
         <button @click="searchHistory">查尋</button>
         <button @click="refreshPage">重整</button>
+      </div>
+      
+      <!-- Sort Box -->
+      <div class="sort-container">
+        <label for="sortField">排序依據:</label>
+        <select v-model="sortField" id="sortField">
+          <option value="timestamp">操作時間</option>
+          <option value="username">用戶</option>
+          <option value="action">操作</option>
+        </select>
+
+        <button @click="toggleSortOrder">排序順序: {{ sortOrder === 'asc' ? '升序' : '降序' }}</button>
       </div>
   
       <!-- Modal for adding records -->
@@ -42,9 +54,9 @@
           <tbody>
             <tr v-for="(record, index) in filteredRecords" :key="index">
               <td>{{ index + 1 }}</td>
-              <td>{{ record.user_id }}</td>
-              <td>{{ record.action }}</td> <!-- 使用返回数据中的action字段 -->
-              <td>{{ record.userEmail || 'N/A' }}</td> <!-- 如果没有userEmail，显示N/A -->
+              <td>{{ record.user ? record.user.username : '未知' }}</td>
+              <td>{{ record.action }}</td>
+              <td>{{ record.user ? record.user.email : 'N/A' }}</td>
               <td>{{ formatDateTime(record.timestamp) }}</td>
             </tr>
           </tbody>
@@ -72,18 +84,32 @@ export default {
       },
       records: [],
       isSidebarActive: false,
+      sortField: 'timestamp', // 默認排序字段
+      sortOrder: 'asc', // 默認排序順序
     };
   },
   computed: {
     filteredRecords() {
-      return this.records.filter((record) =>
+      let records = this.records.filter((record) =>
         ['user_id', 'userName', 'userAction', 'userEmail'].some((key) => {
           const value = record[key];
           return typeof value === 'string'
             ? value.toLowerCase().includes(this.searchQuery.toLowerCase())
-            : String(value).includes(this.searchQuery); // 对非字符串类型，直接转换为字符串再进行匹配
+            : String(value).includes(this.searchQuery);
         })
       );
+
+      // Sort the records
+      records = records.sort((a, b) => {
+        let fieldA = this.sortField === 'username' ? (a.user ? a.user.username : '') : a[this.sortField];
+        let fieldB = this.sortField === 'username' ? (b.user ? b.user.username : '') : b[this.sortField];
+
+        if (fieldA < fieldB) return this.sortOrder === 'asc' ? -1 : 1;
+        if (fieldA > fieldB) return this.sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      return records;
     },
   },
   methods: {
@@ -112,7 +138,13 @@ export default {
     async addRecord() {
       this.isLoading = true;
       try {
-        await axios.post('/api/backend/user_history/', this.newRecord);
+        const newRecordPayload = {
+          user_id: this.newRecord.userName, // 假設 userName 實際上是 user_id
+          action: this.newRecord.userAction,
+          timestamp: this.newRecord.timestamp,
+          // 如果需要，可以添加其他字段
+        };
+        await axios.post('/api/backend/user_history/', newRecordPayload);
         this.records.push({ ...this.newRecord });
         this.newRecord = { userName: '', userAction: '', userEmail: '', timestamp: '' };
         this.closeModal('addRecordModal');
@@ -131,6 +163,9 @@ export default {
     },
     formatDateTime(timestamp) {
       return new Date(timestamp).toLocaleString();
+    },
+    toggleSortOrder() {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
     },
   },
   mounted() {

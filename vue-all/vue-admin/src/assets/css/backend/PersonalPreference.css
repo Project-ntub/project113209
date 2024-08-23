@@ -1,119 +1,121 @@
-body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  background-color: #f4f4f4;
+.app-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  min-height: 100vh;
 }
-.form-group {
+
+.app-content {
+  width: 100%;
+  max-width: 600px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  color: #333;
+  font-size: 24px;
   margin-bottom: 20px;
 }
+
+.preferences-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
 .form-group label {
-  display: block;
-  font-weight: bold;
+  font-size: 16px;
+  color: #555;
   margin-bottom: 5px;
 }
-.form-group select,
-.form-group input[type="checkbox"] {
+
+.form-control {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
+  border-radius: 4px;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
+  font-size: 14px;
+  background-color: #fff;
+  color: #333;
 }
-.form-group input[type="checkbox"] {
-  width: auto;
-  display: inline;
-}
+
 .btn-container {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
+  margin-top: 20px;
 }
+
 .btn {
   padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
+  font-size: 16px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-}
-.btn:hover {
-  background-color: #0056b3;
-}
-.btn-cancel {
-  background-color: #e74c3c;
-}
-.btn-cancel:hover {
-  background-color: #c0392b;
-}
-.btn-delete {
-  background-color: #d9534f;
-}
-.btn-delete:hover {
-  background-color: #c9302c;
+  color: #fff;
 }
 
-/* 新增彈出窗口的樣式 */
+.btn-save {
+  background-color: #28a745;
+}
+
+.btn-add {
+  background-color: #007bff;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.success-message {
+  color: #28a745;
+  text-align: center;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
 .modal {
-  display: none;
   position: fixed;
-  z-index: 1;
-  left: 0;
   top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
-  background-color: rgb(0,0,0);
-  background-color: rgba(0,0,0,0.4);
-  padding-top: 60px;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
 .modal-content {
-  background-color: #fefefe;
-  margin: 5% auto;
+  background-color: #fff;
   padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 600px;
-  border-radius: 5px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  position: relative;
-}
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* 查詢結果的樣式 */
-.results {
-  margin-top: 20px;
-}
-.results table {
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  border-collapse: collapse;
-}
-.results th,
-.results td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-.results th {
-  background-color: #f2f2f2;
+  max-width: 500px;
 }
 
-/* 成功消息的樣式 */
-.success-message {
-  display: none;
-  padding: 10px;
-  margin-top: 20px;
-  border: 1px solid #4caf50;
-  background-color: #dff0d8;
-  color: #3c763d;
-  border-radius: 5px;
+.close {
+  font-size: 24px;
+  color: #333;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
 }

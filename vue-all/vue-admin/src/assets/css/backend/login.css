@@ -51,9 +51,18 @@ h2 {
   box-sizing: border-box;
 }
 
-.form-group input[type="checkbox"] {
-  width: auto;
-  display: inline;
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 10px; /* Space between checkbox and label */
+  margin-right: 10px; /* Adjusts space between checkbox and label */
+  margin-top: 0; /* Removes any default top margin */
+  margin-bottom: 0; /* Removes any default bottom margin */
+  position: relative; /* Positions checkbox in the middle */
+  top: -1px; /* Slightly adjust the checkbox position to align with label */
 }
 
 .btn-login {

@@ -8,8 +8,10 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from app113209.models import User, Module, Role, RolePermission, UserHistory
-from app113209.serializers import UserSerializer, ModuleSerializer, RoleSerializer, RolePermissionSerializer
+from app113209.models import User, Module, Role, RolePermission, UserHistory, UserPreference
+from app113209.serializers import UserSerializer, ModuleSerializer, RoleSerializer, RolePermissionSerializer, UserHistorySerializer
+from app113209.utils import record_history  # 導入記錄歷史紀錄的函數
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +30,17 @@ class UserViewSet(viewsets.ModelViewSet):
             module = get_object_or_404(Module, id=module_id)
             roles = Role.objects.filter(id__in=role_ids, module=module)
             user.roles.set(roles)
+            action_desc = f"管理員 {request.user.username} 為用戶 {user.username} 分配了模組 {module.name} 和角色 {', '.join([role.name for role in roles])}"
+
         else:
             user.roles.clear()  # 如果沒有選擇模組或角色，清除用戶角色
-        
+            action_desc = f"管理員 {request.user.username} 清除了用戶 {user.username} 的角色"
+
         user.save()
+
+        # 記錄操作
+        record_history(request.user, action_desc)
+
         return Response({'success': True})
     
     @action(detail=False, methods=['get'])
@@ -45,8 +54,15 @@ class UserViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.is_deleted = True  # 或者你可以直接刪除用戶
         instance.save()
+
+        # 記錄刪除用戶的操作
+        record_history(request.user, f"管理員 {request.user.username} 刪除了用戶 {instance.username}")
+
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+    def update(self, request, *args, **kwargs):
+        logger.debug(f"收到更新使用者 ID 的請求: {kwargs.get('pk')}")
+        return super().update(request, *args, **kwargs)
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -61,6 +77,10 @@ class UserProfileView(APIView):
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+
+            # 記錄更新個人資料的操作
+            record_history(user, f"用戶 {user.username} 更新了個人資料")
+
             return Response({'message': 'Profile updated successfully'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
    
@@ -76,6 +96,10 @@ class ModuleViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.save()
+
+        # 記錄刪除模組的操作
+        record_history(self.request.user, f"管理員 {self.request.user.username} 刪除了模組 {instance.name}")
+
         logger.info(f"Module {instance.id} is marked as deleted")
         
     @action(detail=False, methods=['get'])
@@ -89,8 +113,13 @@ class ModuleViewSet(viewsets.ModelViewSet):
         module = get_object_or_404(Module, pk=pk)
         module.is_deleted = True
         module.save()
+
+        # 記錄刪除模組的操作
+        record_history(request.user, f"管理員 {request.user.username} 刪除了模組 {module.name}")
+
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.filter(is_deleted=False)
     serializer_class = RoleSerializer
@@ -101,7 +130,6 @@ class RoleViewSet(viewsets.ModelViewSet):
         module_id = data.get('module')
         users_ids = data.get('users', [])
 
-        # Validate module
         if not module_id:
             return Response({'error': 'Module is required'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -112,10 +140,11 @@ class RoleViewSet(viewsets.ModelViewSet):
             is_active=data.get('is_active', True),
         )
         
-        # Assign users
         if users_ids:
             users = User.objects.filter(id__in=users_ids)
             role.users.set(users)
+
+        record_history(request.user, f"管理員 {request.user.username} 創建了角色 {role.name} 並分配給用戶 {', '.join([user.username for user in users])}")
         
         serializer = self.get_serializer(role)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -152,6 +181,10 @@ class RoleViewSet(viewsets.ModelViewSet):
             permission.save()
 
         instance.save()
+
+        # 記錄更新角色的操作
+        record_history(request.user, f"管理員 {request.user.username} 更新了角色 {instance.name}")
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
@@ -168,6 +201,10 @@ class RoleViewSet(viewsets.ModelViewSet):
         role = self.get_object()
         role.is_active = not role.is_active
         role.save()
+
+        # 記錄切換角色狀態的操作
+        record_history(request.user, f"管理員 {request.user.username} 切換了角色 {role.name} 的狀態為 {'啟用' if role.is_active else '停用'}")
+
         return Response({'success': True})
 
     def retrieve(self, request, *args, **kwargs):
@@ -185,6 +222,10 @@ class RoleViewSet(viewsets.ModelViewSet):
         role = get_object_or_404(Role, pk=pk)
         role.is_deleted = True
         role.save()
+
+        # 記錄刪除角色的操作
+        record_history(request.user, f"管理員 {request.user.username} 刪除了角色 {role.name}")
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -221,6 +262,9 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
             can_maintain=data.get('can_maintain', False)
         )
 
+        # 記錄創建權限的操作
+        record_history(request.user, f"管理員 {request.user.username} 為角色 {role.name} 創建了權限 {permission_name}")
+
         serializer = self.get_serializer(permission)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
@@ -228,6 +272,10 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.is_deleted = True
         instance.save()
+
+        # 記錄刪除權限的操作
+        record_history(request.user, f"管理員 {request.user.username} 刪除了角色 {instance.role.name} 的權限 {instance.permission_name}")
+
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     def update(self, request, *args, **kwargs):
@@ -262,6 +310,10 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
             permission.save()
         
         instance.save()
+
+        # 記錄更新權限的操作
+        record_history(request.user, f"管理員 {request.user.username} 更新了角色 {instance.role.name} 的權限 {instance.permission_name}")
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -314,8 +366,9 @@ class UserHistoryListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        records = UserHistory.objects.all().values()
-        return Response(records)
+        records = UserHistory.objects.all()
+        serializer = UserHistorySerializer(records, many=True)
+        return Response(serializer.data)
 
     def post(self, request):
         data = request.data
@@ -325,3 +378,71 @@ class UserHistoryListView(APIView):
             timestamp=data['timestamp']
         )
         return Response({"message": "Record added successfully", "record_id": new_record.id}, status=status.HTTP_201_CREATED)
+
+
+class UserPreferenceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            preferences = UserPreference.objects.first()  # 取得偏好設定
+            if preferences:
+                data = {
+                    'user_id': preferences.user_id,
+                    'fontsize': preferences.fontsize,
+                    'notificationSettings': preferences.notificationSettings,
+                    'autoLogin': preferences.autoLogin,
+                    'authentication': preferences.authentication
+                }
+                return Response(data)
+            else:
+                return Response({'error': '無法找到偏好設定'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"取得偏好設定時發生錯誤：{e}")
+            return Response({'error': '內部伺服器錯誤'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            data = request.data
+            preferences = get_object_or_404(UserPreference, user_id=data['user_id'])
+            preferences.fontsize = data.get('fontsize', preferences.fontsize)
+            preferences.notificationSettings = data.get('notificationSettings', preferences.notificationSettings)
+            preferences.autoLogin = data.get('autoLogin', preferences.autoLogin)
+            preferences.authentication = data.get('authentication', preferences.authentication)
+            preferences.save()
+            return Response({'status': '成功'}, status=status.HTTP_200_OK)
+        except UserPreference.DoesNotExist:
+            logger.error("更新時找不到偏好設定")
+            return Response({'error': '找不到偏好設定'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"更新偏好設定時發生錯誤：{e}")
+            return Response({'error': '內部伺服器錯誤'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request):
+        try:
+            data = request.data
+            new_preference = UserPreference(
+                fontsize=data['fontsize'],
+                notificationSettings=data['notificationSettings'],
+                autoLogin=data['autoLogin'],
+                authentication=data['authentication']
+            )
+            new_preference.save()
+            return Response({'status': 'success'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error adding preference: {e}")
+            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request):
+        try:
+            data = request.data
+            preferences = get_object_or_404(UserPreference, user_id=data['user_id'])
+            preferences.delete()
+            return Response({'status': 'success'}, status=status.HTTP_200_OK)
+        except UserPreference.DoesNotExist:
+            logger.error("Preferences not found for deletion")
+            return Response({'error': 'Preferences not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error deleting preference: {e}")
+            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

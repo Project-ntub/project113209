@@ -60,4 +60,4 @@ export default {
 }
 </script>
 
-<style src="@/assets/css/frontend/HistoryPage.css"></style>
+<style scoped src="@/assets/css/frontend/HistoryPage.css"></style>

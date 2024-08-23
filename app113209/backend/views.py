@@ -4,6 +4,7 @@ import uuid
 import json
 from app113209.models import User, Role, RolePermission, Module, UserPreference, UserHistory
 from app113209.serializers import UserSerializer, RoleSerializer, ModuleSerializer, RolePermissionSerializer
+from app113209.utils import record_history
 from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -22,7 +24,7 @@ User = get_user_model()
 def send_verification_code_backend(request):
     email = request.GET.get('email')
     if not email:
-        logger.error("Email is required")
+        logger.error("電子郵件是必填項")
         return JsonResponse({'success': False, 'message': '電子郵件是必填項'}, status=400)
 
     try:
@@ -37,10 +39,10 @@ def send_verification_code_backend(request):
             user.expiry_time = expiry_time
             user.save()
         send_verification_email(email, verification_code)
-        logger.info(f"Verification code {verification_code} sent to {email} with expiry time {expiry_time}")
+        logger.info(f"驗證碼 {verification_code} 已發送到 {email}，有效期至 {expiry_time}")
         return JsonResponse({'success': True, 'message': '驗證碼已發送'})
     except Exception as e:
-        logger.error(f"Failed to send verification code to {email}: {e}")
+        logger.error(f"發送驗證碼到 {email} 失敗: {e}")
         return JsonResponse({'success': False, 'message': '發送驗證碼失敗,請重試'}, status=500)
 
 def send_verification_email(email, verification_code):
@@ -51,31 +53,36 @@ def send_verification_email(email, verification_code):
     try:
         send_mail(subject, message, email_from, recipient_list)
     except Exception as e:
-        logger.error(f"Failed to send verification email to {email}: {e}")
+        logger.error(f"發送驗證郵件到 {email} 失敗: {e}")
         return JsonResponse({'success': False, 'message': '發送驗證碼失敗,請重試'}, status=500)
 
 def validate_verification_code_backend(request):
     email = request.GET.get('email')
     code = request.GET.get('code')
     if not email or not code:
-        logger.error("Email and code are required")
+        logger.error("電子郵件和驗證碼是必填項")
         return JsonResponse({'success': False, 'message': '電子郵件和驗證碼是必填項'}, status=400)
 
     try:
         user = User.objects.get(email=email, verification_code=code)
         if user.expiry_time < timezone.now():
-            logger.warning(f"Verification code for {email} expired at {user.expiry_time}")
+            logger.warning(f"{email} 的驗證碼已於 {user.expiry_time} 過期")
             return JsonResponse({'success': False, 'message': '驗證碼已過期'}, status=400)
-        logger.info(f"Verification code for {email} is valid")
+        logger.info(f"{email} 的驗證碼有效")
         return JsonResponse({'success': True})
     except User.DoesNotExist:
-        logger.error(f"Invalid verification code for {email}")
+        logger.error(f"{email} 的驗證碼無效")
         return JsonResponse({'success': False, 'message': '驗證碼無效'}, status=400)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_deleted=False)
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        logger.debug(f"收到更新使用者 ID 的請求: {kwargs.get('pk')}")
+        return super().update(request, *args, **kwargs)
 
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.filter(is_deleted=False)
@@ -109,6 +116,7 @@ class RoleViewSet(viewsets.ModelViewSet):
         role = self.get_object()
         role.is_active = not role.is_active
         role.save()
+        record_history(request.user, f"管理員 {request.user.username} 切換了角色 {role.name} 的狀態為 {'啟用' if role.is_active else '停用'}")
         return Response({'success': True})
 
 class RolePermissionViewSet(viewsets.ModelViewSet):
@@ -123,6 +131,7 @@ def approve_user(request, user_id):
         user = User.objects.get(id=user_id, is_active=False)
         user.is_active = True
         user.save()
+        record_history(request.user, f"管理員 {request.user.username} 批准用戶 {user.username}")
         return JsonResponse({'success': True})
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
@@ -139,7 +148,7 @@ def assign_role_and_module(request, user_id):
     if role_id:
         user.role_id = role_id
     user.save()
-
+    record_history(request.user, f"管理員 {request.user.username} 分配模組 {module_id} 和角色 {role_id} 給用戶 {user.username}")
     return JsonResponse({'success': True})
 
 @api_view(['POST'])
@@ -170,13 +179,14 @@ def create_role(request):
     else:
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_user(request, user_id):
     try:
         user = User.objects.get(id=user_id)
         user.is_deleted = True
         user.save()
+        record_history(request.user, f"管理員 {request.user.username} 刪除用戶 {user.username}")
         return Response({'success': True}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -188,76 +198,20 @@ def delete_role(request, role_id):
         role = get_object_or_404(Role, id=role_id)
         role.is_deleted = True
         role.save()
+        record_history(request.user, f"管理員 {request.user.username} 刪除角色 {role.name}")
         return JsonResponse({'success': True})
     except Role.DoesNotExist:
         return JsonResponse({'error': 'Role not found'}, status=404)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_module(request, module_id):
     try:
         module = Module.objects.get(id=module_id)
         module.is_deleted = True
         module.save()
+        record_history(request.user, f"管理員 {request.user.username} 刪除模組 {module.name}")
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Module.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-def get_preferences(request):
-    preferences = UserPreference.objects.first()  # 根據需求調整為特定用戶的偏好
-    if preferences:
-        data = {
-            'fontsize': preferences.fontsize,
-            'notificationSettings': preferences.notificationSettings,
-            'autoLogin': preferences.autoLogin,
-        }
-    else:
-        data = {}
-    return JsonResponse(data)
-
-def update_preference(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        preferences, created = UserPreference.objects.get_or_create(user_id=1)  # 根據需求調整 user_id
-        preferences.fontsize = data.get('fontsize', preferences.fontsize)
-        preferences.notificationSettings = data.get('notificationSettings', preferences.notificationSettings)
-        preferences.autoLogin = data.get('autoLogin', preferences.autoLogin)
-        preferences.save()
-        return JsonResponse({'status': 'success'})
-
-def add_preference(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        new_preference = UserPreference.objects.create(
-            fontsize=data.get('fontsize', 'medium'),
-            notificationSettings=data.get('notificationSettings', 'off'),
-            autoLogin=data.get('autoLogin', 'off')
-        )
-        return JsonResponse({'status': 'success', 'user_id': new_preference.user_id})
-    
-def delete_preference(request):
-    UserPreference.objects.all().delete()
-    return JsonResponse({'status': 'success'})
-
-def query_preferences(request):
-    fontsize = request.GET.get('fontsize')
-    notificationSettings = request.GET.get('notificationSettings')
-    autoLogin = request.GET.get('autoLogin')
-
-    preferences = UserPreference.objects.all()
-
-    if fontsize:
-        preferences = preferences.filter(fontsize=fontsize)
-    if notificationSettings:
-        preferences = preferences.filter(notificationSettings=notificationSettings)
-    if autoLogin:
-        preferences = preferences.filter(autoLogin=autoLogin)
-
-    results = list(preferences.values())
-
-    return JsonResponse(results, safe=False)    
-
-
-
-    

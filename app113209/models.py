@@ -42,10 +42,6 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-
-    objects = CustomUserManager()
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -169,15 +165,27 @@ class Chart(models.Model):
 
 class UserHistory(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.IntegerField()
-    action = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='histories')
+    action = models.CharField(max_length=500)  # Increased the length for action descriptions
     timestamp = models.DateTimeField(auto_now_add=True)
+    device_brand = models.CharField(max_length=255, null=True, blank=True)  # New field for device brand
+    device_type = models.CharField(max_length=255, null=True, blank=True)   # New field for device type
+    operation_result = models.BooleanField(default=True)  # New field for operation success/failure
 
     class Meta:
         db_table = 'user_history'
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['timestamp']),
+        ]
 
     def __str__(self):
-        return f"User {self.user_id} performed {self.action} at {self.timestamp}"
+        user_display = self.user.username if self.user else '未知用戶'
+        device_brand = self.device_brand if self.device_brand else '未知裝置'
+        device_type = self.device_type if self.device_type else '未知類型'
+        return f"User {user_display} performed '{self.action}' on {device_brand} ({device_type}) with result {'success' if self.operation_result else 'failure'} at {self.timestamp}"
+
+
 
 class UserPreference(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -216,3 +224,5 @@ class DataModel(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
