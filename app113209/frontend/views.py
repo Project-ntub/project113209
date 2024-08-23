@@ -179,6 +179,24 @@ def history_records(request):
         return JsonResponse(list(history), safe=False)
 
 @login_required
+def history_detail(request, id):
+    try:
+        history = HistoryRecord.objects.get(id=id, user=request.user)
+        detail = {
+            'id': history.id,
+            'action': history.action_description,
+            'timestamp': history.action_time,
+            'user': history.user.username,
+            'device': {
+                'brand': history.device_brand,
+                'type': history.device_type
+            } if hasattr(history, 'device_brand') and hasattr(history, 'device_type') else None,
+            'success': history.success if hasattr(history, 'success') else None,
+        }
+        return JsonResponse(detail)
+    except HistoryRecord.DoesNotExist:
+        return JsonResponse({'error': '未找到該紀錄的詳細信息。'}, status=404)
+@login_required
 def check_login_status(request):
     return JsonResponse({'loggedIn': request.user.is_authenticated})
 

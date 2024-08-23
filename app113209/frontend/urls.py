@@ -16,7 +16,8 @@ urlpatterns = [
     path('get-data/', get_data, name='get_data'), 
     path('profile/', frontend_views.user_profile, name='user-profile'),
     path('check_login_status/', frontend_views.check_login_status, name='check_login_status'),
-    path('history/', frontend_views.history_records, name='history_records'),  # 使用函數視圖
+    path('history/', frontend_views.history_records, name='history_records'),
+    path('history/<int:id>/', frontend_views.history_detail, name='history_detail'),
     path('changepassword/', frontend_views.changepassword, name='changepassword'),
     path('preferences/', frontend_views.user_preferences, name='user_preferences'),
 ]
