@@ -219,3 +219,24 @@ class DataModel(models.Model):
 
     def __str__(self):
         return self.name
+        db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
+
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    font_size = models.CharField(max_length=10, choices=[('small', 'Small'), ('medium', 'Medium'), ('large', 'Large')], default='medium')
+    notifications_enabled = models.BooleanField(default=False)
+    auto_login_enabled = models.BooleanField(default=False)
+    authentication_enabled = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} Preferences"
+class HistoryRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    action_time = models.DateTimeField(auto_now_add=True)
+    action_description = models.TextField()
+    additional_info = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.action_description} at {self.action_time}"
+    
+    

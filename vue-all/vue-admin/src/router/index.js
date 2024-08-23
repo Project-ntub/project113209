@@ -34,7 +34,6 @@ import HistoricalRecord from '@/views/backend/HistoricalRecord.vue';
 import PersonalPreference from '@/views/backend/PersonalPreference.vue';
 import Profile from '@/views/backend/Profile.vue';
 
-
 const routes = [
   // Frontend Routes
   { path: '/', redirect: '/frontend/login' },
@@ -48,15 +47,9 @@ const routes = [
   { path: '/frontend/accountsettings', name: '帳號設定', component: AccountSettings },
   { path: '/frontend/changepassword', name: '修改密碼', component: ChangePassword },
   { path: '/frontend/preferences', name: '偏好設定', component: PreferenceSetting },
-  { path: '/frontend/historydetails', name: '歷史紀錄詳情', component: HistoryDetails },
-  { path: '/frontend/detail/:id', name: '歷史紀錄詳情', component: HistoryDetails },
+  { path: '/frontend/historydetails/:id', name: '歷史紀錄詳情', component: HistoryDetails },
   { path: '/frontend/history', name: '歷史紀錄', component: HistoryPage },
-<<<<<<< HEAD
-  // { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage,meta: { hideNavbar: true, hideSidebar: true } },
-=======
-  { path: '/frontend/reset_password', name: 'ResetPassword', component: ResetPasswordPage, meta: { hideNavbar: true, hideSidebar: true } },
 
->>>>>>> dda5c7e (change)
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
   { path: '/backend/register', name: 'BackendRegister', component: Register },

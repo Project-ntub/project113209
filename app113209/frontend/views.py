@@ -153,6 +153,7 @@ class FrontendLoginView(View):
                 }, status=200)
             else:
                 return JsonResponse({'success': False, 'message': '登录失败，请检查您的电子邮件和密码'}, status=400)
+                return JsonResponse({'success': False, 'message': '登入失敗，請檢查您的電子郵件和密碼'}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '无效的数据格式'}, status=400)
 
@@ -192,6 +193,7 @@ class ManagerHomeView(TemplateView):
 class BranchManagerHomeView(TemplateView):
     template_name = "frontend/branch_manager_home.html"
 # 忘記密碼
+# 忘记密码视图
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotPasswordView(View):
     def post(self, request, *args, **kwargs):
@@ -357,3 +359,30 @@ def get_data(request):
     
     data_list = list(data.values())  # 將數據轉為列表格式
     return JsonResponse(data_list, safe=False)
+# 获取和更新用户偏好设置视图
+@api_view(['GET', 'POST'])
+@csrf_exempt
+def user_preferences(request):
+    user = request.user
+    if request.method == 'GET':
+        try:
+            preferences = UserPreferences.objects.get(user=user)
+            data = {
+                "fontSize": preferences.font_size,
+                "notification": preferences.notifications_enabled,
+                "autoLogin": preferences.auto_login_enabled,
+                "authentication": preferences.authentication_enabled
+            }
+            return JsonResponse(data, safe=False)
+        except UserPreferences.DoesNotExist:
+            return JsonResponse({'error': 'Preferences not found'}, status=404)
+
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        preferences, created = UserPreferences.objects.get_or_create(user=user)
+        preferences.font_size = data.get('fontSize', preferences.font_size)
+        preferences.notifications_enabled = data.get('notification', preferences.notifications_enabled)
+        preferences.auto_login_enabled = data.get('autoLogin', preferences.auto_login_enabled)
+        preferences.authentication_enabled = data.get('authentication', preferences.authentication_enabled)
+        preferences.save()
+        return JsonResponse({'success': True, 'message': 'Preferences updated successfully'})
