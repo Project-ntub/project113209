@@ -3,27 +3,34 @@ import json
 import random
 import re
 import string
-from django.contrib.auth.models import User
-from django.contrib.admin.models import LogEntry, CHANGE
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.admin.models import LogEntry, CHANGE
 from django.core.cache import cache
 from django.core.mail import send_mail
-from django.core.exceptions import ValidationError, PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.decorators import api_view
-from app113209.models import UserPreference, HistoryRecord, DataModel
-from django.shortcuts import render
+from app113209.models import UserPreference  # 確保此模型存在
+from app113209.models import HistoryRecord
+from django.shortcuts import render, redirect
+from django.conf import settings
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.contrib.auth import logout
 
 # 日誌設定
 logger = logging.getLogger(__name__)
+from django.contrib.auth import login
+from django.contrib.auth.models import User
 
 # 发送验证码
 @method_decorator(csrf_exempt, name='dispatch')
@@ -51,21 +58,6 @@ class SendVerificationCodeView(View):
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
-
-@login_required
-@api_view(['GET'])
-def check_login_status(request):
-    return JsonResponse({'loggedIn': True})
-
-@login_required
-def get_history(request):
-    history = [
-        {'id': 1, 'date': '2024/1/22 16:22:39', 'action': '編輯個人資訊', 'user': 'User1'},
-        {'id': 2, 'date': '2024/1/22 16:00:21', 'action': '查看首頁', 'user': 'User2'},
-        {'id': 3, 'date': '2024/1/28 16:00:21', 'action': '修改密碼', 'user': 'User2'},
-        {'id': 4, 'date': '2023/12/28 16:00:21', 'action': '忘記密碼', 'user': 'User2'},
-    ]
-    return JsonResponse(history, safe=False)
 
 # 注册
 @method_decorator(csrf_exempt, name='dispatch')
@@ -127,6 +119,7 @@ class FrontendRegisterView(View):
 class FrontendLoginView(View):
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
+        print("進入 post 方法")
         try:
             data = json.loads(request.body)
             email = data.get('email')
@@ -135,6 +128,23 @@ class FrontendLoginView(View):
             user = authenticate(request, username=email, password=password)
             if user is not None:
                 login(request, user)
+
+                # 打印用户的所有信息到终端
+                print("\n===== 用户信息开始 =====")
+                print("用户名:", user.username)
+                print("电子邮件:", user.email)
+                print("电话号码:", user.phone)
+                print("职位 ID:", user.position_id)
+                print("分店 ID:", user.branch_id)
+                print("是否活跃:", user.is_active)
+                print("是否已验证:", user.is_verified)
+                print("是否已批准:", user.is_approved)
+                print("部门 ID:", user.department_id)
+                print("性别:", user.gender)
+                print("加入日期:", user.date_joined)
+                print("===== 用户信息结束 =====\n")
+
+                # 返回登录成功的响应
                 return JsonResponse({
                     'success': True,
                     'message': '登录成功',
@@ -143,23 +153,64 @@ class FrontendLoginView(View):
                 }, status=200)
             else:
                 return JsonResponse({'success': False, 'message': '登录失败，请检查您的电子邮件和密码'}, status=400)
-        except json.JSONDecodeError as e:
+                return JsonResponse({'success': False, 'message': '登入失敗，請檢查您的電子郵件和密碼'}, status=400)
+        except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '无效的数据格式'}, status=400)
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': '服务器错误，请稍后再试'}, status=500)
 
-class HomePageView(View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'frontend/home.html')
 
-class ManagerHomeView(View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'frontend/manager_home.html')
 
-class BranchManagerHomeView(View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'frontend/branch_home.html')
 
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)  # 設置 session
+            print(f"User {user.username} has logged in successfully.")  # 添加日誌輸出
+            return JsonResponse({'success': True, 'message': 'Login successful'})
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
+    return render(request, 'login.html')
+# 獲取歷史記錄的視圖
+def history_records(request):
+    if request.method == 'GET':
+        history = HistoryRecord.objects.filter(user=request.user).values('id', 'action_time', 'action_description', 'additional_info')
+        return JsonResponse(list(history), safe=False)
+
+@login_required
+def history_detail(request, id):
+    try:
+        history = HistoryRecord.objects.get(id=id, user=request.user)
+        detail = {
+            'id': history.id,
+            'action': history.action_description,
+            'timestamp': history.action_time,
+            'user': history.user.username,
+            'device': {
+                'brand': history.device_brand,
+                'type': history.device_type
+            } if hasattr(history, 'device_brand') and hasattr(history, 'device_type') else None,
+            'success': history.success if hasattr(history, 'success') else None,
+        }
+        return JsonResponse(detail)
+    except HistoryRecord.DoesNotExist:
+        return JsonResponse({'error': '未找到該紀錄的詳細信息。'}, status=404)
+@login_required
+def check_login_status(request):
+    return JsonResponse({'loggedIn': request.user.is_authenticated})
+
+# 首页视图
+class HomePageView(TemplateView):
+    template_name = "frontend/home.html"
+# View for ManagerHome
+class ManagerHomeView(TemplateView):
+    template_name = "frontend/manager_home.html"
+
+# View for BranchManagerHome
+class BranchManagerHomeView(TemplateView):
+    template_name = "frontend/branch_manager_home.html"
+# 忘記密碼
 # 忘记密码视图
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotPasswordView(View):
@@ -285,7 +336,6 @@ def changepassword(request):
     
     except Exception as e:
         return JsonResponse({'message': f'其他錯誤: {str(e)}'}, status=500)
-
 @api_view(['GET', 'PUT'])
 def user_profile(request):
     if request.method == 'GET':
@@ -310,10 +360,14 @@ def user_profile(request):
         return JsonResponse({'success': True, 'message': '資料更新成功'}, status=200)
 
 # 過濾數據
+from django.contrib.auth.decorators import login_required
+from app113209.models import DataModel  # 假設有一個 DataModel 存儲數據
+
 @login_required
 def get_data(request):
     user = request.user
 
+    # 如果用戶是店長
     if user.position_id == '店長':
         data = DataModel.objects.filter(branch_id=user.branch_id)
     elif user.position_id == '經理':
@@ -321,5 +375,32 @@ def get_data(request):
     else:
         return JsonResponse({'error': '未授權的訪問'}, status=403)
     
-    data_list = list(data.values())
+    data_list = list(data.values())  # 將數據轉為列表格式
     return JsonResponse(data_list, safe=False)
+# 获取和更新用户偏好设置视图
+@api_view(['GET', 'POST'])
+@csrf_exempt
+def user_preferences(request):
+    user = request.user
+    if request.method == 'GET':
+        try:
+            preferences = UserPreference.objects.get(user=user)
+            data = {
+                "fontSize": preferences.font_size,
+                "notification": preferences.notifications_enabled,
+                "autoLogin": preferences.auto_login_enabled,
+                "authentication": preferences.authentication_enabled
+            }
+            return JsonResponse(data, safe=False)
+        except UserPreference.DoesNotExist:
+            return JsonResponse({'error': 'Preferences not found'}, status=404)
+
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        preferences, created = UserPreference.objects.get_or_create(user=user)
+        preferences.font_size = data.get('fontSize', preferences.font_size)
+        preferences.notifications_enabled = data.get('notification', preferences.notifications_enabled)
+        preferences.auto_login_enabled = data.get('autoLogin', preferences.auto_login_enabled)
+        preferences.authentication_enabled = data.get('authentication', preferences.authentication_enabled)
+        preferences.save()
+        return JsonResponse({'success': True, 'message': 'Preferences updated successfully'})
