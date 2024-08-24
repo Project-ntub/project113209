@@ -67,7 +67,7 @@ export default {
     },
     updateUser() {
       const userId = this.$route.params.userId;
-      axios.put(`/api/users/${userId}/`, this.user)
+      axios.put(`/api/backend/users/${userId}/`, this.user)
         .then(() => {
           this.$router.push('/backend/user-management');
         })

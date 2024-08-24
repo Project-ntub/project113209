@@ -8,18 +8,20 @@
       </div>
     </div>
 
-    <div class="module-selection">
-      <label for="module-select">選擇模組:</label>
-      <select id="module-select" v-model="selectedModule" @change="onModuleChange">
-        <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
-      </select>
-    </div>
+    <div class="selection-container">
+      <div class="module-selection">
+        <label for="module-select">選擇模組:</label>
+        <select id="module-select" v-model="selectedModule" @change="onModuleChange">
+          <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
+        </select>
+      </div>
 
-    <div class="role-selection">
-      <label for="role-select">選擇角色:</label>
-      <select id="role-select" v-model="selectedRole" @change="onRoleChange">
-        <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-      </select>
+      <div class="role-selection">
+        <label for="role-select">選擇角色:</label>
+        <select id="role-select" v-model="selectedRole" @change="onRoleChange">
+          <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+        </select>
+      </div>
     </div>
 
     <div class="chart-selection">
@@ -32,13 +34,21 @@
       <component :is="currentChart" :role-id="selectedRole" />
     </div>
 
-    <!-- 新增图表模态框 -->
+    <!-- Add Chart Modal -->
     <Modal v-if="showAddChartModal" @close="closeAddChartModal">
       <template #header>
         <h3>新增圖表</h3>
       </template>
       <template #body>
         <form @submit.prevent="submitAddChartForm">
+          <div>
+            <label for="chartType">圖表類型:</label>
+            <select id="chartType" v-model="newChart.type" required>
+              <option value="bar">柱狀圖</option>
+              <option value="line">折線圖</option>
+              <option value="pie">圓餅圖</option>
+            </select>
+          </div>
           <div>
             <label for="chartName">圖表名稱:</label>
             <input type="text" id="chartName" v-model="newChart.name" required>
@@ -48,13 +58,21 @@
       </template>
     </Modal>
 
-    <!-- 编辑图表模态框 -->
+    <!-- Edit Chart Modal -->
     <Modal v-if="showEditChartModal" @close="closeEditChartModal">
       <template #header>
         <h3>編輯圖表</h3>
       </template>
       <template #body>
         <form @submit.prevent="submitEditChartForm">
+          <div>
+            <label for="chartType">圖表類型:</label>
+            <select id="chartType" v-model="editChart.type" required>
+              <option value="bar">柱狀圖</option>
+              <option value="line">折線圖</option>
+              <option value="pie">圓餅圖</option>
+            </select>
+          </div>
           <div>
             <label for="chartName">圖表名稱:</label>
             <input type="text" id="chartName" v-model="editChart.name" required>
@@ -84,16 +102,18 @@ export default {
   data() {
     return {
       currentChart: 'SalesChart',
-      modules: [],           // 用于存储模组
-      roles: [],             // 用于存储角色
-      selectedModule: null,  // 当前选中的模组
-      selectedRole: null,    // 当前选中的角色
+      modules: [],
+      roles: [],
+      selectedModule: null,
+      selectedRole: null,
       showAddChartModal: false,
       showEditChartModal: false,
       newChart: {
+        type: 'bar',
         name: '',
       },
       editChart: {
+        type: 'bar',
         name: '',
       },
     };
@@ -121,8 +141,7 @@ export default {
       this.currentChart = chart;
     },
     onModuleChange() {
-      this.fetchRoles();  // 当模组变化时，重新获取角色
-      console.log('選擇的模組:', this.selectedModule);
+      this.fetchRoles();
     },
     onRoleChange() {
       console.log('選擇的角色:', this.selectedRole);
@@ -133,9 +152,14 @@ export default {
     closeAddChartModal() {
       this.showAddChartModal = false;
     },
-    submitAddChartForm() {
-      console.log('提交新增图表表单:', this.newChart);
-      this.closeAddChartModal();
+    async submitAddChartForm() {
+      try {
+        const response = await axios.post('/api/backend/charts/', this.newChart);
+        console.log('新增圖表成功:', response.data);
+        this.closeAddChartModal();
+      } catch (error) {
+        console.error('新增圖表失敗:', error);
+      }
     },
     openEditChartModal() {
       this.showEditChartModal = true;
@@ -143,14 +167,19 @@ export default {
     closeEditChartModal() {
       this.showEditChartModal = false;
     },
-    submitEditChartForm() {
-      console.log('提交编辑图表表单:', this.editChart);
-      this.closeEditChartModal();
+    async submitEditChartForm() {
+      try {
+        const response = await axios.put(`/api/backend/charts/${this.editChart.id}/`, this.editChart);
+        console.log('編輯圖表成功:', response.data);
+        this.closeEditChartModal();
+      } catch (error) {
+        console.error('編輯圖表失敗:', error);
+      }
     },
   },
   async mounted() {
-    await this.fetchModules(); // 组件挂载后获取模组数据
-    await this.fetchRoles();   // 然后获取角色数据
+    await this.fetchModules();
+    await this.fetchRoles();
   },
 };
 </script>

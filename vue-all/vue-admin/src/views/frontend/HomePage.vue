@@ -97,4 +97,4 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/frontend/HomePage.css"></style>
+<style scoped src="@/assets/css/frontend/HomePage.css"></style>

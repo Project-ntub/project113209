@@ -42,8 +42,8 @@
           <td>{{ user.phone }}</td>
           <td>{{ user.department_id }}</td>
           <td>{{ user.position_id }}</td>
-          <td>{{ user.date_joined }}</td>
-          <td>{{ user.last_login }}</td>
+          <td>{{ formatDate(user.date_joined) }}</td>
+          <td>{{ formatDate(user.last_login) }}</td>
           <td>
             <button class="edit-btn" @click="navigateToEditUser(user.id)">編輯</button>
             <button class="delete-btn" @click="deleteUser(user.id)">刪除</button>
@@ -102,6 +102,9 @@ export default {
     }
   },
   methods: {
+    formatDate(date) {
+      return new Date(date).toLocaleString();
+    },
     applyFilters() {
       console.log('Filters applied');
     },
@@ -140,5 +143,6 @@ export default {
   }
 };
 </script>
+
 
 <style scoped src="@/assets/css/backend/UserManagement.css"></style>

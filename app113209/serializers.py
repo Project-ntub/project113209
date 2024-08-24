@@ -1,6 +1,15 @@
 from rest_framework import serializers
 from .models import User, Module, Role, RolePermission, UserHistory
 
+class RolePermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RolePermission
+        fields = ('id', 'role', 'permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete', 'can_print', 'can_export', 'can_maintain', 'is_deleted')
+        extra_kwargs = {
+            'role': {'required': True},
+            'permission_name': {'required': True}
+        }
+
 class ModuleSerializer(serializers.ModelSerializer):
     user_count = serializers.SerializerMethodField()
 
@@ -25,7 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'roles', 'module', 'phone', 'is_verified', 'is_approved', 'department_id', 'position_id', 'branch_id', 'gender', 'is_staff', 'is_active', 'is_deleted', 'date_joined')
+        fields = ('id', 'username', 'email', 'roles', 'module', 'phone', 'is_verified', 'is_approved', 'department_id', 'position_id', 'branch_id', 'gender', 'is_staff', 'is_active', 'is_deleted', 'date_joined', 'last_login')
 
     def get_roles(self, obj):
         roles = Role.objects.filter(roleuser__user=obj, is_deleted=False)
@@ -42,6 +51,7 @@ class RoleSerializer(serializers.ModelSerializer):
     module_name = serializers.CharField(source='module.name', read_only=True)
     users = serializers.SerializerMethodField()
 
+
     class Meta:
         model = Role
         fields = ['id', 'name', 'is_active', 'module', 'module_name', 'users']
@@ -51,16 +61,11 @@ class RoleSerializer(serializers.ModelSerializer):
         users = obj.users.all()
         return [{'id': user.id, 'username': user.username} for user in users]
 
-class RolePermissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RolePermission
-        fields = ('id', 'role', 'permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete', 'can_print', 'can_export', 'can_maintain', 'is_deleted')
-        extra_kwargs = {
-            'role': {'required': True},
-            'permission_name': {'required': True}
-        }
 
 class UserHistorySerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = UserHistory
-        fields = ['id', 'user_id', 'action', 'timestamp']
+        fields = ['id', 'user', 'action', 'timestamp', 'device_brand', 'device_type', 'operation_result']
+

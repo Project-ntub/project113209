@@ -23,7 +23,10 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, username, password, **extra_fields)
 
-class User(AbstractBaseUser):
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models
+
+class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True, null=False, blank=False, default='0000000000')
@@ -38,14 +41,16 @@ class User(AbstractBaseUser):
     gender = models.CharField(max_length=10, blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
 
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    # 新增的字段
+    failed_attempts = models.IntegerField(default=0)  # 密碼錯誤嘗試次數
+    is_locked = models.BooleanField(default=False)  # 帳戶是否被鎖定
+    last_failed_attempt = models.DateTimeField(null=True, blank=True)  # 記錄最後一次失敗的嘗試時間
 
-    objects = CustomUserManager()
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -65,6 +70,7 @@ class User(AbstractBaseUser):
     def verify_otp(self, otp):
         totp = pyotp.TOTP(self.otp_secret)
         return totp.verify(otp)
+
 
 class Module(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -169,15 +175,27 @@ class Chart(models.Model):
 
 class UserHistory(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.IntegerField()
-    action = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='histories')
+    action = models.CharField(max_length=500)  # Increased the length for action descriptions
     timestamp = models.DateTimeField(auto_now_add=True)
+    device_brand = models.CharField(max_length=255, null=True, blank=True)  # New field for device brand
+    device_type = models.CharField(max_length=255, null=True, blank=True)   # New field for device type
+    operation_result = models.BooleanField(default=True)  # New field for operation success/failure
 
     class Meta:
         db_table = 'user_history'
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['timestamp']),
+        ]
 
     def __str__(self):
-        return f"User {self.user_id} performed {self.action} at {self.timestamp}"
+        user_display = self.user.username if self.user else '未知用戶'
+        device_brand = self.device_brand if self.device_brand else '未知裝置'
+        device_type = self.device_type if self.device_type else '未知類型'
+        return f"User {user_display} performed '{self.action}' on {device_brand} ({device_type}) with result {'success' if self.operation_result else 'failure'} at {self.timestamp}"
+
+
 
 class UserPreference(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -216,3 +234,16 @@ class DataModel(models.Model):
 
     def __str__(self):
         return self.name
+        db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
+
+
+class HistoryRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    action_time = models.DateTimeField(auto_now_add=True)
+    action_description = models.TextField()
+    additional_info = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.action_description} at {self.action_time}"
+    
+    

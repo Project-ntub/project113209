@@ -11,7 +11,7 @@
         <label for="password">密碼:</label>
         <input type="password" id="password" v-model="password" required />
       </div>
-      <div class="form-group">
+      <div class="form-group checkbox-group">
         <input type="checkbox" id="remember_me" v-model="rememberMe" />
         <label for="remember_me">記住我</label>
       </div>

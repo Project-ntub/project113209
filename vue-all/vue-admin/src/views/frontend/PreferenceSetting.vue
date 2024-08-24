@@ -1,48 +1,87 @@
 <template>
-  <div>
-    <button class="hamburger-menu" @click="toggleMenu">
-      <div></div>
-      <div></div>
-      <div></div>
-    </button>
-
-    <div class="content" id="content">
-      <div class="container">
-        <div class="preferences">
-          <div class="header">偏好設定</div>
-          <div class="form-group">
-            <label for="font-size">字體大小</label>
-            <select id="font-size" v-model="fontSize">
-              <option value="large">大</option>
-              <option value="medium">適中</option>
-              <option value="small">小</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="notification">通知設定</label>
-            <select id="notification" v-model="notification">
-              <option value="enable">開啟通知</option>
-              <option value="disable">關閉通知</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="auto-login">自動登入</label>
-            <select id="auto-login" v-model="autoLogin">
-              <option value="enable">自動登入</option>
-              <option value="disable">取消自動登入</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="authentication">認證設定</label>
-            <select id="authentication" v-model="authentication">
-              <option value="enable">開啟認證</option>
-              <option value="disable">關閉認證</option>
-            </select>
-          </div>
-          <div class="buttons">
-            <button class="cancel-button" @click="cancelChanges">取消變更</button>
-            <button class="submit-button" @click="submitChanges">更改</button>
-          </div>
+  <div class="app-container">
+    <div class="app-content" :class="{ shifted: isSidebarActive }">
+      <h1 class="title">個人偏好管理</h1>
+      <form @submit.prevent="updatePreferences" class="preferences-form">
+        <div class="form-group">
+          <label for="font-size">字體大小:</label>
+          <select v-model="preferences.fontsize" id="font-size" class="form-control">
+            <option value="small">小</option>
+            <option value="medium">中</option>
+            <option value="large">大</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="notification-settings">通知:</label>
+          <select v-model="preferences.notificationSettings" id="notification-settings" class="form-control">
+            <option :value="1">啟用</option>
+            <option :value="0">不啟用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="auto-login">自動登入:</label>
+          <select v-model="preferences.autoLogin" id="auto-login" class="form-control">
+            <option :value="1">啟用</option>
+            <option :value="0">不啟用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="authentication">是否驗證:</label>
+          <select v-model="preferences.authentication" id="authentication" class="form-control">
+            <option :value="1">已驗證</option>
+            <option :value="0">未驗證</option>
+          </select>
+        </div>
+        <div class="btn-container">
+          <button type="submit" class="btn btn-save">保存更改</button>
+          <button type="button" class="btn btn-add" @click="showAddModal">新增</button>
+          <button type="button" class="btn btn-delete" @click="deletePreference">刪除</button>
+          <button type="button" class="btn btn-cancel" @click="resetPreferences">取消更改</button>
+        </div>
+      </form>
+  
+      <div v-if="successMessage" class="success-message">保存成功！</div>
+  
+      <!-- 新增彈出窗口 -->
+      <div v-if="showModal" class="modal">
+        <div class="modal-content">
+          <span class="close" @click="closeAddModal">&times;</span>
+          <h2 class="title">新增個人偏好</h2>
+          <form @submit.prevent="addPreference" class="preferences-form">
+            <div class="form-group">
+              <label for="add-font-size">字體大小:</label>
+              <select v-model="newPreference.fontsize" id="add-font-size" class="form-control">
+                <option value="small">小</option>
+                <option value="medium">中</option>
+                <option value="large">大</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="add-notifications">通知:</label>
+              <select v-model="newPreference.notificationSettings" id="add-notifications" class="form-control">
+                <option :value="1">啟用</option>
+                <option :value="0">不啟用</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="add-auto-login">自動登入:</label>
+              <select v-model="newPreference.autoLogin" id="add-auto-login" class="form-control">
+                <option :value="1">啟用</option>
+                <option :value="0">不啟用</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="add-authentication">是否驗證:</label>
+              <select v-model="newPreference.authentication" id="add-authentication" class="form-control">
+                <option :value="1">已驗證</option>
+                <option :value="0">未驗證</option>
+              </select>
+            </div>
+            <div class="btn-container">
+              <button type="submit" class="btn btn-save">保存</button>
+              <button type="button" class="btn btn-cancel" @click="closeAddModal">取消</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -50,34 +89,101 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
-  name: 'PreferenceSetting',
+  name: 'PersonalPreference',
   data() {
     return {
-      fontSize: 'medium',
-      notification: 'disable',
-      autoLogin: 'disable',
-      authentication: 'disable',
+      preferences: {
+        user_id: null,
+        fontsize: '',
+        notificationSettings: 0,
+        autoLogin: 0,
+        authentication: 0
+      },
+      newPreference: {
+        fontsize: 'medium',
+        notificationSettings: 0,
+        autoLogin: 0,
+        authentication: 0
+      },
+      successMessage: false,
+      showModal: false,
+      isSidebarActive: false
     };
   },
-  methods: {
-    toggleMenu() {
-      const dropdownContent = document.querySelector('.dropdown-content');
-      dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
-    },
-    cancelChanges() {
-      this.fontSize = 'medium';
-      this.notification = 'disable';
-      this.autoLogin = 'disable';
-      this.authentication = 'disable';
-    },
-    submitChanges() {
-      const fontSize = this.fontSize === 'large' ? '18px' : this.fontSize === 'small' ? '12px' : '16px';
-      document.body.style.fontSize = fontSize;
-      alert('偏好設定已更改');
-    }
+  created() {
+    this.loadPreferences();
   },
+  methods: {
+    loadPreferences() {
+      axios.get('/api/user_preferences/')
+        .then(response => {
+            this.preferences = response.data;
+        })
+        .catch(error => {
+            console.error('Error loading preferences:', error);
+        });
+    },
+    updatePreferences() {
+      axios.post('/api/user_preferences/', this.preferences)
+        .then(response => {
+            if (response.status === 200) {
+                this.showSuccessMessage();
+            } else {
+                alert('保存失敗');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating preferences:', error);
+        });
+    },
+    showAddModal() {
+      this.showModal = true;
+    },
+    closeAddModal() {
+      this.showModal = false;
+    },
+    addPreference() {
+      axios.post('/api/user_preferences/', this.newPreference)
+        .then(response => {
+            if (response.status === 200) {
+                this.closeAddModal();
+                this.showSuccessMessage();
+            } else {
+                alert('新增失敗');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding preference:', error);
+        });
+    },
+    deletePreference() {
+      axios.post('/api/user_preferences/', { user_id: this.preferences.user_id })
+        .then(response => {
+            if (response.status === 200) {
+                this.showSuccessMessage();
+            } else {
+                alert('刪除失敗');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting preference:', error);
+        });
+    },
+    resetPreferences() {
+      this.loadPreferences();
+    },
+    showSuccessMessage() {
+      this.successMessage = true;
+      setTimeout(() => {
+        this.successMessage = false;
+      }, 3000);
+    }
+  }
 };
 </script>
 
-<style src="@/assets/css/frontend/PreferenceSetting.css"></style>
+<style scoped src="@/assets/css/backend/PersonalPreference.css"></style>
+

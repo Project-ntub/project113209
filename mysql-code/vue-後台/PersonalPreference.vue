@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <Sidebar :isSidebarActive="isSidebarActive" />
     <div class="app-content" :class="{ shifted: isSidebarActive }">
       <h1 class="title">個人偏好管理</h1>
       <form @submit.prevent="updatePreferences" class="preferences-form">
@@ -90,9 +91,13 @@
 
 <script>
 import axios from 'axios';
+import Sidebar from './SideBar.vue';
 
 export default {
   name: 'PersonalPreference',
+  components: {
+    Sidebar
+  },
   data() {
     return {
       preferences: {
@@ -118,25 +123,25 @@ export default {
   },
   methods: {
     loadPreferences() {
-      axios.get('/api/user_preferences/')
+      axios.get('/preferences/get_preferences/')
         .then(response => {
-            this.preferences = response.data;
+          this.preferences = response.data;
         })
         .catch(error => {
-            console.error('Error loading preferences:', error);
+          console.error('Error loading preferences:', error);
         });
     },
     updatePreferences() {
-      axios.post('/api/user_preferences/', this.preferences)
+      axios.post('/preferences/update_preference/', this.preferences)
         .then(response => {
-            if (response.status === 200) {
-                this.showSuccessMessage();
-            } else {
-                alert('保存失敗');
-            }
+          if (response.status === 200) {
+            this.showSuccessMessage();
+          } else {
+            alert('保存失敗');
+          }
         })
         .catch(error => {
-            console.error('Error updating preferences:', error);
+          console.error('Error updating preferences:', error);
         });
     },
     showAddModal() {
@@ -146,30 +151,30 @@ export default {
       this.showModal = false;
     },
     addPreference() {
-      axios.post('/api/user_preferences/', this.newPreference)
+      axios.post('/preferences/add_preference/', this.newPreference)
         .then(response => {
-            if (response.status === 200) {
-                this.closeAddModal();
-                this.showSuccessMessage();
-            } else {
-                alert('新增失敗');
-            }
+          if (response.status === 200) {
+            this.closeAddModal();
+            this.showSuccessMessage();
+          } else {
+            alert('新增失敗');
+          }
         })
         .catch(error => {
-            console.error('Error adding preference:', error);
+          console.error('Error adding preference:', error);
         });
     },
     deletePreference() {
-      axios.post('/api/user_preferences/', { user_id: this.preferences.user_id })
+      axios.post('/preferences/delete_preference/', { user_id: this.preferences.user_id })
         .then(response => {
-            if (response.status === 200) {
-                this.showSuccessMessage();
-            } else {
-                alert('刪除失敗');
-            }
+          if (response.status === 200) {
+            this.showSuccessMessage();
+          } else {
+            alert('刪除失敗');
+          }
         })
         .catch(error => {
-            console.error('Error deleting preference:', error);
+          console.error('Error deleting preference:', error);
         });
     },
     resetPreferences() {
@@ -185,5 +190,126 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/backend/PersonalPreference.css"></style>
+<style scoped>
+.app-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
 
+.app-content {
+  width: 100%;
+  max-width: 600px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.preferences-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: #fff;
+  color: #333;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.btn-save {
+  background-color: #28a745;
+}
+
+.btn-add {
+  background-color: #007bff;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.success-message {
+  color: #28a745;
+  text-align: center;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+.close {
+  font-size: 24px;
+  color: #333;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
+}
+</style>
