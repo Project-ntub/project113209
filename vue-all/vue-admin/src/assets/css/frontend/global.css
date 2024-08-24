@@ -1,0 +1,37 @@
+.home-page {
+    display: flex;
+    flex-direction: column;
+    padding: 15px 80px;
+    position: fixed; 
+    margin-left: 60px; /* 默认情况下，内容距离左侧边栏60px */
+    transition: margin-left 0.4s ease; /* 平滑的过渡效果 */
+  }
+  
+  .branch-selection {
+    position: fixed;
+    margin-top: 15px;
+    margin-right: 170px;
+    margin-bottom: 20px;
+    right: 20px;
+    top: 70px;
+    z-index: 1000;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .chart-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: -35px;
+  }
+  
+  .chart-container {
+    width: calc(100% - 60px); /* 初始状态下，容器宽度为100%减去侧边栏的默认宽度 */
+    transition: width 0.4s ease, margin-left 0.4s ease; /* 为宽度和左边距设置过渡效果 */
+    margin-left: 60px; /* 与侧边栏默认宽度一致 */
+  }
+  
+  /* 删除了与 RWD 和 global.css 重叠的部分 */
+  

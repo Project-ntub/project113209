@@ -1,36 +1,187 @@
+/* 全域樣式重置 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 網頁主容器 */
 .home-page {
   display: flex;
   flex-direction: column;
-  padding: 15px 80px;
-  position: fixed; 
-  margin-left: 60px; /* 默认情况下，内容距离左侧边栏60px */
-  transition: margin-left 0.4s ease; /* 平滑的过渡效果 */
+  margin-left: 60px; /* 與側邊欄的間距 */
+  transition: margin-left 0.3s ease;
+  margin-top: -100px;
 }
 
-.branch-selection {
+/* 側邊欄樣式 */
+.sidebar {
+  width: 60px;
+  transition: width 0.3s ease;
   position: fixed;
-  margin-top: 15px;
-  margin-right: 170px;
-  margin-bottom: 20px;
-  right: 20px;
-  top: 70px;
-  z-index: 1000;
-  background-color: #fff;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #2c3e50;
+  overflow: hidden;
 }
 
+.sidebar.open {
+  width: 200px;
+}
+
+/* 當側邊欄打開時，調整 .home-page 的左邊距 */
+.sidebar.open + .home-page {
+  margin-left: 200px; /* 當側邊欄展開時，與側邊欄保持一致 */
+}
+
+/* 分店選擇下拉選單 */
+.branch-selection {
+  margin-bottom: 20px;
+  margin-top: 50px;
+  display: flex;
+  align-items: center;
+  margin-left: 140px;
+}
+
+.branch-selection select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+
+}
+
+/* 圖表控制按鈕 */
 .chart-controls {
   display: flex;
+  align-items: center;
   gap: 10px;
   margin-bottom: 20px;
-  margin-top: -35px;
+  flex-wrap: wrap;
+  margin-left: 140px;
 }
 
-.chart {
-  height: 400px;
+.chart-controls button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #3498db;
+  color: #fff;
+  cursor: pointer;
+  flex: 1 1 auto;
+  max-width: 150px;
 }
-.sidebar.open ~ .home-page {
-  margin-left: 200px; /* 当侧边栏展开时，内容区域右移200px */
+
+.chart-controls button:hover {
+  background-color: #2980b9;
+}
+
+/* 圖表容器 */
+.chart-container {
+  /* width: calc(100% - 50px); */
+  
+  transition: width 0.3s ease, margin-left 0.3s ease;
+  height: 500px;
+  background-color: #f2f2f2;
+  border-radius: 8px;
+  padding: 20px;
+  overflow: hidden;
+  margin-left: 140px;
+}
+
+/* 當側邊欄打開時，調整 .chart-container 的左邊距和寬度 */
+.sidebar.open + .home-page .chart-container {
+  width: calc(100% - 200px);
+  margin-left: 200px;
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .sidebar {
+    width: 0;
+  }
+
+  .sidebar.open {
+    width: 160px;
+  }
+
+  .sidebar.open + .home-page {
+    margin-left: 160px;
+  }
+
+  .branch-selection {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .chart-controls {
+    justify-content: center;
+    width: 30%;
+  }
+
+  .chart-controls button {
+    /* flex: 1 1 100%; */
+    max-width: none;
+    margin-bottom: 5px;
+    padding: 8px; /* 縮小按鈕內部填充 */
+    font-size: 14px; /* 縮小字體大小 */
+  }
+
+  .chart-container {
+    height: 280px; /* 縮小圖表高度以適應小螢幕 */
+    width: 300px;
+    padding: 10px;
+  }
+
+  /* 確保標籤和選單在手機螢幕上不會超出畫面 */
+  label {
+    font-size: 14px;
+  }
+
+  select {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+/* 平板裝置 (768px ~ 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .home-page {
+    margin-left: 60px;
+    padding: 20px;
+  }
+
+  .sidebar.open + .home-page {
+    margin-left: 200px;
+  }
+
+  .chart-container {
+    height: 400px;
+  }
+
+  .chart-controls button {
+    max-width: 150px; /* 保持按鈕寬度一致 */
+  }
+}
+
+/* 電腦版裝置 (> 1024px) */
+@media (min-width: 1024px) {
+  .home-page {
+    margin-left: 60px;
+    padding: 40px;
+  }
+
+  .sidebar.open + .home-page {
+    margin-left: 200px;
+  }
+
+  .chart-container {
+    height: 500px;
+  }
 }

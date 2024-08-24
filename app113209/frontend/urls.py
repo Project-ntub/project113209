@@ -14,6 +14,6 @@ urlpatterns = [
     path('forgot-password/', frontend_views.ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password/', frontend_views.ResetPasswordView.as_view(), name='reset-password'),
     path('manager_home/', frontend_views.ManagerHomeView.as_view(), name='manager-home'),
-    # path('branch_manager_home/', frontend_views.BranchManagerHomeView.as_view(), name='branch-manager-home'),
+    path('branch_home/', frontend_views.BranchManagerHomeView.as_view(), name='branch-home'),
     path('get-data/', get_data, name='get_data'), 
 ]

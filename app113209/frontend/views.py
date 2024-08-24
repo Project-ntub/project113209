@@ -2,17 +2,27 @@ from django.contrib.auth import authenticate, login
 import json
 import random
 from django.contrib.auth.models import User
+from django.contrib.admin.models import LogEntry, CHANGE
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views import View
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
+import json
+import logging
+import random
+import re
+import string
+from django.views.generic import TemplateView
 from app113209.models import User
 # login
 from django.contrib.auth.hashers import check_password, make_password
@@ -48,7 +58,9 @@ class SendVerificationCodeView(View):
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
 
+
 @login_required
+@api_view(['GET'])
 def check_login_status(request):
     return JsonResponse({'loggedIn': True})
 
@@ -121,33 +133,20 @@ class FrontendRegisterView(View):
 
 # 登錄
 class FrontendLoginView(View):
+    @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
         print("進入 post 方法")
         try:
             data = json.loads(request.body)
+            print("收到的數據: ", data)
             email = data.get('email')
             password = data.get('password')
 
             user = authenticate(request, username=email, password=password)
             if user is not None:
+                print("驗證成功, 用戶: ", user.email)
                 login(request, user)
-
-                # 打印用户的所有信息到终端
-                print("\n===== 用户信息开始 =====")
-                print("用户名:", user.username)
-                print("电子邮件:", user.email)
-                print("电话号码:", user.phone)
-                print("职位 ID:", user.position_id)
-                print("分店 ID:", user.branch_id)
-                print("是否活跃:", user.is_active)
-                print("是否已验证:", user.is_verified)
-                print("是否已批准:", user.is_approved)
-                print("部门 ID:", user.department_id)
-                print("性别:", user.gender)
-                print("加入日期:", user.date_joined)
-                print("===== 用户信息结束 =====\n")
-
-                # 返回登录成功的响应
+                # 返回用户信息
                 return JsonResponse({
                     'success': True,
                     'message': '登录成功',
@@ -155,22 +154,32 @@ class FrontendLoginView(View):
                     'branch_id': user.branch_id
                 }, status=200)
             else:
+                print("驗證失敗")
                 return JsonResponse({'success': False, 'message': '登录失败，请检查您的电子邮件和密码'}, status=400)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            print("JSON解析錯誤: ", e)
             return JsonResponse({'success': False, 'message': '无效的数据格式'}, status=400)
+        except Exception as e:
+            print("未預期的錯誤: ", e)
+            return JsonResponse({'success': False, 'message': '服务器错误，请稍后再试'}, status=500)
 
 
 
-# 首頁
-class HomePageView(TemplateView):
-    template_name = "frontend/home.html"
-# View for ManagerHome
-class ManagerHomeView(TemplateView):
-    template_name = "frontend/manager_home.html"
 
-# View for BranchManagerHome
-class BranchManagerHomeView(TemplateView):
-    template_name = "frontend/branch_manager_home.html"
+from django.shortcuts import render
+
+class HomePageView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'frontend/home.html')
+
+class ManagerHomeView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'frontend/manager_home.html')
+
+class BranchManagerHomeView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'frontend/branch_home.html')
+
 # 忘記密碼
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotPasswordView(View):

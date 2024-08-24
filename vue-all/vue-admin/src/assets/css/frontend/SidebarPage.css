@@ -77,4 +77,7 @@
   transition: margin-left 0.4s ease; /* 统一的过渡时间 */
 }
 
+.sidebar.open ~ .home-page {
+  margin-left: 200px; /* 当侧边栏展开时，内容区域右移200px */
+}
 

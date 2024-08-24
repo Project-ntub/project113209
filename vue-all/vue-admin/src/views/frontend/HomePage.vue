@@ -1,10 +1,10 @@
 <template>
-  <div class="home-page">
+  <div :class="['home-page', { 'sidebar-open': isSidebarOpen }]">
     <!-- 顶部导航栏组件 -->
     <TopNavbar @export="exportChart" />
     
-    <!-- 分店下拉式選單 -->
-    <div class="branch-selection">
+    <!-- 分店下拉式選單，如果用户是經理则显示 -->
+    <div v-if="userPosition === '經理'" class="branch-selection">
       <label for="branch-select">選擇分店:</label>
       <select id="branch-select" v-model="selectedBranch" @change="onBranchChange">
         <option v-for="branch in branches" :key="branch.branch_id" :value="branch.branch_id">
@@ -12,7 +12,11 @@
         </option>
       </select>
     </div>
-    
+    <!-- 如果用户是店長，只显示该店数据 -->
+    <div v-else-if="userPosition === '店長'" class="branch-info">
+      <p>當前分店: {{ branches[0]?.branch_name }}</p>
+    </div>
+
     <div class="chart-controls">
       <!-- 控制不同图表显示的按钮 -->
       <button @click="setCurrentChart('RevenueChart')">營業額</button>
@@ -45,19 +49,39 @@ export default {
   },
   data() {
     return {
+      isSidebarOpen: false, // 用于控制侧边栏是否展开
       currentChart: 'SalesChart', // 默认显示的图表组件
       branches: [], // 动态存储所有可访问的分店
       selectedBranch: null, // 当前选中的分店
+      userPosition: null,  // 存储用户角色
     };
   },
   methods: {
+    toggleSidebar() {
+      this.isSidebarOpen = !this.isSidebarOpen;
+    },
+    async fetchUserPosition() {
+      try {
+        const response = await axios.get('/api/frontend/profile/');
+        this.userPosition = response.data.position_id;
+        this.selectedBranch = response.data.branch_id;
+        await this.fetchBranches();  // 根據用戶角色再進行請求
+      } catch (error) {
+        console.error('Error fetching user position:', error);
+      }
+    },
     async fetchBranches() {
       try {
-          const response = await axios.get('/api/frontend/branches/');
-          this.branches = response.data;
+        const response = await axios.get('/api/frontend/branches/');
+        this.branches = response.data;
+        // 如果用户是店长，将selectedBranch设为其所属分店
+        if (this.userPosition === '店長') {
+          this.selectedBranch = this.branches.find(branch => branch.branch_id === this.selectedBranch)?.branch_id;
+        } else {
           this.selectedBranch = this.branches.length > 0 ? this.branches[0].branch_id : null;
+        }
       } catch (error) {
-          console.error('Error fetching branches:', error);
+        console.error('Error fetching branches:', error);
       }
     },
     setCurrentChart(chart) {
@@ -68,7 +92,7 @@ export default {
     },
   },
   async mounted() {
-    await this.fetchBranches();
+    await this.fetchUserPosition();
   },
 };
 </script>
