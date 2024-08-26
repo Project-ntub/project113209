@@ -32,12 +32,14 @@ logger = logging.getLogger(__name__)
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 
-# 修改密碼
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+import json
+import re
+
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -49,31 +51,36 @@ def changepassword(request):
 
         user = request.user
 
-        # 确认输入的当前密码是否正确
+        # 確認輸入的當前密碼是否正確
         if not user.check_password(current_password):
-            return JsonResponse({'message': '輸入密碼'}, status=400)
+            return JsonResponse({'message': '當前密碼不正確'}, status=400)
 
-        # 确认一个月内是否已经更改过两次密码
+        # 確認一個月內是否已經更改過兩次密碼
         one_month_ago = timezone.now() - timezone.timedelta(days=30)
         password_changes = user.histories.filter(action='改密碼', timestamp__gte=one_month_ago).count()
 
         if password_changes >= 2:
             return JsonResponse({'message': '一個月內只能修改兩次密碼'}, status=400)
 
-        # 修改密码
+        # 驗證新密碼強度
+        if not re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', new_password):
+            return JsonResponse({'message': '新密碼不符合要求。密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。'}, status=400)
+
+        # 修改密碼
         user.set_password(new_password)
         user.save()
 
         # 更新 session 以防止登出
         update_session_auth_hash(request, user)
 
-        # 记录密码修改行为到历史记录
-        user.histories.create(action='改密码')
+        # 記錄密碼修改行為到歷史記錄
+        user.histories.create(action='改密碼')
 
-        return JsonResponse({'message': '密码已成功修改'}, status=200)
+        return JsonResponse({'message': '密碼已成功修改'}, status=200)
 
     except Exception as e:
         return JsonResponse({'message': f'發生錯誤: {str(e)}'}, status=500)
+
 
 
 
