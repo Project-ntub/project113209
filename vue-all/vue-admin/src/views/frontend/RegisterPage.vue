@@ -63,7 +63,7 @@ export default {
     async fetchCsrfToken() {
       try {
         const response = await axios.get('http://127.0.0.1:8000/frontend/register/', {
-          withCredentials: true  // 确保包含cookies
+          withCredentials: true  // 確保包含cookies
         });
         this.csrfToken = response.data.csrfToken;
         this.setAxiosCsrfToken(this.csrfToken);
@@ -84,7 +84,7 @@ export default {
           headers: {
             'X-CSRFToken': this.csrfToken
           },
-          withCredentials: true  // 确保传递cookies
+          withCredentials: true  // 確保傳遞cookies
         });
 
         this.feedbackSuccess = response.data.success;
@@ -124,18 +124,18 @@ export default {
           username: this.username,
           email: this.email,
           password: this.password,
-          confirmPassword: this.confirmPassword,  // 注意这里的下划线
+          confirmPassword: this.confirmPassword,  
           phone: this.phone,
-          verificationCode: this.verificationCode  // 注意这里的下划线
+          verificationCode: this.verificationCode  
         }, {
           headers: {
             'X-CSRFToken': this.csrfToken
           },
-          withCredentials: true  // 确保传递cookies
+          withCredentials: true  
         });
 
         if (response.data.success) {
-          alert('註冊成功！');
+          alert('註冊成功！請等待管理員審核您的帳號。');
           this.$router.push('/frontend/home');
         } else {
           alert(response.data.message || '註冊失敗，請重試。');
@@ -146,10 +146,9 @@ export default {
     },
   },
   created() {
-    this.fetchCsrfToken();  // 初始化时获取CSRF token
+    this.fetchCsrfToken();  // 初始化時獲取CSRF token
   }
 };
-
 </script>
 
 <style scoped src="@/assets/css/frontend/RegisterPage.css"></style>

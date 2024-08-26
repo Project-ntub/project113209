@@ -71,6 +71,7 @@ class FrontendRegisterView(View):
             confirm_password = data.get('confirmPassword')
             phone = data.get('phone')
             verification_code = data.get('verificationCode')
+            is_approved=False  # 用戶需要審核
 
             if password != confirm_password:
                 return JsonResponse({'success': False, 'message': '密碼和確認密碼不匹配'}, status=400)

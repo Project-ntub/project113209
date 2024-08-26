@@ -2,6 +2,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
+from .api_views import PendingUserListView, approve_user
 
 router = DefaultRouter()
 router.register(r'users', api_views.UserViewSet)
@@ -31,4 +32,6 @@ urlpatterns = [
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
     path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
     path('user_preferences/', api_views.UserPreferenceView.as_view(), name='user_preferences'),
+    path('approve-user/<int:user_id>/', approve_user, name='approve-user'),
+
 ]

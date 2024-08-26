@@ -234,7 +234,6 @@ class DataModel(models.Model):
 
     def __str__(self):
         return self.name
-        db_table = 'Branch'  # 確保這裡的表名和你的資料庫中的表名一致
 
 
 class HistoryRecord(models.Model):

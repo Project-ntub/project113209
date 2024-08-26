@@ -85,4 +85,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/frontend/ProfilePage.css"></style>
+<style src="@/assets/css/frontend/ProfilePage.css"></style>

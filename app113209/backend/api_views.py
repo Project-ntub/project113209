@@ -11,7 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from app113209.models import User, Module, Role, RolePermission, UserHistory, UserPreference
 from app113209.serializers import UserSerializer, ModuleSerializer, RoleSerializer, RolePermissionSerializer, UserHistorySerializer
 from app113209.utils import record_history  # 導入記錄歷史紀錄的函數
-
+# 待審核
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
 
 logger = logging.getLogger(__name__)
 
@@ -84,11 +86,24 @@ class UserProfileView(APIView):
             return Response({'message': 'Profile updated successfully'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
    
-        
+# 待審核
+
 class PendingUserListView(generics.ListAPIView):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
 
+@api_view(['POST'])
+@permission_classes([IsAdminUser])  # 確保只有管理員可以訪問
+def approve_user(request, user_id):
+    try:
+        user = User.objects.get(id=user_id, is_approved=False)
+        user.is_approved = True
+        user.is_active = True  # 啟用用戶
+        user.save()
+        return Response({'success': True, 'message': '用戶已成功審核'})
+    except User.DoesNotExist:
+        return Response({'success': False, 'message': '用戶不存在或已審核'}, status=404)
+    
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.filter(is_deleted = False)
     serializer_class = ModuleSerializer
