@@ -32,6 +32,52 @@ logger = logging.getLogger(__name__)
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 
+# 修改密碼
+from django.contrib.auth import update_session_auth_hash
+from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def changepassword(request):
+    try:
+        data = json.loads(request.body)
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+
+        user = request.user
+
+        # 确认输入的当前密码是否正确
+        if not user.check_password(current_password):
+            return JsonResponse({'message': '輸入密碼'}, status=400)
+
+        # 确认一个月内是否已经更改过两次密码
+        one_month_ago = timezone.now() - timezone.timedelta(days=30)
+        password_changes = user.histories.filter(action='改密碼', timestamp__gte=one_month_ago).count()
+
+        if password_changes >= 2:
+            return JsonResponse({'message': '一個月內只能修改兩次密碼'}, status=400)
+
+        # 修改密码
+        user.set_password(new_password)
+        user.save()
+
+        # 更新 session 以防止登出
+        update_session_auth_hash(request, user)
+
+        # 记录密码修改行为到历史记录
+        user.histories.create(action='改密码')
+
+        return JsonResponse({'message': '密码已成功修改'}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'message': f'發生錯誤: {str(e)}'}, status=500)
+
+
+
+
 # 发送验证码
 @method_decorator(csrf_exempt, name='dispatch')
 class SendVerificationCodeView(View):
@@ -296,47 +342,47 @@ class ResetPasswordView(View):
         return JsonResponse({'csrfToken': csrf_token})
 
 # 更改密码视图
-@csrf_exempt
-@login_required
-def changepassword(request):
-    try:
-        if request.method == 'POST':
-            data = json.loads(request.body)
-            current_password = data.get('current_password')
-            new_password = data.get('new_password')
+# @csrf_exempt
+# @login_required
+# def changepassword(request):
+#     try:
+#         if request.method == 'POST':
+#             data = json.loads(request.body)
+#             current_password = data.get('current_password')
+#             new_password = data.get('new_password')
 
-            user = request.user
+#             user = request.user
 
-            if user.is_locked:
-                return JsonResponse({'message': '帳號已被鎖定，請聯絡管理員'}, status=403)
+#             if user.is_locked:
+#                 return JsonResponse({'message': '帳號已被鎖定，請聯絡管理員'}, status=403)
 
-            if not user.check_password(current_password):
-                user.failed_attempts += 1
-                if user.failed_attempts >= 3:
-                    user.is_locked = True
-                    user.save()
-                    return JsonResponse({'message': '帳號已被鎖定，請聯絡管理員'}, status=403)
-                user.save()
-                return JsonResponse({'message': '當前密碼錯誤'}, status=400)
+#             if not user.check_password(current_password):
+#                 user.failed_attempts += 1
+#                 if user.failed_attempts >= 3:
+#                     user.is_locked = True
+#                     user.save()
+#                     return JsonResponse({'message': '帳號已被鎖定，請聯絡管理員'}, status=403)
+#                 user.save()
+#                 return JsonResponse({'message': '當前密碼錯誤'}, status=400)
 
-            user.failed_attempts = 0
-            user.set_password(new_password)
-            user.save()
+#             user.failed_attempts = 0
+#             user.set_password(new_password)
+#             user.save()
 
-            logout(request)
-            return JsonResponse({'message': '密碼修改成功，已登出'}, status=200)
+#             logout(request)
+#             return JsonResponse({'message': '密碼修改成功，已登出'}, status=200)
 
-        else:
-            return JsonResponse({'message': '僅支援POST請求'}, status=405)
+#         else:
+#             return JsonResponse({'message': '僅支援POST請求'}, status=405)
 
-    except PermissionDenied:
-        return JsonResponse({'message': '未授權，跳過該錯誤'}, status=401)
+#     except PermissionDenied:
+#         return JsonResponse({'message': '未授權，跳過該錯誤'}, status=401)
     
-    except ObjectDoesNotExist:
-        return JsonResponse({'message': '資源未找到，跳過該錯誤'}, status=404)
+#     except ObjectDoesNotExist:
+#         return JsonResponse({'message': '資源未找到，跳過該錯誤'}, status=404)
     
-    except Exception as e:
-        return JsonResponse({'message': f'其他錯誤: {str(e)}'}, status=500)
+#     except Exception as e:
+#         return JsonResponse({'message': f'其他錯誤: {str(e)}'}, status=500)
 @api_view(['GET', 'PUT'])
 def user_profile(request):
     if request.method == 'GET':
