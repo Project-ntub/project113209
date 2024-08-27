@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views as backend_views
 from . import api_views
-
+from .views import approve_user
 router = DefaultRouter()
 router.register(r'users', api_views.UserViewSet)
 router.register(r'modules', api_views.ModuleViewSet)
@@ -12,10 +12,13 @@ router.register(r'role_permissions', api_views.RolePermissionViewSet)
 
 app_name = 'backend'
 
+
+
+
 urlpatterns = [
     path('send_verification_code/', backend_views.send_verification_code_backend, name='send_verification_code_backend'),
     path('verify_code/', backend_views.validate_verification_code_backend, name='verify_code_backend'),
-    path('approve_user/<int:user_id>/', backend_views.approve_user, name='approve_user'),
+    path('approve_user/<int:user_id>/', approve_user, name='approve_user'),
     path('delete_user/<int:user_id>/', backend_views.delete_user, name='delete_user'),
     path('assign_role_and_module/<int:user_id>/', backend_views.assign_role_and_module, name='assign_role_and_module'),
     path('delete_module/<int:module_id>/', api_views.ModuleViewSet.as_view({'post': 'delete_module'}), name='delete_module'),

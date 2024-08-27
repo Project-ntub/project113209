@@ -17,6 +17,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.shortcuts import render
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -124,6 +125,8 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
     serializer_class = RolePermissionSerializer
     permission_classes = [IsAuthenticated]
 
+User = get_user_model()
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def approve_user(request, user_id):
@@ -131,8 +134,17 @@ def approve_user(request, user_id):
         user = User.objects.get(id=user_id, is_active=False)
         user.is_active = True
         user.save()
-        record_history(request.user, f"管理員 {request.user.username} 批准用戶 {user.username}")
-        return JsonResponse({'success': True})
+
+        # 發送郵件通知用戶其帳號已啟用
+        send_mail(
+            '您的帳號已啟用',
+            '恭喜！您的帳號已經被管理員審核並啟用。',
+            'from@example.com',
+            [user.email],
+            fail_silently=False,
+        )
+
+        return JsonResponse({'success': True, 'message': '用戶帳號已成功啟用並發送通知郵件'}, status=200)
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
 

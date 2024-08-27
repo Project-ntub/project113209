@@ -37,9 +37,8 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-import json
-import re
-
+from django.contrib.auth import get_user_model
+User = get_user_model()
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -113,6 +112,8 @@ class SendVerificationCodeView(View):
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
 
 # 注册
+User = get_user_model()
+
 @method_decorator(csrf_exempt, name='dispatch')
 class FrontendRegisterView(View):
     def post(self, request, *args, **kwargs):
@@ -124,7 +125,7 @@ class FrontendRegisterView(View):
             confirm_password = data.get('confirmPassword')
             phone = data.get('phone')
             verification_code = data.get('verificationCode')
-            is_approved=False  # 用戶需要審核
+            is_approved = False  # 用戶需要審核
 
             if password != confirm_password:
                 return JsonResponse({'success': False, 'message': '密碼和確認密碼不匹配'}, status=400)
@@ -145,20 +146,22 @@ class FrontendRegisterView(View):
             if User.objects.filter(phone=phone).exists():
                 return JsonResponse({'success': False, 'message': '電話號碼已經被使用'}, status=400)
 
-            user = User.objects.create_user(username=username, email=email, password=password, phone=phone)
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                phone=phone,
+                is_active=False  # 註冊時設為不啟用
+            )
             user.save()
 
             cache.delete(email)
 
-            send_mail(
-                '歡迎註冊',
-                '感謝您的註冊！',
-                'from@example.com',
-                [email],
-                fail_silently=False,
-            )
+            # 發送通知給管理員審核
+            # 這裡可以發送郵件或推送通知到管理員系統
+            # send_mail(...)
 
-            return JsonResponse({'success': True, 'message': '註冊成功！'}, status=201)
+            return JsonResponse({'success': True, 'message': '註冊成功！請等待管理員審核您的帳號。'}, status=201)
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)

@@ -38,26 +38,40 @@
 import axios from '@/axios'; 
 
 export default {
-name: 'PendingList',
-data() {
-  return {
-    pendingUsers: []
-  };
-},
-methods: {
-  async fetchPendingUsers() {
+  name: 'PendingList',
+  data() {
+    return {
+      pendingUsers: []
+    };
+  },
+  methods: {
+    async fetchPendingUsers() {
       try {
-          const response = await axios.get('/api/backend/pending-users/');
-          this.pendingUsers = response.data;
+        const response = await axios.get('/api/backend/pending-users/');
+        this.pendingUsers = response.data;
       } catch (error) {
-          console.error('Error fetching pending users:', error);
+        console.error('Error fetching pending users:', error);
       }
+    },
+    async approveUser(userId) {
+      try {
+        const response = await axios.post(`/api/backend/approve-user/${userId}/`);
+        if (response.data.success) {
+          alert('用戶已成功開通');
+          this.fetchPendingUsers(); // 重新加載待審核用戶列表
+        } else {
+          alert('開通失敗，請稍後再試');
+        }
+      } catch (error) {
+        console.error('Error approving user:', error);
+        alert('開通失敗，請稍後再試');
+      }
+    }
+  },
+  mounted() {
+    this.fetchPendingUsers();
   }
-},
-mounted() {
-  this.fetchPendingUsers();
-}
 };
 </script>
-  
+
 <style scoped src="@/assets/css/backend/PendingList.css"></style>

@@ -120,7 +120,7 @@ export default {
       }
 
       try {
-        const response = await axios.post('http://127.0.0.1:8000/frontend/register/', {
+        const response = await axios.post('/frontend/register/', {
           username: this.username,
           email: this.email,
           password: this.password,
@@ -136,7 +136,7 @@ export default {
 
         if (response.data.success) {
           alert('註冊成功！請等待管理員審核您的帳號。');
-          this.$router.push('/frontend/home');
+          this.$router.push('/frontend/login');
         } else {
           alert(response.data.message || '註冊失敗，請重試。');
         }
