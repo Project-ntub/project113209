@@ -1,6 +1,6 @@
 # app113209/models.py
 from django.db import models
-from django.contrib.auth.models import User
+from app113209.models import User
 
 class ActionLog(models.Model):
     ACTION_TYPES = [

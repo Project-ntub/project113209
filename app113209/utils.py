@@ -1,7 +1,10 @@
-# utils.py (新建這個檔案以儲存公共的輔助函數)
-
+# app113209\utils.py
+import logging
 from app113209.models import UserHistory, User
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
 
 def record_history(user, action_desc):
     try:
@@ -12,8 +15,8 @@ def record_history(user, action_desc):
                 action=action_desc,
                 timestamp=timezone.now()
             )
+            logger.info(f"History record created for user {user.username} with action: {action_desc}")
         else:
-            print(f"ID 為 {user.id} 的用戶不存在。")
-    except User.DoesNotExist:
-        print(f"ID 為 {user.id} 的用戶不存在。")
-
+            logger.warning(f"User with ID {user.id} does not exist.")
+    except Exception as e:
+        logger.error(f"Error creating history record for user {user.id}: {e}")

@@ -21,7 +21,7 @@ from django.shortcuts import render
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
-
+    
 def send_verification_code_backend(request):
     email = request.GET.get('email')
     if not email:

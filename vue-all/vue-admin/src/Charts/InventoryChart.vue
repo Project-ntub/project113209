@@ -1,45 +1,48 @@
 <template>
-  <div>
+  <ChartContainer>
     <canvas ref="chartCanvas"></canvas>
-  </div>
+  </ChartContainer>
 </template>
 
 <script>
-import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js'
-ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale)
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, LineElement, PointElement, LinearScale, CategoryScale, ArcElement } from 'chart.js';
+import ChartContainer from '@/Charts/ChartContainer.vue';
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, LinearScale, CategoryScale, ArcElement);
 
 export default {
   name: 'InventoryChart',
+  components: {
+    ChartContainer
+  },
   data() {
     return {
-      // 定义图表数据
       chartData: {
         labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
         datasets: [
           {
             label: 'Inventory',
             backgroundColor: '#f87979',
-            data: [50, 25, 18, 45, 20, 50, 45, 100, 50, 45, 100, 50]
-          }
-        ]
-      }
+            data: [50, 25, 18, 45, 20, 50, 45, 100, 50, 45, 100, 50],
+          },
+        ],
+      },
     };
   },
   mounted() {
-    this.renderChart()
+    this.renderChart();
   },
   methods: {
-    // 渲染图表
     renderChart() {
-      const ctx = this.$refs.chartCanvas.getContext('2d')
+      const ctx = this.$refs.chartCanvas.getContext('2d');
       new ChartJS(ctx, {
         type: 'line',
         data: this.chartData,
-        options: { responsive: true, maintainAspectRatio: false }
-      })
-    }
-  }
-}
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>

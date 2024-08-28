@@ -18,21 +18,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center; 
-  gap: 20px; /* 减少 gap 的大小 */
+  gap: 20px;
   margin-bottom: 20px;
 }
 
 .module-selection,
 .role-selection {
-  flex: 1 1 45%; /* Ensures both module and role selection take up 45% of the available space */
+  flex: 1 1 45%;
   max-width: 45%;
-  min-width: 200px; /* Minimum width to ensure components don't shrink too much */
+  min-width: 200px;
 }
 
 .chart-selection {
   display: flex;
-  justify-content: center; /* 按钮居中对齐 */
-  gap: 10px;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
 }
 
@@ -49,6 +49,11 @@
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 5px;
+}
+
+.chart-button {
+  background-color: #28a745; /* 綠色背景 */
+  margin: 5px; /* 每個按鈕之間的距離 */
 }
 
 .chart-container {
@@ -70,7 +75,7 @@
 @media (max-width: 768px) {
   .selection-container {
     flex-direction: column;
-    align-items: stretch; /* Ensure the selections stretch to fill the container on small screens */
+    align-items: stretch;
   }
 
   .chart-selection,

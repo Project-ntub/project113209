@@ -1,18 +1,22 @@
 <template>
-  <div>
+  <ChartContainer>
     <canvas ref="chartCanvas"></canvas>
-  </div>
+  </ChartContainer>
 </template>
 
 <script>
-import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js'
-ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale)
+import { Chart as ChartJS, LineController, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
+import ChartContainer from '@/Charts/ChartContainer.vue';  // 引入通用容器組件
+
+ChartJS.register(LineController, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
 
 export default {
   name: 'SalesChart',
+  components: {
+    ChartContainer
+  },
   data() {
     return {
-      // 定义图表数据
       chartData: {
         labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
         datasets: [
@@ -26,12 +30,11 @@ export default {
     };
   },
   mounted() {
-    this.renderChart()
+    this.renderChart();
   },
   methods: {
-    // 渲染图表
     renderChart() {
-      const ctx = this.$refs.chartCanvas.getContext('2d')
+      const ctx = this.$refs.chartCanvas.getContext('2d');
       new ChartJS(ctx, {
         type: 'line',
         data: this.chartData,

@@ -18,7 +18,7 @@ from rest_framework.permissions import IsAdminUser
 logger = logging.getLogger(__name__)
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.filter(is_deleted=False, is_active=True)
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -65,6 +65,11 @@ class UserViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         logger.debug(f"收到更新使用者 ID 的請求: {kwargs.get('pk')}")
         return super().update(request, *args, **kwargs)
+
+class PendingUserListView(generics.ListAPIView):
+    queryset = User.objects.filter(is_active=False)
+    serializer_class = UserSerializer
+
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]

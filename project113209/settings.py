@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',  
-    'app113209',   
+    # 'app113209',
+    'app113209.apps.App113209Config',   
 ]
 
 MIDDLEWARE = [
@@ -203,7 +204,6 @@ SIMPLE_JWT = {
 # CORS configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
-    "http://localhost:8081",
 ]
 
 LOGGING = {
@@ -231,5 +231,4 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
-    "http://localhost:8081",
 ]

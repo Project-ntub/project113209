@@ -3,8 +3,7 @@
     <div class="header">
       <h2>儀表板管理</h2>
       <div class="chart-actions">
-        <button @click="openAddChartModal">新增圖表</button>
-        <button @click="openEditChartModal">編輯圖表</button>
+        <button @click="openChartModal(false)">新增圖表</button>
       </div>
     </div>
 
@@ -24,90 +23,62 @@
       </div>
     </div>
 
-    <div class="chart-selection">
-      <button @click="setCurrentChart('SalesChart')">銷售額</button>
-      <button @click="setCurrentChart('RevenueChart')">營業額</button>
-      <button @click="setCurrentChart('InventoryChart')">庫存量</button>
-    </div>
+    <!-- 使用 vuedraggable 並添加 item 插槽 -->
+    <draggable v-model="charts" itemKey="name" @end="onDragEnd">
+      <template #item="{ element }">
+        <div class="chart-selection">
+          <button @click="setCurrentCharts(element.name)" class="chart-button">{{ element.label }}</button>
+        </div>
+      </template>
+    </draggable>
 
     <div class="chart-container">
-      <component :is="currentChart" :role-id="selectedRole" />
+      <!-- 循環 currentCharts 顯示每個選中的圖表 -->
+      <component v-for="chart in currentCharts" :is="chart" :key="chart" :role-id="selectedRole" />
     </div>
 
     <!-- Add Chart Modal -->
-    <Modal v-if="showAddChartModal" @close="closeAddChartModal">
-      <template #header>
-        <h3>新增圖表</h3>
-      </template>
-      <template #body>
-        <form @submit.prevent="submitAddChartForm">
-          <div>
-            <label for="chartType">圖表類型:</label>
-            <select id="chartType" v-model="newChart.type" required>
-              <option value="bar">柱狀圖</option>
-              <option value="line">折線圖</option>
-              <option value="pie">圓餅圖</option>
-            </select>
-          </div>
-          <div>
-            <label for="chartName">圖表名稱:</label>
-            <input type="text" id="chartName" v-model="newChart.name" required>
-          </div>
-          <button type="submit">提交</button>
-        </form>
-      </template>
-    </Modal>
-
-    <!-- Edit Chart Modal -->
-    <Modal v-if="showEditChartModal" @close="closeEditChartModal">
-      <template #header>
-        <h3>編輯圖表</h3>
-      </template>
-      <template #body>
-        <form @submit.prevent="submitEditChartForm">
-          <div>
-            <label for="chartType">圖表類型:</label>
-            <select id="chartType" v-model="editChart.type" required>
-              <option value="bar">柱狀圖</option>
-              <option value="line">折線圖</option>
-              <option value="pie">圓餅圖</option>
-            </select>
-          </div>
-          <div>
-            <label for="chartName">圖表名稱:</label>
-            <input type="text" id="chartName" v-model="editChart.name" required>
-          </div>
-          <button type="submit">提交</button>
-        </form>
-      </template>
+    <Modal v-if="showChartModal" :isEditing="isEditing" @close="closeChartModal">
     </Modal>
   </div>
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 import SalesChart from '@/Charts/SalesChart.vue';
 import RevenueChart from '@/Charts/RevenueChart.vue';
+import RevenueSC from '@/Charts/RevenueSC.vue';
 import InventoryChart from '@/Charts/InventoryChart.vue';
+import InventorySC from '@/Charts/InventorySC.vue';
 import Modal from '@/components/backend/ChartModal.vue'; // 引入 Modal 组件
 import axios from '@/axios';
 
 export default {
   name: 'DashboardManager',
   components: {
+    draggable,
     SalesChart,
     RevenueChart,
+    RevenueSC,
     InventoryChart,
+    InventorySC,
     Modal,
   },
   data() {
     return {
-      currentChart: 'SalesChart',
+      currentCharts: [], // 變更為陣列
       modules: [],
       roles: [],
       selectedModule: null,
       selectedRole: null,
-      showAddChartModal: false,
-      showEditChartModal: false,
+      showChartModal: false,
+      isEditing: false,
+      currentChartData: null, 
+      charts: [
+        { name: ['RevenueChart', 'RevenueSC'], label: '營業額' }, // 更新為數組
+        { name: ['InventoryChart', 'InventorySC'], label: '庫存量' },
+        { name: ['SalesChart'], label: '銷售額' }
+      ],
       newChart: {
         type: 'bar',
         name: '',
@@ -137,8 +108,8 @@ export default {
         console.error('Error fetching roles:', error);
       }
     },
-    setCurrentChart(chart) {
-      this.currentChart = chart;
+    setCurrentCharts(chartNames) {
+      this.currentCharts = chartNames; // 將選擇的圖表設置為數組
     },
     onModuleChange() {
       this.fetchRoles();
@@ -146,11 +117,12 @@ export default {
     onRoleChange() {
       console.log('選擇的角色:', this.selectedRole);
     },
-    openAddChartModal() {
-      this.showAddChartModal = true;
+    openChartModal(editing) {
+      this.isEditing = editing;
+      this.showChartModal = true;
     },
-    closeAddChartModal() {
-      this.showAddChartModal = false;
+    closeChartModal() {
+      this.showChartModal = false;
     },
     async submitAddChartForm() {
       try {
@@ -161,11 +133,21 @@ export default {
         console.error('新增圖表失敗:', error);
       }
     },
-    openEditChartModal() {
-      this.showEditChartModal = true;
+    openEditModal() {
+      // 設置當前圖表數據
+      this.currentChartData = {
+        // 在這裡獲取當前圖表的數據
+        style: 'bar', // 示例數據，實際數據應根據圖表類型調整
+        name: '當前圖表名稱',
+        showLabels: true,
+        color: '#007BFF',
+        xAxisLabel: 'X 軸',
+        yAxisLabel: 'Y 軸',
+      };
+      this.isEditing = true;
     },
-    closeEditChartModal() {
-      this.showEditChartModal = false;
+    closeEditModal() {
+      this.isEditing = false;
     },
     async submitEditChartForm() {
       try {
@@ -176,6 +158,9 @@ export default {
         console.error('編輯圖表失敗:', error);
       }
     },
+    onDragEnd() {
+      console.log('Charts reordered:', this.charts);
+    }
   },
   async mounted() {
     await this.fetchModules();

@@ -1,15 +1,20 @@
 <template>
-  <div>
+  <ChartContainer>
     <canvas ref="chartCanvas"></canvas>
-  </div>
+  </ChartContainer>
 </template>
 
 <script>
-import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js'
-ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale)
+import { Chart as ChartJS, RadarController, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend } from 'chart.js';
+import ChartContainer from '@/Charts/ChartContainer.vue';
+
+ChartJS.register(RadarController, PointElement, LinearScale, CategoryScale, Title, Tooltip, Legend);
 
 export default {
   name: 'RevenueChart',
+  components: {
+    ChartContainer
+  },
   data() {
     return {
       // 定义图表数据

@@ -1,121 +1,156 @@
 <template>
-  <div class="container">
-    <h2>註冊</h2>
-    <form @submit.prevent="register">
-      <div v-if="error" class="error">
-        <p>{{ error }}</p>
-      </div>
-      <label for="username">用戶名:</label>
-      <input type="text" id="username" v-model="form.username" required />
+  <div class="content" id="content">
+    <div class="container">
+      <h2>註冊</h2>
+      <form @submit.prevent="handleSubmit">
+        <label for="username">用戶名</label>
+        <input type="text" id="username" v-model="username" required />
 
-      <label for="email">電子郵件:</label>
-      <input type="email" id="email" v-model="form.email" required />
-      <button type="button" @click="getVerificationCode">獲取驗證碼</button>
-      <div id="verification-feedback" class="feedback">{{ feedback }}</div>
+        <label for="email">電子郵件</label>
+        <input type="email" id="email" v-model="email" required />
 
-      <label for="verification_code">驗證碼:</label>
-      <input type="text" id="verification_code" v-model="form.verification_code" required />
-      <button type="button" @click="validateVerificationCode">驗證碼驗證</button>
-      <div id="verification-feedback" class="feedback">{{ feedback }}</div>
+        <button type="button" @click="getVerificationCode">獲取驗證碼</button>
+        <div id="verification-feedback" :class="{'feedback': true, 'success': feedbackSuccess, 'error': !feedbackSuccess}">
+          {{ verificationFeedback }}
+        </div>
 
-      <label for="password">密碼:</label>
-      <input type="password" id="password" v-model="form.password" required />
+        <label for="verification_code">驗證碼</label>
+        <input type="text" id="verification_code" v-model="verificationCode" required />
 
-      <label for="confirm_password">確認密碼:</label>
-      <input type="password" id="confirm_password" v-model="form.confirm_password" required />
+        <label for="password">密碼</label>
+        <div class="password-container">
+          <input type="password" id="password" v-model="password" required />
+          <span class="toggle-password" @click="handleTogglePassword">👁️</span>
+        </div>
+        <div class="password-example">密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。例如：Password@123</div>
 
-      <label for="phone">手機號碼:</label>
-      <input type="text" id="phone" v-model="form.phone" required />
+        <label for="confirm_password">確認密碼</label>
+        <div class="password-container">
+          <input type="password" id="confirm_password" v-model="confirmPassword" required />
+          <span class="toggle-password" @click="handleTogglePassword">👁️</span>
+        </div>
 
-      <input type="submit" value="註冊" />
+        <label for="phone">電話號碼</label>
+        <input type="text" id="phone" v-model="phone" required />
 
-      <p class="terms">
-        點擊「註冊」表示您同意我們的 <a href="#">服務條款</a> 和
-        <a href="#">隱私政策</a>
-      </p>
-    </form>
+        <input type="submit" value="註冊" class="submit-button"/>
+      </form>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from '@/axios'; 
+import axios from 'axios';
 
 export default {
-  name: 'AppRegister',
+  name: 'BackendRegister',
   data() {
     return {
-      form: {
-        username: '',
-        email: '',
-        verification_code: '',
-        password: '',
-        confirm_password: '',
-        phone: '',
-      },
-      error: '',
-      feedback: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      phone: '',
+      verificationCode: '',
+      verificationFeedback: '',
+      feedbackSuccess: false,
+      csrfToken: '',  
     };
   },
   methods: {
-    getVerificationCode() {
-      const email = this.form.email.trim();
-      if (!this.validateEmail(email)) {
+    setAxiosCsrfToken(token) {
+      axios.defaults.headers.common['X-CSRFToken'] = token;
+    },
+    async fetchCsrfToken() {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/frontend/register/', {
+          withCredentials: true  // 确保包含cookies
+        });
+        this.csrfToken = response.data.csrfToken;
+        this.setAxiosCsrfToken(this.csrfToken);
+      } catch (error) {
+        console.error('Failed to fetch CSRF Token:', error);
+      }
+    },
+    async getVerificationCode() {
+      if (!this.validateEmail(this.email)) {
         alert('請輸入有效的電子郵件地址。');
         return;
       }
 
-      axios
-        .get(`/backend/send_verification_code/?email=${encodeURIComponent(email)}`)
-        .then((response) => {
-          if (response.data.success) {
-            alert('驗證碼已發送到您的電子郵件。');
-            this.feedback = '驗證碼已發送到您的電子郵件，有效期限5分鐘。';
-          } else {
-            alert('發送驗證碼失敗。');
-            this.feedback = '發送驗證碼失敗，請重試。';
-          }
-        })
-        .catch(() => {
-          alert('發送驗證碼失敗。');
-          this.feedback = '發送驗證碼失敗，請重試。';
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/frontend/send-verification-code/', {
+          email: this.email
+        }, {
+          headers: {
+            'X-CSRFToken': this.csrfToken
+          },
+          withCredentials: true  // 确保传递cookies
         });
-    },
-    validateVerificationCode() {
-      const email = this.form.email.trim();
-      const verificationCode = this.form.verification_code.trim();
-      if (verificationCode === '') {
-        alert('請輸入驗證碼。');
-        return;
-      }
 
-      axios
-        .get(`/backend/verify_code/?email=${encodeURIComponent(email)}&code=${encodeURIComponent(verificationCode)}`)
-        .then((response) => {
-          if (response.data.success) {
-            alert('驗證碼有效。');
-            this.feedback = '驗證碼有效。';
-          } else {
-            alert('驗證碼無效或已過期。');
-            this.feedback = '驗證碼無效或已過期，請重試。';
-          }
-        })
-        .catch(() => {
-          alert('驗證碼驗證失敗。');
-          this.feedback = '驗證碼驗證失敗，請重試。';
-        });
+        this.feedbackSuccess = response.data.success;
+        this.verificationFeedback = response.data.success
+          ? '驗證碼已發送到您的電子郵件，有效期限5分鐘。'
+          : response.data.message || '無法發送驗證碼，請稍後再試。';
+      } catch (error) {
+        this.feedbackSuccess = false;
+        this.verificationFeedback = '無法發送驗證碼，請稍後再試。';
+      }
     },
     validateEmail(email) {
       const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
       return re.test(String(email).toLowerCase());
     },
-    register() {
-      // 在此處處理註冊邏輯，例如調用 API 以完成註冊
-      // 使用 this.form 中的數據發送請求
-      console.log('Registering user:', this.form);
-      // 額外的註冊邏輯可以在這裡實現
+    validatePassword(password) {
+      const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return re.test(password);
+    },
+    handleTogglePassword(event) {
+      const passwordInput = event.target.previousElementSibling;
+      passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+    },
+    async handleSubmit() {
+      if (this.password !== this.confirmPassword) {
+        alert('密碼與確認密碼不匹配。');
+        return;
+      }
+
+      if (!this.validatePassword(this.password)) {
+        alert('密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。例如：Password@123');
+        return;
+      }
+
+      try {
+        const response = await axios.post('http://127.0.0.1:8000/frontend/register/', {
+          username: this.username,
+          email: this.email,
+          password: this.password,
+          confirmPassword: this.confirmPassword,  // 注意这里的下划线
+          phone: this.phone,
+          verificationCode: this.verificationCode  // 注意这里的下划线
+        }, {
+          headers: {
+            'X-CSRFToken': this.csrfToken
+          },
+          withCredentials: true  // 确保传递cookies
+        });
+
+        if (response.data.success) {
+          alert('註冊成功！');
+          this.$router.push('/backend/login');
+        } else {
+          alert(response.data.message || '註冊失敗，請重試。');
+        }
+      } catch (error) {
+        alert('註冊失敗，請稍後再試。');
+      }
     },
   },
+  created() {
+    this.fetchCsrfToken();  // 初始化时获取CSRF token
+  }
 };
+
 </script>
 
-<style scoped src="@/assets/css/backend/Register.css"></style>
+<style scoped src="@/assets/css/frontend/RegisterPage.css"></style>

@@ -5,7 +5,7 @@ import re
 import string
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.admin.models import LogEntry, CHANGE
 from django.core.cache import cache
@@ -20,7 +20,7 @@ from django.views.generic import TemplateView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.decorators import api_view
-from app113209.models import UserPreference  # 確保此模型存在
+from app113209.models import User, UserPreference  # 確保此模型存在
 from app113209.models import HistoryRecord
 from django.shortcuts import render, redirect
 from django.conf import settings
@@ -30,7 +30,7 @@ from django.contrib.auth import logout
 # 日誌設定
 logger = logging.getLogger(__name__)
 from django.contrib.auth import login
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
