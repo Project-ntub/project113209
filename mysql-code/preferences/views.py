@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import userpreferences
+from preferences.models import userpreferences
+
 import json
 import logging
 
