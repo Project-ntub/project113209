@@ -149,4 +149,4 @@ export default {
   }
 };
 </script>
-<style scoped src="@/assets/css/frontend/ForgetPasswordPage.css"></style>
+<style  src="@/assets/css/frontend/ForgetPasswordPage.css"></style>

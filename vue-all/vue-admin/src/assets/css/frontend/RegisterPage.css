@@ -1,124 +1,137 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
+/* 全局設置 */
+body, html {
   margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
-.container {
+/* 註冊容器 */
+.register-container {
+  width: 90%;
   max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  background-color: #fff;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* 註冊表單 */
+.register-form {
+  background-color: white;
+  padding: 5%;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
-h2 {
+/* 標題 */
+.register-form h2 {
+  margin-bottom: 20px;
+  font-size: 2em;
+  color: #333;
   text-align: center;
-  margin-bottom: 30px;
 }
 
-label {
-  font-weight: bold;
+/* 表單輸入欄位 */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
   display: block;
   margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
 }
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="submit"],
-button {
+.input-group input {
   width: 100%;
   padding: 10px;
-  margin-bottom: 20px;
-  border-radius: 5px;
+  font-size: 1em;
   border: 1px solid #ccc;
+  border-radius: 5px;
   box-sizing: border-box;
 }
 
-button {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-input[type="submit"] {
-  background-color: #28a745;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-input[type="submit"]:hover {
-  background-color: #218838;
-}
-
-.terms {
-  font-size: 12px;
-  text-align: center;
-}
-
-.terms a {
-  color: #007bff;
-  text-decoration: none;
-}
-
-.error {
-  color: red;
-  margin-top: -15px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.submit-button {
+/* 獲取驗證碼按鈕 */
+.get-code-button {
   width: 100%;
   padding: 10px;
-  background-color: #007bff;
+  font-size: 1em;
   color: white;
+  background-color: #007bff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
 }
 
-.submit-button:hover {
+.get-code-button:hover {
   background-color: #0056b3;
 }
 
-.password-container {
-  position: relative;
+/* 其他提示信息 */
+.password-example {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: -5px;
+  margin-bottom: 10px;
 }
 
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+/* 提交按鈕 */
+.submit-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1em;
+  color: white;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
 }
 
-.password-example {
-  font-size: 12px;
-  color: #666;
+.submit-button:hover {
+  background-color: #218838;
 }
 
-.feedback {
-  font-size: 14px;
-  margin-top: 10px;
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .register-container {
+    max-width: 90%;
+  }
+
+  .register-form {
+    padding: 8%;
+  }
+
+  .input-group input {
+    padding: 8px;
+    font-size: 0.9em;
+  }
+
+  .get-code-button, .submit-button {
+    padding: 8px;
+    font-size: 0.9em;
+  }
 }
 
-.feedback.success {
-  color: green;
-}
-
-.feedback.error {
-  color: red;
+@media (max-width: 480px) {
+  body, html {
+    transform: scale(0.8); /* 調整頁面縮放比例 */
+  }
 }

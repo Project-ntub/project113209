@@ -94,4 +94,4 @@ function getCookie(name) {
 }
 </script>
 
-<style scoped src="@/assets/css/frontend/LoginPage.css"></style>
+<style src="@/assets/css/frontend/LoginPage.css"></style>

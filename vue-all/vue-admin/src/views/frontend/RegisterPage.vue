@@ -151,4 +151,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/frontend/RegisterPage.css"></style>
+<style  src="@/assets/css/frontend/RegisterPage.css"></style>
