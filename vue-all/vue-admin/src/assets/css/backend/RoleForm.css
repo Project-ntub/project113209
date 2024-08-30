@@ -1,3 +1,10 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -89,4 +96,109 @@ td .checkbox-container {
 
 .member-item button {
   margin-left: 10px;
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+  .container {
+    padding: 15px;
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .member-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .member-item select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .member-item button {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    padding: 10px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .member-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .member-item select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .member-item button {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    padding: 5px;
+  }
+
+  table {
+    font-size: 10px;
+  }
+
+  th, td {
+    padding: 4px;
+  }
+
+  .btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .member-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .member-item select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .member-item button {
+    margin-left: 0;
+    margin-top: 5px;
+  }
 }

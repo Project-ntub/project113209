@@ -1,20 +1,9 @@
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  font-family: 'Poppins', sans-serif;
-  background-color: #f2f2f2;
-  display: flex;
-  justify-content: center; 
-  align-items: center; 
-  overflow: hidden; 
-  box-sizing: border-box;
-}
+/* 移除全局設置 */
 
+/* 容器設置 */
 .container {
   background-color: white;
-  padding: 30px;
+  padding: 20px; /* 減少 padding 以節省空間 */
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
@@ -22,30 +11,34 @@ body, html {
   box-sizing: border-box;
   text-align: left;
   margin: 0 auto;
+  display: flex;  /* 僅對容器進行 flex 設置 */
+  justify-content: center; 
+  align-items: center; 
+  overflow: hidden; 
 }
 
 h2 {
-  margin-bottom: 20px;
-  font-size: 24px;
+  margin-bottom: 15px; /* 減少 margin */
+  font-size: 20px; /* 減少字體大小 */
   color: #333;
   text-align: center;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 10px; /* 減少 margin */
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 3px; /* 減少 margin */
   font-weight: 500;
   color: #333;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px;
-  font-size: 16px;
+  padding: 6px; /* 減少 padding */
+  font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
@@ -57,18 +50,25 @@ h2 {
 }
 
 .checkbox-group input[type="checkbox"] {
-  margin-right: 10px; /* Space between checkbox and label */
-  margin-right: 10px; /* Adjusts space between checkbox and label */
-  margin-top: 0; /* Removes any default top margin */
-  margin-bottom: 0; /* Removes any default bottom margin */
-  position: relative; /* Positions checkbox in the middle */
-  top: -1px; /* Slightly adjust the checkbox position to align with label */
+  margin-right: 8px; /* 減少 margin */
+  margin-top: 0;
+  margin-bottom: 0;
+  position: relative;
+  vertical-align: middle;
+}
+
+.checkbox-group label {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+  line-height: 1.2; /* 減少行距 */
+  white-space: nowrap;
 }
 
 .btn-login {
   width: 100%;
-  padding: 10px;
-  font-size: 18px;
+  padding: 8px; /* 減少 padding */
+  font-size: 16px;
   color: white;
   background-color: #28a745;
   border: none;
@@ -81,9 +81,9 @@ h2 {
 }
 
 p {
-  margin-top: 20px;
+  margin-top: 10px; /* 減少 margin */
   text-align: center;
-  font-size: 14px;
+  font-size: 12px;
   color: #555;
 }
 
@@ -94,4 +94,59 @@ p a {
 
 p a:hover {
   text-decoration: underline;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .container {
+    max-width: 350px;
+    padding: 15px; /* 減少 padding */
+  }
+
+  h2 {
+    font-size: 18px;
+  }
+
+  .form-group input {
+    padding: 5px; /* 減少 padding */
+    font-size: 12px;
+  }
+
+  .btn-login {
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    max-width: 280px;
+    padding: 10px; /* 減少 padding */
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+
+  .form-group input {
+    padding: 4px; /* 減少 padding */
+    font-size: 10px;
+  }
+
+  .btn-login {
+    padding: 4px;
+    font-size: 12px;
+  }
+
+  p {
+    font-size: 10px;
+  }
+
+  .checkbox-group label {
+    font-size: 12px;
+  }
 }

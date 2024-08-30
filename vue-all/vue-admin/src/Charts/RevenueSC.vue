@@ -1,5 +1,5 @@
 <template>
-  <ChartContainer>
+  <ChartContainer class="chart-container">
     <canvas ref="chartCanvas"></canvas>
   </ChartContainer>
 </template>
@@ -7,7 +7,7 @@
 <script>
 import { 
   Chart as ChartJS, 
-  ScatterController, // 匯入 ScatterController
+  ScatterController, 
   PointElement, 
   LinearScale, 
   Title, 
@@ -17,9 +17,9 @@ import {
 } from 'chart.js';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 
-// 註冊 ScatterController 和其他需要的組件
+// 注册 ScatterController 和其他需要的组件
 ChartJS.register(
-  ScatterController, // 確保註冊這個
+  ScatterController, 
   PointElement,
   LinearScale,
   CategoryScale,
@@ -54,7 +54,7 @@ export default {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
       new ChartJS(ctx, {
-        type: 'scatter', // 使用 'scatter' 類型
+        type: 'scatter', // 使用 'scatter' 类型
         data: this.chartData,
         options: { responsive: true, maintainAspectRatio: false }
       });
@@ -64,8 +64,27 @@ export default {
 </script>
 
 <style scoped>
+.chart-container {
+  width: 100%; /* 容器宽度为100% */
+  max-height: 400px; /* 设置最大高度 */
+  overflow: auto; /* 启用滚动条 */
+}
+
 canvas {
-  width: 700px !important;
-  height: 400px !important;
+  width: 100% !important; /* 画布宽度占满容器 */
+  height: 100% !important; /* 画布高度占满容器 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chart-container {
+    max-height: 300px; /* 在小屏幕上调整最大高度 */
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    max-height: 200px; /* 在超小屏幕上调整最大高度 */
+  }
 }
 </style>

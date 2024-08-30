@@ -47,7 +47,20 @@ export default {
 
 <style scoped>
 canvas {
-  width: 700px !important;
-  height: 400px !important;
+  width: 100% !important; /* 設定寬度為100%以適應容器 */
+  height: 300px !important; /* 設定基本高度為300px */
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  canvas {
+    height: 250px !important; /* 在小屏幕上縮小高度 */
+  }
+}
+
+@media (max-width: 480px) {
+  canvas {
+    height: 200px !important; /* 在超小屏幕上縮小高度 */
+  }
 }
 </style>

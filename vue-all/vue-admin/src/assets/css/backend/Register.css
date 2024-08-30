@@ -1,67 +1,118 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-    margin: 0;
-    padding: 0;
-}
-.container {
+/* 註冊容器 */
+.register-container {
+    width: 100%;
     max-width: 400px;
-    margin: 50px auto;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh; /* 確保容器佔滿視口高度 */
+    overflow-y: auto; /* 確保表單區域可以滾動 */
+    margin: auto; /* 确保在较高的屏幕上，表单能够居中 */
+}
+
+/* 註冊表單 */
+.register-form {
+    background-color: white;
     padding: 20px;
-    background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    overflow-y: auto; /* 添加垂直滾動條 */
+    max-height: 100%; /* 確保表單內容不會超出容器 */
+    margin-bottom: 50px; /* 增加表單底部的空白，方便滚动 */
 }
-h2 {
+
+/* 標題 */
+.register-form h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
     text-align: center;
-    margin-bottom: 30px;
 }
-label {
-    font-weight: bold;
+
+/* 表單輸入欄位 */
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
     display: block;
     margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
 }
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="submit"],
-button {
+
+.input-group input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border-radius: 5px;
+    padding: 8px;
+    font-size: 14px;
     border: 1px solid #ccc;
+    border-radius: 5px;
     box-sizing: border-box;
 }
-button {
+
+/* 獲取驗證碼按鈕 */
+.get-code-button {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    color: white;
     background-color: #007bff;
-    color: #fff;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
-button:hover {
+
+.get-code-button:hover {
     background-color: #0056b3;
 }
-input[type="submit"] {
+
+/* 其他提示信息 */
+.password-example {
+    font-size: 12px;
+    color: #666;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
+/* 提交按鈕 */
+.submit-button {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    color: white;
     background-color: #28a745;
-    color: #fff;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
-input[type="submit"]:hover {
+
+.submit-button:hover {
     background-color: #218838;
 }
-.terms {
-    font-size: 12px;
-    text-align: center;
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .register-container {
+        max-width: 350px;
+    }
+    .register-form {
+        transform: scale(0.9);
+        transform-origin: top center;
+    }
 }
-.terms a {
-    color: #007bff;
-    text-decoration: none;
-}
-.error {
-    color: red;
-    margin-top: -15px;
-    margin-bottom: 20px;
-    text-align: center;
+
+@media (max-width: 480px) {
+    .register-container {
+        max-width: 300px;
+    }
+    .register-form {
+        transform: scale(0.8);
+        transform-origin: top center;
+    }
 }

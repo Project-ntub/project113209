@@ -67,3 +67,50 @@ body {
 .back-button svg {
     margin-right: 8px;
 }
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .pending-table th, .pending-table td {
+        padding: 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .pending-table th, .pending-table td {
+        padding: 4px;
+    }
+
+    .approve-btn {
+        padding: 8px;
+    }
+
+    .back-button {
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+
+    .pending-table {
+        font-size: 14px;
+    }
+
+    .approve-btn {
+        width: 100%;
+        padding: 10px;
+        text-align: center;
+    }
+}
