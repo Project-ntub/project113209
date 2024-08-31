@@ -1,9 +1,13 @@
 import axios from 'axios';
 
-axios.defaults.baseURL = 'http://localhost:8000'; // Django 伺服器的基礎 URL
-axios.defaults.withCredentials = true; // 允許跨域請求時攜帶憑證
+// 使用固定 IP 作為 baseURL
+const baseURL = process.env.VUE_APP_API_URL || `http://${window.location.hostname}:8000`;
+
+axios.defaults.baseURL = baseURL;
+axios.defaults.withCredentials = true;
 axios.defaults.headers.common['X-CSRFToken'] = getCookie('csrftoken');
 
+// 請求攔截器
 axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {

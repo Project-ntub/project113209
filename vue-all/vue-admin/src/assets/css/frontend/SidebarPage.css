@@ -1,13 +1,13 @@
 .sidebar {
   height: 100vh; /* 使整个侧边栏使用视口高度 */
-  width: 60px; 
+  width: 80px; /* 初始宽度设置为80px，而不是60px */
   position: fixed;
   top: 0;
   left: 0;
   background-color: #636262;
   overflow-x: hidden;
   transition: width 0.4s, margin-left 0.4s; /* 统一的过渡时间 */
-  padding-top: 0; 
+  padding-top: 0;
   z-index: 1001;
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@
 }
 
 .content {
-  margin-left: 60px; /* 与侧边栏的默认宽度一致 */
+  margin-left: 80px; /* 与侧边栏的默认宽度一致 */
   padding: 20px;
   transition: margin-left 0.4s ease; /* 统一的过渡时间 */
 }
@@ -88,7 +88,7 @@
 /* 響應式設計 */
 @media (max-width: 768px) {
   .sidebar {
-    width: 50px; /* 在中等屏幕下缩小侧边栏 */
+    width: 70px; /* 在中等屏幕下缩小侧边栏 */
   }
 
   .sidebar.open {
@@ -96,7 +96,7 @@
   }
 
   .content {
-    margin-left: 50px; /* 内容区域移动距离 */
+    margin-left: 70px; /* 内容区域移动距离 */
   }
 
   .sidebar.open ~ .content {
@@ -106,7 +106,7 @@
 
 @media (max-width: 480px) {
   .sidebar {
-    width: 40px; /* 在小屏幕下进一步缩小侧边栏 */
+    width: 60px; /* 在小屏幕下缩小侧边栏，但不太窄 */
   }
 
   .sidebar.open {
@@ -114,7 +114,7 @@
   }
 
   .content {
-    margin-left: 40px; /* 内容区域移动距离 */
+    margin-left: 60px; /* 内容区域移动距离 */
   }
 
   .sidebar.open ~ .content {

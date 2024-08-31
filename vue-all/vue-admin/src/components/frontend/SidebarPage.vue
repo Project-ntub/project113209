@@ -18,10 +18,6 @@
         <font-awesome-icon icon="users" class="icon" />
         <span class="text">帳號設定</span>
       </router-link>
-      <router-link to="/frontend/history" class="sidebar-link">
-        <font-awesome-icon icon="history" class="icon" />
-        <span class="text">歷史紀錄</span>
-      </router-link>
       <a href="#" class="sidebar-link" @click.prevent="confirmLogout">
         <font-awesome-icon icon="sign-out-alt" class="icon" />
         <span class="text">登出</span>

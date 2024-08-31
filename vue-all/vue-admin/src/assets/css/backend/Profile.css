@@ -9,53 +9,77 @@ body, html {
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
-    overflow-x: hidden; /* 確保水平不滾動 */
+    overflow: hidden; /* 確保沒有滾動條 */
 }
 
 .profile-container {
     max-width: 600px;
-    width: 90%; /* 保持一定的寬度彈性 */
-    margin: 0 auto;
+    width: 95%;
+    margin: 10px auto;
     background-color: #fff;
-    padding: 20px;
+    padding: 10px 15px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    overflow-x: hidden; /* 隱藏水平滾動條 */
+    overflow-x: hidden;
+    box-sizing: border-box;
+    margin-left: 30px; /* 將內容稍微向左移動 */
 }
 
-.profile-container h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
-    text-align: center;
+.profile-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 10px;
 }
 
-.profile-container label {
-    display: block;
-    margin: 5px 0;
-    font-size: 16px;
+.profile-row > div {
+    flex: 1 1 48%;
+    margin-bottom: 10px;
 }
 
-.profile-container input {
-    width: calc(100% - 20px); /* 保持輸入框寬度與容器一致 */
-    padding: 8px;
-    margin: 5px 0 20px 0;
+.right-input {
+    margin-left: 2%; /* 調整右側欄位的左邊距，將欄位稍微右移，但比之前更靠左 */
+}
+
+.profile-row label {
+    font-size: 14px;
+}
+
+.profile-row input {
+    width: 100%;
+    padding: 6px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    font-size: 14px;
+}
+
+.profile-buttons {
+    text-align: center;
+    margin-top: 10px;
 }
 
 .profile-container button {
-    padding: 10px 20px;
-    margin-right: 10px;
+    padding: 6px 12px;
+    margin-right: 5px;
     background-color: #3498db;
     color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 14px;
 }
 
 .profile-container button:hover {
     background-color: #2980b9;
+}
+
+.profile-container .cancel-btn {
+    background-color: #95a5a6;
+}
+
+.profile-container .cancel-btn:hover {
+    background-color: #7f8c8d;
 }
 
 .profile-container .logout-btn {
@@ -66,43 +90,52 @@ body, html {
     background-color: #c0392b;
 }
 
+.modal-content {
+    padding: 10px;
+}
+
+.modal-content h2 {
+    margin-bottom: 10px;
+}
+
 /* 響應式設計 */
 @media (max-width: 768px) {
     .profile-container {
-        padding: 15px;
-    }
-
-    .profile-container h2 {
-        font-size: 20px;
-    }
-
-    .profile-container label, 
-    .profile-container input {
-        font-size: 14px;
-    }
-
-    .profile-container button {
-        font-size: 14px;
-        padding: 8px 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .profile-container {
-        padding: 10px;
+        padding: 6px 8px;
     }
 
     .profile-container h2 {
         font-size: 18px;
     }
 
-    .profile-container label, 
-    .profile-container input {
+    .profile-row label, 
+    .profile-row input {
+        flex: 1 1 100%;
         font-size: 12px;
     }
 
     .profile-container button {
         font-size: 12px;
-        padding: 6px 10px;
+        padding: 4px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        padding: 4px 6px;
+    }
+
+    .profile-container h2 {
+        font-size: 16px;
+    }
+
+    .profile-row label, 
+    .profile-row input {
+        font-size: 12px;
+    }
+
+    .profile-container button {
+        font-size: 12px;
+        padding: 3px 6px;
     }
 }

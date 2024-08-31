@@ -1,4 +1,3 @@
-# settings.py
 import logging
 import os
 from pathlib import Path
@@ -6,6 +5,9 @@ from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 固定 IP 地址，确保与路由器中设置的静态 IP 地址相同
+fixed_ip = '192.168.1.100'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -16,10 +18,7 @@ SECRET_KEY = 'django-insecure-y&%10_w2a%0v)(jqe46d2)mevjv0f^ro8!#+pu#67d%md8k8vr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', '140.131.114.158']
-
-# Two-Factor Authentication settings
-TWO_FACTOR_REMEMBER_COOKIE_AGE = 30 * 24 * 60 * 60  # 30天有效期
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip]
 
 # Application definition
 
@@ -33,12 +32,10 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
-    # 'two_factor',
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',  
-    # 'app113209',
-    'app113209.apps.App113209Config',   
+    'corsheaders',
+    'app113209.apps.App113209Config',
 ]
 
 MIDDLEWARE = [
@@ -75,22 +72,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project113209.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # 使用 MySQL 数据库
-        'NAME': '113-ntub113209',              # 数据库名称
-        'USER': 'ntub113209',                  # MySQL 用户名
-        'PASSWORD': 'Sw@23110565',             # MySQL 用户密码
-        'HOST': '140.131.114.242',             # 数据库地址
-        'PORT': '3306',                        # 数据库端口
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '113-ntub113209',
+        'USER': 'ntub113209',
+        'PASSWORD': 'Sw@23110565',
+        'HOST': '140.131.114.242',
+        'PORT': '3306',
     }
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'app113209.validators.CustomPasswordValidator',
@@ -98,8 +91,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Taipei'
@@ -111,21 +102,15 @@ USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
     BASE_DIR / 'vue-admin' / 'dist',
 ]
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # login
-# 对于前台
 LOGIN_URL = '/frontend/login/'
 LOGIN_REDIRECT_URL = '/frontend/home/'
 LOGOUT_REDIRECT_URL = '/frontend/login/'
@@ -152,8 +137,8 @@ EMAIL_HOST_PASSWORD = 'evcajuubazrginrn'
 
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 60 * 30  # 30 分钟
-SESSION_COOKIE_SECURE = False  # 在本地开发时可以设置为 False，生产环境应设置为 True
+SESSION_COOKIE_AGE = 60 * 30
+SESSION_COOKIE_SECURE = False
 
 # Cache settings
 CACHES = {
@@ -166,7 +151,6 @@ CACHES = {
 # 认证后端
 AUTHENTICATION_BACKENDS = (
     'app113209.backends.EmailBackend',
-    # 'two_factor.auth_backend.TwoFactorBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -204,6 +188,15 @@ SIMPLE_JWT = {
 # CORS configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
+    f"http://{fixed_ip}:8080",  # 固定的 IP 地址
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",
+    f"http://{fixed_ip}:8080",  # 固定的 IP 地址
 ]
 
 LOGGING = {
@@ -219,16 +212,11 @@ LOGGING = {
         'level': 'DEBUG',
     },
 }
-# 確保以下設置適用於開發環境
-SESSION_COOKIE_SECURE = False  # 在開發環境中應設為 False，以允許通過 HTTP 傳遞
-CSRF_COOKIE_SECURE = False  # 在開發環境中應設為 False，以允許通過 HTTP 傳遞
-SESSION_COOKIE_HTTPONLY = True  # 確保會話 Cookie 不能通過 JavaScript 訪問
-CSRF_COOKIE_HTTPONLY = True  # 確保 CSRF Cookie 不能通過 JavaScript 訪問
+
+# 确保以下设置适用于开发环境
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_NAME = 'sessionid'
-
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8080",
-]
