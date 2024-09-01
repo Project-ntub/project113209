@@ -129,27 +129,6 @@ User = get_user_model()
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def approve_user(request, user_id):
-    try:
-        user = User.objects.get(id=user_id, is_active=False)
-        user.is_active = True
-        user.save()
-
-        # 發送郵件通知用戶其帳號已啟用
-        send_mail(
-            '您的帳號已啟用',
-            '恭喜！您的帳號已經被管理員審核並啟用。',
-            'from@example.com',
-            [user.email],
-            fail_silently=False,
-        )
-
-        return JsonResponse({'success': True, 'message': '用戶帳號已成功啟用並發送通知郵件'}, status=200)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def assign_role_and_module(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     module_id = request.data.get('module')
