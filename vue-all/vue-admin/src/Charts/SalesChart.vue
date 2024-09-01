@@ -29,29 +29,29 @@ export default {
       }
     };
   },
-  mounted() {
-    this.renderChart();
-  },
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
-      new ChartJS(ctx, {
-        type: 'line',
+      this.chartInstance = new ChartJS(ctx, {
+        type: 'line', // 根據需要調整類型
         data: this.chartData,
         options: { 
           responsive: true, 
           maintainAspectRatio: false 
-        }
-      })
+        },
+      });
     }
-  }
+  },
+  mounted() {
+    this.renderChart();
+  },
 }
 </script>
 
 <style scoped>
 canvas {
-  width: 100% !important; /* 默认占据容器的全部宽度 */
-  height: 400px !important; /* 默认高度为400px */
+  width: 100% !important;
+  height: 100% !important; /* 使用百分比以確保圖表隨容器縮放 */
 }
 
 /* 超小屏幕 (如手机) */

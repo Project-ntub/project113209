@@ -30,10 +30,19 @@
 }
 
 .chart-selection {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: flex;  /* 使用 flex 布局 */
+  justify-content: space-between; /* 在父容器中平分按鈕 */
+  align-items: center;  /* 垂直居中按鈕 */
   margin-bottom: 20px;
+}
+
+.chart-controls {
+  display: flex; /* 使用 flex 布局 */
+  justify-content: space-between; /* 在父容器中平分按鈕 */
+  align-items: center; /* 垂直居中按鈕 */
+  gap: 10px; /* 增加按钮之间的间距 */
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .chart-actions {
@@ -49,11 +58,13 @@
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 5px;
+  /* width: 100%;  確保按鈕寬度佔滿容器 */
 }
 
 .chart-button {
   background-color: #28a745; /* 綠色背景 */
   margin: 5px; /* 每個按鈕之間的距離 */
+  flex: 1;  /* 每個按鈕佔滿可用空間 */
 }
 
 .chart-container {

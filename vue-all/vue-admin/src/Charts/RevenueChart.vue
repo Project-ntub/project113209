@@ -30,26 +30,29 @@ export default {
       }
     };
   },
+  methods: {
+    // 渲染图表
+      renderChart() {
+      const ctx = this.$refs.chartCanvas.getContext('2d');
+      this.chartInstance = new ChartJS(ctx, {
+        type: 'line', // 根據需要調整類型
+        data: this.chartData,
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false 
+        },
+      });
+    }
+  },
   mounted() {
     this.renderChart()
   },
-  methods: {
-    // 渲染图表
-    renderChart() {
-      const ctx = this.$refs.chartCanvas.getContext('2d')
-      new ChartJS(ctx, {
-        type: 'line',
-        data: this.chartData,
-        options: { responsive: true, maintainAspectRatio: false }
-      })
-    }
-  }
 }
 </script>
 
 <style scoped>
 canvas {
-  width: 700px !important;
-  height: 400px !important;
+  width: 100% !important;
+  height: 100% !important; /* 使用百分比以確保圖表隨容器縮放 */
 }
 </style>

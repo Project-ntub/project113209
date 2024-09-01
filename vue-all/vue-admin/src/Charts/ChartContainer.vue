@@ -1,31 +1,52 @@
 <template>
-  <div>
-    <!-- 圖表容器 -->
-    <div class="chart-container">
-      <div class="chart-header">
-        <!-- 菜單按鈕 -->
-        <div class="menu-button">
-          <button class="menu-icon" @click="toggleMenu">
-            ⋮
-          </button>
-          <!-- 下拉選單 -->
-          <div v-if="showMenu" class="menu">
-            <button @click="editChart">編輯圖表</button>
-            <button @click="exportChart">匯出</button>
+  <vue-resizable @resize="onResize">
+    <div>
+      <!-- 圖表容器 -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <!-- 菜單按鈕 -->
+          <div class="menu-button">
+            <button class="menu-icon" @click="toggleMenu">
+              ⋮
+            </button>
+            <!-- 下拉選單 -->
+            <div v-if="showMenu" class="menu">
+              <button @click="editChart">編輯圖表</button>
+              <button @click="openPermissionModal">編輯權限</button>
+              <button @click="exportChart">匯出</button>
+            </div>
           </div>
         </div>
+        <!-- 使用插槽來插入圖表 -->
+        <slot></slot>
       </div>
-      <!-- 使用插槽來插入圖表 -->
-      <slot></slot>
-    </div>
-  </div>
+
+      <!-- 權限設定彈跳視窗 -->
+      <PermissionModal :isVisible="isPermissionModalVisible" @close="isPermissionModalVisible = false" />
+
+      <!-- 圖表編輯模態窗口 -->
+      <ChartModal v-if="isChartModalVisible" :isEditing="true" @close="isChartModalVisible = false" />
+    </div>  
+  </vue-resizable>
 </template>
 
 <script>
+import VueResizable from 'vue-resizable';
+import PermissionModal from '@/components/backend/PermissionModal.vue';
+import ChartModal from '@/components/backend/ChartModal.vue'; // 確保你已經有這個彈跳視窗組件
+
 export default {
+  components: {
+    VueResizable,
+    PermissionModal,
+    ChartModal,
+  },
   data() {
     return {
       showMenu: false,
+      isPermissionModalVisible: false, // 控制彈跳視窗的顯示
+      isChartModalVisible: false, // 控制圖表編輯模態窗口的顯示
+      chartInstance: null, // 初始化圖表實例
     };
   },
   methods: {
@@ -33,13 +54,31 @@ export default {
       this.showMenu = !this.showMenu;
     },
     editChart() {
-      this.$emit('edit-chart');
+      this.isChartModalVisible = true; // 顯示編輯圖表的模態窗口
+      this.showMenu = false;
+    },
+    openPermissionModal() {
+      this.isPermissionModalVisible = true; // 顯示彈跳視窗
       this.showMenu = false;
     },
     exportChart() {
       alert("匯出圖表");
       this.showMenu = false;
     },
+    onResize() {
+      if (this.chartInstance) {
+        this.chartInstance.resize(); // 當容器大小改變時，重新調整圖表大小
+      }
+    },
+  },
+  mounted() {
+    this.$nextTick(() => {
+      if (this.renderChart) {
+        this.renderChart();
+      } else {
+        console.warn('renderChart method is not defined in this component.');
+      }
+    });
   },
 };
 </script>
