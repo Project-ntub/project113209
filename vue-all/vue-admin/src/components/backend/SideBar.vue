@@ -1,19 +1,41 @@
 <template>
   <div>
-    <!-- Hamburger Menu -->
-    <div class="hamburger-menu" @click="toggleSidebar">
-      <div class="hamburger-icon">☰</div>
+    <div :class="['sidebar', { open: isSidebarActive }]">
+      <div class="sidebar-header">
+        <h2 v-if="isSidebarActive">管理介面</h2> <!-- 只在展開時顯示 -->
+        <span class="toggle-btn" @click="toggleSidebar">☰</span>
+      </div>
+      <router-link to="/backend/dashboard" class="sidebar-link">
+        <span class="icon">📈</span>
+        <span class="text">儀錶板管理</span>
+      </router-link>
+      <router-link to="/backend/user-management" class="sidebar-link">
+        <span class="icon">👥</span>
+        <span class="text">用戶管理</span>
+      </router-link>
+      <router-link to="/backend/role-management" class="sidebar-link">
+        <span class="icon">🔧</span>
+        <span class="text">角色管理</span>
+      </router-link>
+      <router-link to="/backend/history" class="sidebar-link">
+        <span class="icon">🕒</span>
+        <span class="text">歷史紀錄</span>
+      </router-link>
+      <router-link to="/backend/preferences" class="sidebar-link">
+        <span class="icon">⚙️</span>
+        <span class="text">個人偏好</span>
+      </router-link>
+      <router-link to="/backend/profile" class="sidebar-link">
+        <span class="icon">👤</span>
+        <span class="text">個人資料</span>
+      </router-link>
+      <button class="sidebar-link logout-btn" @click="logout">
+        <span class="icon">🚪</span>
+        <span class="text">登出</span>
+      </button>
     </div>
-    <!-- Sidebar Content -->
-    <div class="sidebar" :class="{ active: isSidebarActive }">
-      <h2>管理介面</h2>
-      <router-link to="/backend/dashboard">儀錶板管理</router-link>
-      <router-link to="/backend/user-management">用戶管理</router-link>
-      <router-link to="/backend/role-management">角色管理</router-link>
-      <router-link to="/backend/history">歷史紀錄</router-link>
-      <router-link to="/backend/preferences">個人偏好</router-link>
-      <router-link to="/backend/profile">個人資料</router-link>
-      <button class="logout-btn" @click="logout">登出</button>
+    <div :class="['content', { shift: isSidebarActive }]">
+      <slot></slot>
     </div>
   </div>
 </template>
@@ -28,7 +50,7 @@ export default {
   },
   methods: {
     toggleSidebar() {
-      this.$emit('toggle-sidebar'); // Emit an event to the parent component to handle the toggle
+      this.$emit('toggle-sidebar');
     },
     logout() {
       this.$router.push('/backend/login');
@@ -37,4 +59,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/backend/SideBar.css"></style>
+<style src="@/assets/css/backend/SideBar.css"></style>

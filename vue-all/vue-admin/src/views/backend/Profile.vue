@@ -2,54 +2,71 @@
   <div>
     <div class="profile-container">
       <h2>個人資料</h2>
-      <label for="name">姓名：</label>
-      <input type="text" id="name" v-model="profile.name">
-        
-      <label for="username">帳號：</label>
-      <input type="text" id="username" v-model="profile.username" disabled>
-        
-      <label for="department">部門：</label>
-      <input type="text" id="department" v-model="profile.department">
-        
-      <label for="position">職位：</label>
-      <input type="text" id="position" v-model="profile.position">
-        
-      <label for="phone">電話：</label>
-      <input type="text" id="phone" v-model="profile.phone">
-        
-      <label for="email">電子郵件：</label>
-      <input type="text" id="email" v-model="profile.email">
-        
-      <label for="created">建立時間：</label>
-      <input type="text" id="created" v-model="profile.created" disabled>
-    
-      <button @click="openModal">編輯</button>
-      <button class="logout-btn" @click="logout">登出</button>
-    </div>
-    
-    <div id="editModal" class="modal" v-if="showModal">
-      <div class="modal-content">
-        <span class="close" @click="closeModal">&times;</span>
-        <h2>編輯個人資料</h2>
-        <label for="modal-name">姓名：</label>
-        <input type="text" id="modal-name" v-model="editProfile.name">
-          
-        <label for="modal-username">帳號：</label>
-        <input type="text" id="modal-username" v-model="editProfile.username" disabled>
-          
-        <label for="modal-department">部門：</label>
-        <input type="text" id="modal-department" v-model="editProfile.department">
-          
-        <label for="modal-position">職位：</label>
-        <input type="text" id="modal-position" v-model="editProfile.position">
-          
-        <label for="modal-phone">電話：</label>
-        <input type="text" id="modal-phone" v-model="editProfile.phone">
-          
-        <label for="modal-email">電子郵件：</label>
-        <input type="text" id="modal-email" v-model="editProfile.email">
-    
-        <button @click="saveProfile">保存</button>
+      <div class="profile-row">
+        <div v-if="!showModal">
+          <label for="name">姓名：</label>
+          <input type="text" id="name" v-model="profile.name" disabled>
+        </div>
+        <div v-else>
+          <label for="modal-name">姓名：</label>
+          <input type="text" id="modal-name" v-model="editProfile.name">
+        </div>
+
+        <div v-if="!showModal">
+          <label for="username">帳號：</label>
+          <input type="text" id="username" v-model="profile.username" disabled>
+        </div>
+        <div v-else>
+          <label for="modal-username">帳號：</label>
+          <input type="text" id="modal-username" v-model="editProfile.username" disabled>
+        </div>
+
+        <div v-if="!showModal">
+          <label for="department">部門：</label>
+          <input type="text" id="department" v-model="profile.department" disabled>
+        </div>
+        <div v-else>
+          <label for="modal-department">部門：</label>
+          <input type="text" id="modal-department" v-model="editProfile.department">
+        </div>
+
+        <div v-if="!showModal">
+          <label for="position">職位：</label>
+          <input type="text" id="position" v-model="profile.position" disabled>
+        </div>
+        <div v-else>
+          <label for="modal-position">職位：</label>
+          <input type="text" id="modal-position" v-model="editProfile.position">
+        </div>
+
+        <div v-if="!showModal">
+          <label for="phone">電話：</label>
+          <input type="text" id="phone" v-model="profile.phone" disabled>
+        </div>
+        <div v-else>
+          <label for="modal-phone">電話：</label>
+          <input type="text" id="modal-phone" v-model="editProfile.phone">
+        </div>
+
+        <div v-if="!showModal">
+          <label for="email">電子郵件：</label>
+          <input type="text" id="email" v-model="profile.email" disabled>
+        </div>
+        <div v-else>
+          <label for="modal-email">電子郵件：</label>
+          <input type="text" id="modal-email" v-model="editProfile.email">
+        </div>
+
+        <div v-if="!showModal">
+          <label for="created">建立時間：</label>
+          <input type="text" id="created" v-model="profile.created" disabled>
+        </div>
+      </div>
+      <div class="profile-buttons">
+        <button v-if="!showModal" @click="openModal">編輯</button>
+        <button v-else @click="saveProfile">保存</button>
+        <button v-if="showModal" class="cancel-btn" @click="cancelEdit">取消</button>
+        <button class="logout-btn" @click="logout">登出</button>
       </div>
     </div>
   </div>
@@ -79,8 +96,7 @@ export default {
         phone: '',
         email: ''
       },
-      showModal: false,
-      isSidebarActive: false
+      showModal: false
     };
   },
   created() {
@@ -100,17 +116,17 @@ export default {
         });
     },
     openModal() {
-      this.editProfile = { ...this.profile };
+      this.editProfile = { ...this.profile }; // 保存当前的profile状态
       this.showModal = true;
     },
-    closeModal() {
+    cancelEdit() {
       this.showModal = false;
     },
     saveProfile() {
       axios.post('/api/backend/profile/', this.editProfile)
         .then(() => {  
           this.profile = { ...this.editProfile };
-          this.closeModal();
+          this.showModal = false;
           alert('個人資料已更新');
         })
         .catch(error => {
@@ -125,9 +141,6 @@ export default {
         .catch(error => {
           console.error('無法登出:', error);
         });
-    },
-    toggleSidebar() {
-      this.isSidebarActive = !this.isSidebarActive;
     }
   }
 };

@@ -1,37 +1,49 @@
 <template>
-  <div class="content" id="content">
-    <div class="container">
+  <div class="register-container">
+    <div class="register-form">
       <h2>註冊</h2>
       <form @submit.prevent="handleSubmit">
-        <label for="username">用戶名</label>
-        <input type="text" id="username" v-model="username" required />
+        <div class="input-group">
+          <label for="username">用戶名</label>
+          <input type="text" id="username" v-model="username" required />
+        </div>
 
-        <label for="email">電子郵件</label>
-        <input type="email" id="email" v-model="email" required />
+        <div class="input-group">
+          <label for="email">電子郵件</label>
+          <input type="email" id="email" v-model="email" required />
+        </div>
 
-        <button type="button" @click="getVerificationCode">獲取驗證碼</button>
+        <button type="button" @click="getVerificationCode" class="get-code-button">獲取驗證碼</button>
         <div id="verification-feedback" :class="{'feedback': true, 'success': feedbackSuccess, 'error': !feedbackSuccess}">
           {{ verificationFeedback }}
         </div>
 
-        <label for="verification_code">驗證碼</label>
-        <input type="text" id="verification_code" v-model="verificationCode" required />
-
-        <label for="password">密碼</label>
-        <div class="password-container">
-          <input type="password" id="password" v-model="password" required />
-          <span class="toggle-password" @click="handleTogglePassword">👁️</span>
-        </div>
-        <div class="password-example">密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。例如：Password@123</div>
-
-        <label for="confirm_password">確認密碼</label>
-        <div class="password-container">
-          <input type="password" id="confirm_password" v-model="confirmPassword" required />
-          <span class="toggle-password" @click="handleTogglePassword">👁️</span>
+        <div class="input-group">
+          <label for="verification_code">驗證碼</label>
+          <input type="text" id="verification_code" v-model="verificationCode" required />
         </div>
 
-        <label for="phone">電話號碼</label>
-        <input type="text" id="phone" v-model="phone" required />
+        <div class="input-group">
+          <label for="password">密碼</label>
+          <div class="password-container">
+            <input type="password" id="password" v-model="password" required />
+            <span class="toggle-password" @click="handleTogglePassword">👁️</span>
+          </div>
+          <div class="password-example">密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。例如：Password@123</div>
+        </div>
+
+        <div class="input-group">
+          <label for="confirm_password">確認密碼</label>
+          <div class="password-container">
+            <input type="password" id="confirm_password" v-model="confirmPassword" required />
+            <span class="toggle-password" @click="handleTogglePassword">👁️</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="phone">電話號碼</label>
+          <input type="text" id="phone" v-model="phone" required />
+        </div>
 
         <input type="submit" value="註冊" class="submit-button"/>
       </form>
@@ -125,9 +137,9 @@ export default {
           username: this.username,
           email: this.email,
           password: this.password,
-          confirmPassword: this.confirmPassword,  // 注意这里的下划线
+          confirmPassword: this.confirmPassword,
           phone: this.phone,
-          verificationCode: this.verificationCode  // 注意这里的下划线
+          verificationCode: this.verificationCode
         }, {
           headers: {
             'X-CSRFToken': this.csrfToken
@@ -147,10 +159,9 @@ export default {
     },
   },
   created() {
-    this.fetchCsrfToken();  // 初始化时获取CSRF token
+    this.fetchCsrfToken();
   }
 };
-
 </script>
 
 <style scoped src="@/assets/css/frontend/RegisterPage.css"></style>

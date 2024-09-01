@@ -5,6 +5,7 @@
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  box-sizing: border-box; /* 確保邊距和填充不會影響寬度 */
 }
 
 .header {
@@ -17,7 +18,7 @@
 .selection-container {
   display: flex;
   justify-content: space-between;
-  align-items: center; 
+  align-items: center;
   gap: 20px;
   margin-bottom: 20px;
 }
@@ -26,7 +27,7 @@
 .role-selection {
   flex: 1 1 45%;
   max-width: 45%;
-  min-width: 200px;
+  min-width: 220px; /* 增加最小寬度以避免過度壓縮 */
 }
 
 .chart-selection {
@@ -75,7 +76,7 @@
 
 .chart-item {
   flex: 1 1 300px;
-  min-width: 300px;
+  min-width: 300px; /* 增加最小寬度以避免過度壓縮 */
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 20px;
@@ -83,23 +84,84 @@
   background-color: #fff;
 }
 
-@media (max-width: 768px) {
+/* 響應式設計 */
+@media (max-width: 1024px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .selection-container {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .module-selection,
+  .role-selection {
+    max-width: 100%;
+    min-width: 220px; /* 保持適當的最小寬度 */
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    align-items: flex-start;
+  }
+
   .chart-selection,
   .chart-actions {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .chart-selection button,
   .chart-actions button {
     width: 100%;
+    margin-bottom: 10px; /* 增加按鈕之間的間距 */
   }
 
-  .main-content.shifted {
-    margin-left: 0;
+  .chart-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chart-item {
+    min-width: 100%; /* 保持適當的最小寬度 */
+    margin-bottom: 20px; /* 增加每個圖表項目之間的距離 */
+  }
+}
+
+/* 等比例縮放 */
+html {
+  font-size: 100%; /* 設置根元素的字體大小，根據需要調整 */
+}
+
+body {
+  transform: scale(1); /* 默認比例，根據需要進行調整 */
+  transform-origin: top left; /* 縮放的原點設置為左上角 */
+}
+
+/* 設置不同設備上的縮放 */
+@media (max-width: 1200px) {
+  body {
+    transform: scale(0.9); /* 縮放比例為90% */
+  }
+}
+
+@media (max-width: 992px) {
+  body {
+    transform: scale(0.8); /* 縮放比例為80% */
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    transform: scale(0.7); /* 縮放比例為70% */
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    transform: scale(0.6); /* 縮放比例為60% */
   }
 }

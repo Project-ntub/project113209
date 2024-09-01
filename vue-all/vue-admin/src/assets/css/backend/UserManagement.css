@@ -4,89 +4,48 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  transition: margin-left 0.3s ease;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: #333;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding-top: 20px;
-  position: fixed;
-  top: 0;
-  left: -250px;
-  height: 100%;
-  transition: left 0.3s ease;
-}
-
-.sidebar.active {
-  left: 0;
 }
 
 .container {
-  max-width: 100%; /* Full width by default */
-  margin-left: 0; /* No margin by default */
+  max-width: 350px; /* 減少容器的最大寬度 */
+  margin: 0 auto;
   background-color: #ffffff;
-  padding: 20px;
+  padding: 15px; /* 減少內邊距 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
-.container.shifted {
-  margin-left: 250px; /* Move content to the right when sidebar is active */
+.form-group {
+  margin-bottom: 15px; /* 減少表單組件的下邊距 */
+  text-align: left;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.pending-approval-btn {
-  background-color: #4CAF50;
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  color: white;
-  text-align: center;
-  transition: background-color 0.3s;
-}
-
-.pending-approval-btn:hover {
-  background-color: #45a049;
-}
-
-.filter-section label,
-.filter-section select,
-.filter-section input {
-  margin-right: 10px;
-  margin-bottom: 10px;
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
 }
 
 .user-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
-  overflow-x: auto;
+  margin-top: 5px; /* 減少表格的上邊距 */
 }
 
 .user-table th,
 .user-table td {
   border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+  padding: 6px; /* 減少單元格的填充 */
+  text-align: center;
+  font-size: 12px; /* 減小字體大小 */
 }
 
 .user-table th {
-  background-color: #f2f2f2;
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.user-table td {
+  white-space: nowrap;
 }
 
 .user-table tr:nth-child(even) {
@@ -97,72 +56,49 @@ body {
   background-color: #ddd;
 }
 
-.edit-btn,
-.delete-btn,
-.assigning-roles-btn {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  text-align: center;
-  margin: 2px;
+@media (max-width: 1024px) {
+  .user-table th,
+  .user-table td {
+    font-size: 11px;
+    padding: 5px;
+  }
 }
 
-.edit-btn {
-  background-color: #ffa500;
-}
-
-.edit-btn:hover {
-  background-color: #e59400;
-}
-
-.delete-btn {
-  background-color: #f44336;
-}
-
-.delete-btn:hover {
-  background-color: #d32f2f;
-}
-
-.assigning-roles-btn {
-  background-color: #2196F3;
-}
-
-.assigning-roles-btn:hover {
-  background-color: #1976D2;
-}
-
-/* Add responsive design */
 @media (max-width: 768px) {
-  .header {
-      flex-direction: column;
-      align-items: flex-start;
+  .container {
+    width: 90%;
+    padding: 10px;
   }
 
   .user-table th,
   .user-table td {
-      font-size: 12px;
-      padding: 4px;
+    font-size: 10px;
+    padding: 3px;
   }
 
-  .edit-btn,
-  .delete-btn,
-  .assigning-roles-btn {
-      font-size: 12px;
-      padding: 4px 8px;
-      margin: 5px 0;
+  .user-table th {
+    white-space: normal; /* 允許標題換行 */
   }
+}
 
-  .filter-section label,
-  .filter-section select,
-  .filter-section input {
-      width: 100%;
-      margin-bottom: 5px;
-  }
-
+@media (max-width: 480px) {
   .container {
-      width: 100%;
-      margin-left: 0;
+    width: 95%;
+    padding: 5px;
+  }
+
+  .user-table th,
+  .user-table td {
+    font-size: 9px;
+    padding: 2px;
+  }
+
+  .user-table th {
+    white-space: normal; /* 允許標題換行 */
+    line-height: 1.2; /* 調整行高 */
+  }
+
+  .user-table td {
+    white-space: normal; /* 允許內容換行 */
   }
 }

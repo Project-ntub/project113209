@@ -11,7 +11,7 @@
   flex-direction: column;
   margin-left: 60px; /* 與側邊欄的間距 */
   transition: margin-left 0.3s ease;
-  margin-top: -100px;
+  padding: 20px;
 }
 
 /* 側邊欄樣式 */
@@ -37,11 +37,16 @@
 
 /* 分店選擇下拉選單 */
 .branch-selection {
-  margin-bottom: 20px;
-  margin-top: 50px;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   margin-left: 140px;
+  margin-bottom: 10px;
+}
+
+.branch-selection label {
+  margin-right: 10px;
+  font-size: 16px;
 }
 
 .branch-selection select {
@@ -49,7 +54,7 @@
   font-size: 16px;
   border-radius: 4px;
   border: 1px solid #ccc;
-
+  width: 180px; /* 縮小下拉選單寬度 */
 }
 
 /* 圖表控制按鈕 */
@@ -57,9 +62,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-left: 140px;
+  justify-content: flex-start; /* 左对齐 */
+  margin-bottom: 20px;
 }
 
 .chart-controls button {
@@ -70,8 +76,6 @@
   background-color: #3498db;
   color: #fff;
   cursor: pointer;
-  flex: 1 1 auto;
-  max-width: 150px;
 }
 
 .chart-controls button:hover {
@@ -80,10 +84,10 @@
 
 /* 圖表容器 */
 .chart-container {
-  /* width: calc(100% - 50px); */
-  
   transition: width 0.3s ease, margin-left 0.3s ease;
-  height: 500px;
+  width: calc(100% - 140px);  /* 自動調整寬度 */
+  height: auto; /* 自動調整高度，保持比例 */
+  aspect-ratio: 16 / 9; /* 保持16:9的比例 */
   background-color: #f2f2f2;
   border-radius: 8px;
   padding: 20px;
@@ -118,38 +122,27 @@
   .branch-selection {
     width: 100%;
     justify-content: center;
-    margin-bottom: 10px;
   }
 
   .chart-controls {
     justify-content: center;
-    width: 30%;
+    width: 100%;
   }
 
   .chart-controls button {
-    /* flex: 1 1 100%; */
     max-width: none;
     margin-bottom: 5px;
-    padding: 8px; /* 縮小按鈕內部填充 */
-    font-size: 14px; /* 縮小字體大小 */
+    padding: 8px;
+    font-size: 14px;
   }
 
   .chart-container {
-    height: 280px; /* 縮小圖表高度以適應小螢幕 */
-    width: 300px;
+    width: 100%;
+    aspect-ratio: 16 / 9;
     padding: 10px;
   }
-
-  /* 確保標籤和選單在手機螢幕上不會超出畫面 */
-  label {
-    font-size: 14px;
-  }
-
-  select {
-    font-size: 14px;
-    padding: 8px 10px;
-  }
 }
+
 /* 平板裝置 (768px ~ 1024px) */
 @media (min-width: 768px) and (max-width: 1024px) {
   .home-page {
@@ -162,7 +155,8 @@
   }
 
   .chart-container {
-    height: 400px;
+    height: auto;
+    aspect-ratio: 16 / 9;
   }
 
   .chart-controls button {
@@ -182,6 +176,7 @@
   }
 
   .chart-container {
-    height: 500px;
+    height: auto;
+    aspect-ratio: 16 / 9;
   }
 }

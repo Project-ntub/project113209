@@ -3,54 +3,41 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
-}
-
-.add-role-btn {
-  background-color: #28a745; /* 綠色按鈕 */
-}
-
-.add-role-btn:hover {
-  background-color: #218838; /* 綠色hover效果 */
-}
-
-.btn {
-  background-color: #6c757d; /* 其他按鈕保持原樣 */
-}
-
-.btn:hover {
-  background-color: #5a6268; /* 其他按鈕hover效果 */
+  font-size: 16px; /* 保持较大的基础字体大小 */
 }
 
 .container {
-  max-width: 100%;
+  max-width: 80vw; /* 使用视窗宽度的百分比来调整容器宽度 */
   margin: 20px auto;
   background-color: #ffffff;
-  padding: 20px;
+  padding: 2vw; /* 使用视窗宽度的百分比来调整内边距 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-}
-
-.container.shifted {
-  transform: translateX(250px); /* 当侧边栏打开时右移250px */
+  text-align: center;
+  min-width: 320px; /* 设置最小宽度，确保手机端不至于太小 */
+  margin-left: 7vw; /* 增加margin-left来整体右移 */
 }
 
 .header {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 20px;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2vw; /* 使用视窗宽度的百分比来调整外边距 */
 }
 
 .header button {
-  margin-right: 10px;
-  padding: 10px 20px;
+  margin: 1vw;
+  padding: 1vw 2vw;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   background-color: #6c757d;
   color: white;
-  font-size: 16px;
+  font-size: 1.2rem; /* 使用 rem 单位，确保在不同屏幕上保持一致 */
+  width: 100%;
+  max-width: 20vw; /* 设置按钮的最大宽度 */
+  min-width: 100px; /* 设置最小宽度，确保手机端不至于太小 */
 }
 
 .header button.active {
@@ -62,22 +49,23 @@ body {
 }
 
 .header h2 {
-  margin: 0;
-  padding-top: 10px;
-  flex-grow: 1;
-  text-align: left;
+  width: 100%;
+  margin: 2vw 0;
+  text-align: center;
+  font-size: 1.5rem; /* 使用 rem 单位，确保在不同屏幕上保持一致 */
 }
 
 .role-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 2vw;
 }
 
 .role-table th, .role-table td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 1vw;
   text-align: left;
+  font-size: 1.2rem; /* 使用 rem 单位，确保在不同屏幕上保持一致 */
 }
 
 .role-table th {
@@ -92,144 +80,72 @@ body {
   background-color: #ddd;
 }
 
-/* 用戶管理的黃色 */
+/* 状态按钮样式 */
 .status-btn {
-  padding: 8px 15px;
+  padding: 1vw 2vw;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   color: white;
-  font-size: 14px;
-  margin: 2px;
-  background-color: #ffc107; /* 狀態按鈕的黃色 */
+  font-size: 1.2rem; /* 使用 rem 单位，确保在不同屏幕上保持一致 */
+  margin: 1vw;
+  background-color: #ffc107;
+  width: 100%;
+  max-width: 20vw;
+  min-width: 100px; /* 设置最小宽度，确保手机端不至于太小 */
 }
 
 .status-btn:hover {
   background-color: #e0a800;
 }
 
-/* 編輯角色改成藍色 */
+/* 编辑角色按钮样式 */
 .permissions-btn {
-  padding: 8px 15px;
+  padding: 1vw 2vw;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   color: white;
-  font-size: 14px;
-  margin: 2px;
-  background-color: #007bff; /* 編輯按鈕的藍色 */
+  font-size: 1.2rem; /* 使用 rem 单位，确保在不同屏幕上保持一致 */
+  margin: 1vw;
+  background-color: #007bff;
+  width: 100%;
+  max-width: 20vw;
+  min-width: 100px; /* 设置最小宽度，确保手机端不至于太小 */
 }
 
 .permissions-btn:hover {
   background-color: #0056b3;
 }
 
-/* 刪除按鈕保持紅色 */
+/* 删除按钮样式 */
 .delete-btn {
-  padding: 8px 15px;
+  padding: 1vw 2vw;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   color: white;
-  font-size: 14px;
-  margin: 2px;
+  font-size: 1.2rem; /* 使用 rem 单位，确保在不同屏幕上保持一致 */
+  margin: 1vw;
   background-color: #dc3545;
+  width: 100%;
+  max-width: 20vw;
+  min-width: 100px; /* 设置最小宽度，确保手机端不至于太小 */
 }
 
 .delete-btn:hover {
   background-color: #c82333;
 }
 
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-  padding-top: 60px;
-}
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 5% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-}
-
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input[type="text"], input[type="checkbox"], select {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  margin-top: 5px;
-}
-
-#add-role-btn {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-#chart-module-select {
-  margin-top: 20px;
-}
-
-select {
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .header {
-      flex-direction: column;
-      align-items: flex-start;
-  }
-
-  .header button, .header h2 {
-      width: 100%;
-      text-align: center;
-      margin: 5px 0;
-  }
-
-  .status-btn, .permissions-btn, .delete-btn {
-      width: 100%;
-      margin: 5px 0;
-  }
-}
-
-/* 開關樣式 */
+/* 开关样式 */
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;  /* 調整寬度 */
-  height: 20px; /* 調整高度 */
+  width: 4vw;
+  height: 2vw;
   margin: 0 auto;
+  min-width: 60px; /* 设置最小宽度，确保手机端不至于太小 */
+  min-height: 30px; /* 设置最小高度，确保手机端不至于太小 */
 }
 
 .switch input {
@@ -247,19 +163,21 @@ select {
   bottom: 0;
   background-color: #ccc;
   transition: .4s;
-  border-radius: 20px;  /* 調整半徑以配高度 */
+  border-radius: 20px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 14px; /* 調整高度 */
-  width: 14px;  /* 調整寬度 */
-  left: 3px;    /* 調整位置 */
-  bottom: 3px;  /* 調整位置 */
+  height: 1.6vw;
+  width: 1.6vw;
+  left: 0.2vw;
+  bottom: 0.2vw;
   background-color: white;
   transition: .4s;
   border-radius: 50%;
+  min-width: 25px; /* 设置最小宽度，确保手机端不至于太小 */
+  min-height: 25px; /* 设置最小高度，确保手机端不至于太小 */
 }
 
 input:checked + .slider {
@@ -267,6 +185,29 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(20px);  /* 根據開關寬度調整移動距離 */
+  transform: translateX(2vw);
 }
 
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .container {
+    max-width: 90vw;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header button, .header h2 {
+    width: 100%;
+    max-width: 100%;
+    margin: 5px 0;
+  }
+
+  .status-btn, .permissions-btn, .delete-btn {
+    width: 100%;
+    max-width: 100%;
+    margin: 5px 0;
+  }
+}

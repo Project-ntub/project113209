@@ -1,5 +1,5 @@
 <template>
-  <ChartContainer>
+  <ChartContainer class="chart-container">
     <canvas ref="chartCanvas"></canvas>
   </ChartContainer>
 </template>
@@ -17,7 +17,6 @@ export default {
   },
   data() {
     return {
-      // 定义图表数据
       chartData: {
         labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
         datasets: [
@@ -30,29 +29,44 @@ export default {
       }
     };
   },
+  mounted() {
+    this.renderChart();
+  },
   methods: {
-    // 渲染图表
-      renderChart() {
+    renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
-      this.chartInstance = new ChartJS(ctx, {
-        type: 'line', // 根據需要調整類型
+      new ChartJS(ctx, {
+        type: 'line',
         data: this.chartData,
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false 
-        },
+        options: { responsive: true, maintainAspectRatio: false }
       });
     }
-  },
-  mounted() {
-    this.renderChart()
-  },
+  }
 }
 </script>
 
 <style scoped>
+.chart-container {
+  width: 100%; /* 确保容器宽度占满父级 */
+  max-height: 300px; /* 设置最大高度 */
+  overflow: auto; /* 启用滚动条 */
+}
+
 canvas {
-  width: 100% !important;
-  height: 100% !important; /* 使用百分比以確保圖表隨容器縮放 */
+  width: 100% !important; /* 设置宽度为100%以适应容器 */
+  height: 100% !important; /* 高度自动适应容器 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chart-container {
+    max-height: 250px; /* 在小屏幕上调整最大高度 */
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    max-height: 200px; /* 在超小屏幕上调整最大高度 */
+  }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <ChartContainer>
+  <ChartContainer class="chart-container">
     <canvas ref="chartCanvas"></canvas>
   </ChartContainer>
 </template>
@@ -9,20 +9,18 @@ import {
   Chart as ChartJS, 
   RadarController, 
   PointElement, 
-  RadialLinearScale, // 正確匯入 RadialLinearScale
-  CategoryScale, 
+  RadialLinearScale, 
   Title, 
   Tooltip, 
   Legend 
 } from 'chart.js';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 
-// 註冊所有需要的組件，包括 RadialLinearScale
+// 注册所有需要的组件，包括 RadialLinearScale
 ChartJS.register(
   RadarController,
   PointElement,
-  RadialLinearScale, // 註冊 RadialLinearScale
-  CategoryScale,
+  RadialLinearScale,
   Title,
   Tooltip,
   Legend
@@ -52,8 +50,8 @@ export default {
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
-      this.chartInstance = new ChartJS(ctx, {
-        type: 'radar', // 根據需要調整類型
+      new ChartJS(ctx, {
+        type: 'radar', // 确保使用的是 'radar' 类型
         data: this.chartData,
         options: { 
           responsive: true, 
@@ -69,8 +67,27 @@ export default {
 </script>
 
 <style scoped>
+.chart-container {
+  width: 100%; /* 容器宽度为100% */
+  max-height: 400px; /* 设置最大高度 */
+  overflow: auto; /* 启用滚动条 */
+}
+
 canvas {
-  width: 100% !important;
-  height: 100% !important; /* 使用百分比以確保圖表隨容器縮放 */
+  width: 100% !important; /* 画布宽度占满容器 */
+  height: 100% !important; /* 画布高度占满容器 */
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chart-container {
+    max-height: 300px; /* 在小屏幕上调整最大高度 */
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    max-height: 200px; /* 在超小屏幕上调整最大高度 */
+  }
 }
 </style>
