@@ -122,8 +122,8 @@ export default {
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: white;
-  border: 1px solid #ccc;
+  background-color: #3498db; /* 改為藍色背景 */
+  border: 1px solid #2980b9; /* 調整邊框顏色 */
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
@@ -138,10 +138,11 @@ export default {
   border: none;
   text-align: left;
   cursor: pointer;
+  color: white; /* 將文字顏色改為白色，與藍色背景形成對比 */
 }
 
 .menu button:hover {
-  background-color: #f0f0f0;
+  background-color: #2980b9; /* 鼠標懸停時背景改為深藍色 */
 }
 
 /* 響應式設計 */
