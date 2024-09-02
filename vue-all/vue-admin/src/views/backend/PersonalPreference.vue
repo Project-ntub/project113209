@@ -1,7 +1,7 @@
 <template>
+  <TopNavbar title="個人偏好管理" />
   <div class="app-container">
     <div class="app-content" :class="{ shifted: isSidebarActive }">
-      <h1 class="title">個人偏好管理</h1>
       <form @submit.prevent="updatePreferences" class="preferences-form">
         <div class="form-group">
           <label for="font-size">字體大小:</label>
@@ -89,10 +89,14 @@
 </template>
 
 <script>
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 import axios from 'axios';
 
 export default {
   name: 'PersonalPreference',
+  components: {
+    TopNavbar
+  },
   data() {
     return {
       preferences: {

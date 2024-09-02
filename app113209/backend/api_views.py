@@ -1,21 +1,23 @@
 # C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
 import json
 import logging
-import datetime
 import plotly.graph_objs as go
-from django.db.models import F  # 導入 transaction
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.db.models import F  # 添加这行
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from app113209.models import User, Module, Role, RolePermission, UserHistory, UserPreference, TEST_Inventory, TEST_Revenue, TEST_Sales
-from app113209.serializers import UserSerializer, ModuleSerializer, RoleSerializer, RolePermissionSerializer, UserHistorySerializer
-from app113209.utils import record_history  # 導入記錄歷史紀錄的函數
-# 待審核
+from app113209.models import (User, Module, Role, RolePermission, UserHistory, 
+                              UserPreference, ChartConfiguration, TEST_Inventory, 
+                              TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
+from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
+                                   RolePermissionSerializer, UserHistorySerializer, 
+                                   ChartConfigurationSerializer, SalesDataSerializer)
+from app113209.utils import record_history
+from plotly.graph_objs import Bar, Scatter, Pie
 
 
 logger = logging.getLogger(__name__)
@@ -29,23 +31,19 @@ class UserViewSet(viewsets.ModelViewSet):
     def assign_role_and_module(self, request, pk=None):
         user = self.get_object()
         module_id = request.data.get('module')
-        role_ids = request.data.get('roles', [])  # 支持多个角色的分配
+        role_ids = request.data.get('roles', [])
 
         if module_id:
             module = get_object_or_404(Module, id=module_id)
             roles = Role.objects.filter(id__in=role_ids, module=module)
             user.roles.set(roles)
             action_desc = f"管理員 {request.user.username} 為用戶 {user.username} 分配了模組 {module.name} 和角色 {', '.join([role.name for role in roles])}"
-
         else:
-            user.roles.clear()  # 如果沒有選擇模組或角色，清除用戶角色
+            user.roles.clear()
             action_desc = f"管理員 {request.user.username} 清除了用戶 {user.username} 的角色"
 
         user.save()
-
-        # 記錄操作
         record_history(request.user, action_desc)
-
         return Response({'success': True})
     
     @action(detail=False, methods=['get'])
@@ -57,12 +55,9 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.is_deleted = True  # 或者你可以直接刪除用戶
+        instance.is_deleted = True
         instance.save()
-
-        # 記錄刪除用戶的操作
         record_history(request.user, f"管理員 {request.user.username} 刪除了用戶 {instance.username}")
-
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     def update(self, request, *args, **kwargs):
@@ -112,7 +107,7 @@ class UserProfileView(APIView):
    
 # 待審核
 
-class PendingUserListView(generics.ListAPIView):
+class PendingUserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
 
@@ -492,19 +487,149 @@ class UserPreferenceView(APIView):
 
 
 # 圖表
-@csrf_exempt
-def update_chart_data(request):
-    # 這裡的fetch_latest_data()是您獲取最新資料的函數
-    data = fetch_latest_data()
+@api_view(['GET'])
+def get_data_sources(request):
+    # 返回可用的資料表列表
+    data_sources = [
+        {"label": "TEST_Inventory", "value": "TEST_Inventory"},
+        {"label": "TEST_Products", "value": "TEST_Products"},
+        {"label": "TEST_Revenue", "value": "TEST_Revenue"},
+        {"label": "TEST_Sales", "value": "TEST_Sales"},
+        {"label": "TEST_Stores", "value": "TEST_Stores"}
+    ]
+    return Response(data_sources)
 
-    # 使用Plotly來創建一個新的圖表
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data['time'], y=data['values'], mode='lines+markers', name='Latest Data'))
+@api_view(['GET'])
+def get_table_fields(request, table_name):
+    # 根據 table_name 獲取相應的欄位名稱
+    fields = []
+    if table_name == "TEST_Inventory":
+        fields = [field.name for field in TEST_Inventory._meta.fields]
+    elif table_name == "TEST_Products":
+        fields = [field.name for field in TEST_Products._meta.fields]
+    elif table_name == "TEST_Revenue":
+        fields = [field.name for field in TEST_Revenue._meta.fields]
+    elif table_name == "TEST_Sales":
+        fields = [field.name for field in TEST_Sales._meta.fields]
+    elif table_name == "TEST_Stores":
+        fields = [field.name for field in TEST_Stores._meta.fields]
     
-    # 將圖表轉換成JSON格式以返回給前端
-    chart_json = fig.to_json()
+    return Response(fields)
+
+class ChartDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        chart_config = request.data
+        chart_type = chart_config.get('chart_type')
+        x_data = chart_config.get('x_data')
+        y_data = chart_config.get('y_data')
+
+        fig = self.create_chart(chart_type, x_data, y_data)
+        chart_json = fig.to_json()
+        return JsonResponse(chart_json, safe=False)
+
+    def create_chart(self, chart_type, x_data, y_data):
+        if chart_type == 'line':
+            return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
+        elif chart_type == 'bar':
+            return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
+        elif chart_type == 'pie':
+            return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+        elif chart_type == 'scatter':
+            return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
+        # 添加更多圖表類型支持
+        return go.Figure()
+
+class ChartConfigurationViewSet(viewsets.ModelViewSet):
+    queryset = ChartConfiguration.objects.all()
+    serializer_class = ChartConfigurationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def generate_chart(self, configuration):
+        data = fetch_data_from_source(configuration.data_source, configuration.filter_conditions)
+        fig = self.create_chart(configuration.chart_type, data[configuration.x_axis_field], data[configuration.y_axis_field])
+        return fig.to_json()
+
+    def create_chart(self, chart_type, x_data, y_data):
+        if chart_type == 'line':
+            return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
+        elif chart_type == 'bar':
+            return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
+        elif chart_type == 'pie':
+            return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+        return go.Figure()
+
+    @action(detail=False, methods=['post'])
+    def create_chart_action(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            record_history(request.user, f"用户 {request.user.username} 创建了图表 {serializer.data['name']}")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def update_chart_action(self, request, pk=None):
+        chart_config = get_object_or_404(ChartConfiguration, pk=pk)
+        serializer = self.get_serializer(chart_config, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            record_history(request.user, f"用户 {request.user.username} 更新了图表 {serializer.data['name']}")
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def revenue_chart_data(request):
+    # 獲取營收圖表數據
+    revenue_data = TEST_Revenue.objects.values('store_name', 'total_revenue')
+    x = [item['store_name'] for item in revenue_data]
+    y = [item['total_revenue'] for item in revenue_data]
+
+    # 準備 Plotly 數據
+    data = [Bar(x=x, y=y)]
+    layout = {'title': '各店營收'}
+    chart_json = {
+        'data': [d.to_plotly_json() for d in data],
+        'layout': layout
+    }
+
+    return JsonResponse(chart_json)
+
+@api_view(['GET'])
+def sales_chart_data(request):
+    # 從資料庫中獲取銷售數據
+    sales_data = TEST_Sales.objects.all()
+    
+    # 創建一個數據框架
+    x = [item.store_id for item in sales_data]
+    y = [float(item.sale_price) * item.quantity for item in sales_data]  # 假設每個項目有 store_id 和 sale_price
+
+    # 使用 Plotly 創建柱狀圖
+    fig = go.Figure(data=[go.Bar(x=x, y=y)])
+    fig.update_layout(title='各商店銷售額')
+
+    # 將圖表數據轉換為 JSON 格式
+    chart_json = fig.to_plotly_json()
     
     return JsonResponse(chart_json, safe=False)
+
+@api_view(['GET'])
+def inventory_chart_data(request):
+    # 獲取庫存圖表數據
+    inventory_data = TEST_Inventory.objects.values('product_id', 'stock_quantity')
+    x = [item['product_id'] for item in inventory_data]
+    y = [item['stock_quantity'] for item in inventory_data]
+
+    # 準備 Plotly 數據
+    data = [Bar(x=x, y=y)]
+    layout = {'title': '各產品庫存量'}
+    chart_json = {
+        'data': [d.to_plotly_json() for d in data],
+        'layout': layout
+    }
+
+    return JsonResponse(chart_json)
 
 class InventoryDataAPIView(APIView):
     def get(self, request):
@@ -515,11 +640,13 @@ class InventoryDataAPIView(APIView):
 class SalesDataAPIView(APIView):
     def get(self, request):
         # 獲取 TEST_Sales 數據
-        sales_data = list(TEST_Sales.objects.values())
-        return JsonResponse(sales_data, safe=False)
+        sales_data = TEST_Sales.objects.all()
+        serializer = SalesDataSerializer(sales_data, many=True)
+        return Response(serializer.data)
     
 class RevenueDataAPIView(APIView):
     def get(self, request):
         # 獲取 TEST_Revenue 數據
         revenue_data = list(TEST_Revenue.objects.values())
         return JsonResponse(revenue_data, safe=False)
+    

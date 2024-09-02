@@ -1,7 +1,7 @@
 <template>
   <div :class="['home-page', { 'sidebar-open': isSidebarOpen }]">
     <!-- 顶部导航栏组件 -->
-    <TopNavbar @export="exportChart" />
+    <TopNavbar @trigger-export="exportChart" ref="topNavbar" />
     
     <!-- 分店下拉式選單，如果用户是經理则显示 -->
     <div v-if="userPosition === '經理'" class="branch-selection">
@@ -26,17 +26,19 @@
     
     <div class="chart-container">
       <!-- 动态组件，根据 currentChart 的值渲染相应的组件 -->
-      <component :is="currentChart" :branch-id="selectedBranch" />
+      <component :is="currentChart" :branch-id="selectedBranch" ref="currentChartComponent" />
     </div>
   </div>
 </template>
 
 <script>
-// 引入所需组件
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import SalesChart from '@/Charts/SalesChart.vue';
 import RevenueChart from '@/Charts/RevenueChart.vue';
 import InventoryChart from '@/Charts/InventoryChart.vue';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx'; // 使用 * as 導入以避免 utils 未定義問題
 import axios from 'axios';
 
 export default {
@@ -89,6 +91,46 @@ export default {
     },
     onBranchChange() {
       console.log('Selected branch:', this.selectedBranch);
+    },
+    exportChart(type) {
+      const chartComponent = this.$refs.currentChartComponent; // 使用ref引用當前顯示的圖表
+      if (chartComponent && chartComponent.chartData) {
+        const chartData = chartComponent.chartData;
+        if (type === 'pdf') {
+          this.exportPDF(chartData);
+        } else if (type === 'excel') {
+          this.exportExcel(chartData);
+        }
+      } else {
+        console.error('沒有找到有效的圖表組件');
+      }
+    },
+    exportPDF(chartData) {
+      const doc = new jsPDF();
+      doc.text('Chart Data', 14, 16);
+
+      const formattedData = chartData.labels.map((label, index) => ({
+        label,
+        value: chartData.datasets[0].data[index],
+      }));
+
+      doc.autoTable({
+        head: [['Month', 'Value']],
+        body: formattedData.map((data) => [data.label, data.value]),
+      });
+
+      doc.save('chart-data.pdf');
+    },
+    exportExcel(chartData) {
+      const formattedData = chartData.labels.map((label, index) => ({
+        label,
+        value: chartData.datasets[0].data[index],
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Chart Data');
+      XLSX.writeFile(wb, 'chart-data.xlsx');
     },
   },
   async mounted() {

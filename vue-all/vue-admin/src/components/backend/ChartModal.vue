@@ -16,42 +16,45 @@
               <option value="pie">圓餅圖</option>
               <option value="radar">雷達圖</option>
               <option value="scatter">散點圖</option>
-              <!-- 加入更多圖表類型 -->
+              <!-- 更多圖表類型 -->
             </select>
           </div>
-          <!-- 圖表名稱輸入 -->
+          <!-- 數據來源 -->
           <div class="setting">
-            <label for="chart-name">圖表名稱</label>
-            <input id="chart-name" v-model="chartData.name" type="text" placeholder="輸入圖表名稱" />
+            <label for="data-source">數據來源</label>
+            <select id="data-source" v-model="chartData.dataSource">
+              <option v-for="source in dataSource" :key="source.value" :value="source.value">
+                {{ source.label }}
+              </option>
+            </select>
           </div>
-          <!-- 顯示數據標籤切換 -->
+          <!-- X軸和Y軸字段 -->
           <div class="setting">
-            <label for="show-labels">顯示數據標籤</label>
-            <input id="show-labels" type="checkbox" v-model="chartData.showLabels" />
+            <label for="x-axis-field">X軸欄位</label>
+            <select id="x-axis-field" v-model="chartData.xAxisField">
+              <option v-for="field in tableFields" :key="field" :value="field">
+                {{ field }}
+              </option>
+            </select>
           </div>
-          <!-- 圖表顏色 -->
           <div class="setting">
-            <label for="chart-color">圖表顏色</label>
-            <input id="chart-color" type="color" v-model="chartData.color" />
+            <label for="y-axis-field">Y軸欄位</label>
+            <select id="y-axis-field" v-model="chartData.yAxisField">
+              <option v-for="field in tableFields" :key="field" :value="field">
+                {{ field }}
+              </option>
+            </select>
           </div>
-          <!-- X軸標籤 -->
+          <!-- 過濾條件 -->
           <div class="setting">
-            <label for="x-axis-label">X軸標籤</label>
-            <input id="x-axis-label" v-model="chartData.xAxisLabel" type="text" placeholder="輸入X軸標籤" />
+            <label for="filter-conditions">過濾條件</label>
+            <textarea id="filter-conditions" v-model="chartData.filterConditions" placeholder="輸入過濾條件 (JSON格式)" rows="3"></textarea>
           </div>
-          <!-- Y軸標籤 -->
-          <div class="setting">
-            <label for="y-axis-label">Y軸標籤</label>
-            <input id="y-axis-label" v-model="chartData.yAxisLabel" type="text" placeholder="輸入Y軸標籤" />
-          </div>
-          <!-- 更多設定 -->
         </div>
         <!-- 圖表預覽 -->
         <div class="chart-preview">
           <h3>預覽</h3>
-          <div id="chart-container">
-            <!-- 在這裡整合你的圖表庫 -->
-          </div>
+          <div id="chart-container"></div>
         </div>
       </div>
       <div class="chart-modal-footer">
@@ -63,37 +66,110 @@
 </template>
 
 <script>
+import axios from 'axios';
+import Plotly from 'plotly.js-dist';
+
 export default {
   props: {
     isEditing: Boolean,
+    chartId: { // 新增 chartId 用來識別是否為編輯模式
+      type: Number,
+      default: null,
+    },
   },
   data() {
     return {
       chartData: {
         style: 'bar',
         name: '',
-        showLabels: true,
-        color: '#007BFF',
-        xAxisLabel: '',
-        yAxisLabel: '',
-        // 其他圖表設定
+        dataSource: '',
+        xAxisField: '',
+        yAxisField: '',
+        filterConditions: '{}',
+        x_data: [],
+        y_data: [],
       },
+      dataSource: []  // 用於存儲從後端獲取的資料來源選項
     };
   },
   methods: {
-    saveChart() {
-      if (this.isEditing) {
-        // 編輯圖表的邏輯
-        console.log('保存圖表變更');
-      } else {
-        // 新增圖表的邏輯
-        console.log('新增新圖表');
+    fetchDataSources() {
+      axios.get('/api/backend/data-sources/')
+        .then(response => {
+          this.dataSource = response.data;  // 將選項存儲在 dataSources 中
+        })
+        .catch(error => {
+          console.error('獲取資料來源出錯:', error);
+        });
+    },
+    fetchTableFields() {
+      if (this.chartData.dataSource) {
+        axios.get(`/api/backend/table-fields/${this.chartData.dataSource}/`)
+          .then(response => {
+            this.tableFields = response.data;  // 確認這裡的賦值是正確的
+          })
+          .catch(error => {
+            console.error('獲取欄位名稱出錯:', error);
+          });
       }
-      this.closeModal();
+    },
+    fetchData() {
+      if (this.isEditing && this.chartId) {
+        // 修正 API 路徑
+        axios.get(`/api/backend/charts/${this.chartId}/`)
+          .then(response => {
+            const data = response.data;
+            this.chartData.style = data.chart_type;
+            this.chartData.name = data.name;
+            this.chartData.dataSource = data.dataSource;
+            this.chartData.xAxisField = data.xAxisField;
+            this.chartData.yAxisField = data.yAxisField;
+            this.chartData.filterConditions = JSON.stringify(data.filterConditions);
+            this.chartData.x_data = data.x_data;
+            this.chartData.y_data = data.y_data;
+          })
+          .catch(error => {
+            console.error('加載圖表數據時出錯', error);
+          });
+      }
+    },
+    saveChart() {
+      const chartConfig = {
+        chart_type: this.chartData.style,
+        name: this.chartData.name,
+        dataSource: this.chartData.dataSource,
+        xAxisField: this.chartData.xAxisField,
+        yAxisField: this.chartData.yAxisField,
+        filterConditions: JSON.parse(this.chartData.filterConditions),
+        x_data: this.chartData.x_data,
+        y_data: this.chartData.y_data,
+      };
+
+      const apiUrl = this.isEditing ? `/api/backend/update-chart/${this.chartId}/` : '/api/create-chart/';
+      axios.post(apiUrl, chartConfig)
+        .then(response => {
+          const chartJSON = response.data;
+          Plotly.newPlot('chart-container', JSON.parse(chartJSON).data, JSON.parse(chartJSON).layout);
+          this.$emit('chart-saved', response.data); // 發送 'chart-saved' 事件通知父組件
+          this.closeModal();
+        })
+        .catch(error => {
+          console.error('創建或更新圖表時出錯', error);
+        });
     },
     closeModal() {
       this.$emit('close');
     },
+  },
+  watch: {
+    // eslint-disable-next-line no-unused-vars
+    'chartData.dataSource': function(newDataSource) {
+      this.fetchTableFields();
+    }
+  },
+  mounted() {
+    this.fetchData(); // 在組件加載時調用此方法
+    this.fetchDataSources(); // 加載組件時獲取資料來源選項
   },
 };
 </script>

@@ -25,12 +25,56 @@
   color: white;
   display: flex;
   align-items: center;
-  justify-content: center; /* 中央對齊 */
-  gap: 10px;
+  justify-content: center;
 }
 
 .toggle-btn {
+  font-size: 30px;
   cursor: pointer;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  cursor: pointer;
+  margin-left: 5px;
+  padding: 15px;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.user-section:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-section .user-icon {
+  font-size: 25px;
+  margin-right: 25px;
+}
+
+.user-section .icon {
+  font-size: 20px;
+}
+
+.user-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 20px;
+}
+
+.user-icon {
+  font-size: 30px; /* Make the user icon larger */
+}
+
+.username {
+  font-size: 18px; /* Adjust the font size if needed */
+  display: none;
+}
+
+.sidebar.open .username {
+  display: inline-block;
 }
 
 .sidebar a {
@@ -44,40 +88,56 @@
 }
 
 .sidebar a .text {
-  display: none; /* 收起時隱藏文字 */
+  display: none;
 }
 
 .sidebar a .icon {
   display: block;
-  margin-right: 0; /* 收起時圖標居中 */
+  margin-right: 0;
 }
 
 .sidebar.open a .text {
-  display: inline-block; /* 展開時顯示文字 */
-  margin-left: 10px; /* 展開時給文字一點左邊距 */
+  display: inline-block;
+  margin-left: 10px;
 }
 
 .sidebar.open a .icon {
-  margin-right: 10px; /* 展開時圖標和文字之間的距離 */
+  margin-right: 10px;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Hover effect */
+}
+
+.sidebar-link .icon {
+  margin-right: 10px;
+}
+
+.sidebar-link .text {
+  display: none;
+}
+
+.sidebar.open .sidebar-link .text {
+  display: inline-block;
 }
 
 .logout-btn {
-  background-color: transparent; /* 收起時背景色為透明 */
+  background-color: transparent;
   width: 100%;
   text-align: left;
-  transition: background-color 0.4s ease; /* 添加過渡效果 */
+  transition: background-color 0.4s ease;
 }
 
 .logout-btn .text {
-  display: none; /* 收起時隱藏文字 */
+  display: none;
 }
 
 .sidebar.open .logout-btn .text {
-  display: inline-block; /* 展開時顯示文字 */
+  display: inline-block;
 }
 
 .sidebar.open .logout-btn {
-  background-color: #dc3545; /* 展開時背景色為紅色 */
+  background-color: #dc3545;
 }
 
 .logout-btn:hover {
@@ -92,40 +152,4 @@
 
 .sidebar.open ~ .content {
   margin-left: 200px;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 50px;
-  }
-
-  .sidebar.open {
-    width: 150px;
-  }
-
-  .content {
-    margin-left: 50px;
-  }
-
-  .sidebar.open ~ .content {
-    margin-left: 150px;
-  }
-}
-
-@media (max-width: 480px) {
-  .sidebar {
-    width: 40px;
-  }
-
-  .sidebar.open {
-    width: 120px;
-  }
-
-  .content {
-    margin-left: 40px;
-  }
-
-  .sidebar.open ~ .content {
-    margin-left: 120px;
-  }
 }
