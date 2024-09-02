@@ -37,4 +37,4 @@ export default {
   }
 };
 </script>
-<style scoped src="@/assets/css/frontend/TopNavbar.css"></style>v
+<style scoped src="@/assets/css/frontend/TopNavbar.css"></style>

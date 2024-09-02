@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth import get_user_model
 from django.db import models
 import pyotp
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -124,31 +126,59 @@ class RoleUser(models.Model):
         db_table = 'role_users'
         unique_together = ('role', 'user')
 
+
+User = get_user_model()
+
 class Chart(models.Model):
     CHART_TYPES = [
         ('bar', 'Bar Chart'),
         ('line', 'Line Chart'),
         ('pie', 'Pie Chart'),
-        # 添加其他需要的图表类型
+        ('scatter', 'Scatter Plot'),  # 散點圖
+        ('area', 'Area Chart'),  # 區域圖
+        ('histogram', 'Histogram'),  # 直方圖
+        ('heatmap', 'Heatmap'),  # 熱力圖
+        ('bubble', 'Bubble Chart'),  # 泡泡圖
+        ('donut', 'Donut Chart'),  # 甜甜圈圖
+        ('radar', 'Radar Chart'),  # 雷達圖
+        ('gauge', 'Gauge Chart'),  # 儀表圖
+        ('funnel', 'Funnel Chart'),  # 漏斗圖
+        ('treemap', 'Treemap'),  # 矩形樹圖
+        ('waterfall', 'Waterfall Chart'),  # 瀑布圖
+        ('box', 'Box Plot'),  # 箱形圖
+        # 可以根據需要添加更多的圖表類型
     ]
 
     id = models.AutoField(primary_key=True)
     chart_type = models.CharField(max_length=50, choices=CHART_TYPES)
     chart_name = models.CharField(max_length=255)
     chart_data = models.JSONField()  # 存储图表数据，建议使用 JSON 字段来存储复杂数据
-    available = models.BooleanField(default=True)
-    create_id = models.ForeignKey('User', related_name='created_charts', on_delete=models.SET_NULL, null=True, blank=True)
-    modify_id = models.ForeignKey('User', related_name='modified_charts', on_delete=models.SET_NULL, null=True, blank=True)
-    create_date = models.DateTimeField(auto_now_add=True)
-    modify_date = models.DateTimeField(auto_now=True)
-    branch = models.ForeignKey('Branch', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, default='Default Chart Name')
+    is_visible = models.BooleanField(default=True)  # 更明确的字段名
+    created_by = models.ForeignKey(User, related_name='created_charts', on_delete=models.SET_NULL, null=True, blank=True)
+    modified_by = models.ForeignKey(User, related_name='modified_charts', on_delete=models.SET_NULL, null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+    branch = models.ForeignKey('Branch', on_delete=models.CASCADE, null=True, blank=True)  # 设置为可为空
+    name = models.CharField(max_length=255)  # 去除默认值，确保每个图表都有明确名称
 
     class Meta:
         db_table = 'charts'
 
     def __str__(self):
         return self.chart_name
+
+class ChartConfiguration(models.Model):
+    name = models.CharField(max_length=100) #圖表的名字
+    chart_type = models.CharField(max_length=50) #圖表的類型，如 'line', 'bar', 'scatter' 等
+    data_source = models.CharField(max_length=100) #數據來源，可能是資料表名稱或API端點
+    x_axis_field = models.CharField(max_length=50) #x軸欄位名稱
+    y_axis_field = models.CharField(max_length=50) #y軸欄位名稱
+    filter_condtions = models.JSONField(null=True, blank=True) #過濾條件，JSON格式
+    refresh_interval = models.IntegerField(default=60) #自動刷新間隔，以秒為單位
+    is_active = models.BooleanField(default=True) #此圖表是否啟用
+
+    def __str__(self):
+        return self.name
 
 # class DjangoAdminLog(models.Model):
 #     action_time = models.DateTimeField(auto_now_add=True, verbose_name="Action Time")
@@ -191,7 +221,6 @@ class UserHistory(models.Model):
         device_brand = self.device_brand if self.device_brand else '未知裝置'
         device_type = self.device_type if self.device_type else '未知類型'
         return f"User {user_display} performed '{self.action}' on {device_brand} ({device_type}) with result {'success' if self.operation_result else 'failure'} at {self.timestamp}"
-
 
 
 class UserPreference(models.Model):

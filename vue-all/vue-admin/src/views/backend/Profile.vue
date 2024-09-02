@@ -1,7 +1,7 @@
 <template>
+  <TopNavbar title="個人資料" />
   <div>
     <div class="profile-container">
-      <h2>個人資料</h2>
       <div class="profile-row">
         <div v-if="!showModal">
           <label for="name">姓名：</label>
@@ -73,10 +73,14 @@
 </template>
 
 <script>
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 import axios from 'axios';
 
 export default {
   name: 'PersonalProfile',
+  components: {
+    TopNavbar
+  },
   data() {
     return {
       profile: {
@@ -136,7 +140,7 @@ export default {
     logout() {
       axios.post('/api/backend/logout/')
         .then(() => {
-          window.location.href = '/frontend/login/';
+          window.location.href = '/backend/login/';
         })
         .catch(error => {
           console.error('無法登出:', error);

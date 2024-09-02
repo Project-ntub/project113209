@@ -1,4 +1,5 @@
 <template>
+  <TopNavbar title="待審核名單" />
   <div class="container">
     <a href="/backend/user-management" class="back-button">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -6,7 +7,6 @@
       </svg>
       回到用戶管理
     </a>
-    <h1>待審核名單</h1>
     <table class="pending-table">
       <thead>
         <tr>
@@ -35,10 +35,14 @@
 </template>
 
 <script>
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 import axios from '@/axios';
 
 export default {
   name: 'PendingList',
+  components: {
+    TopNavbar,
+  },
   data() {
     return {
       pendingUsers: []

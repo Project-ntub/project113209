@@ -10,7 +10,7 @@
         <!-- Modal body -->
         <div class="modal-body">
           <!-- Checkbox for permissions -->
-          <div>
+          <div class="checkbox-group">
             <label>
               <input type="checkbox" v-model="allUsers" @change="handleAllUsersChange" />
               所有使用者
@@ -22,7 +22,7 @@
           </div>
   
           <!-- Radio buttons for division type -->
-          <div v-if="custom">
+          <div class="radio-group" v-if="custom">
             <label>
               <input type="radio" value="department" v-model="divisionType" />
               依部門職位

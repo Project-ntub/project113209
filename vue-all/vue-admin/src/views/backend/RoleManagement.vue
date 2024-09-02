@@ -1,7 +1,10 @@
 <template>
+  <TopNavbar title="角色管理" />
   <div :class="['container', { shifted: isSidebarActive }]">
+    <!-- 添加遮罩層 -->
+    <div v-if="showCreateRoleModal || showEditRoleModal" class="modal-backdrop" @click="closeAllModals"></div>
+
     <div class="header">
-      <h2>角色管理</h2>
       <button id="add-role-btn" class="btn add-role-btn" @click="openCreateRoleModal">新增角色</button>
       <button class="btn" @click="navigateToRoleManagement">角色</button>
       <button class="btn" @click="navigateToModuleManagement">模組</button>
@@ -60,12 +63,14 @@
 
 <script>
 import axios from '@/axios'; 
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 import RoleModal from '@/components/backend/RoleModal.vue';
 import RoleForm from '@/components/backend/RoleForm.vue';
 
 export default {
   name: 'RoleManagement',
   components: {
+    TopNavbar,
     RoleModal,
     RoleForm
   },
@@ -112,6 +117,10 @@ export default {
     },
     filterRolesByModule() {
       this.filteredRoles; // 触发计算属性
+    },
+    closeAllModals() {
+      this.showCreateRoleModal = false;
+      this.showEditRoleModal = false;
     },
     openCreateRoleModal() {
       this.showCreateRoleModal = true;

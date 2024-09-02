@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Module, Role, RolePermission, UserHistory
+from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,3 +69,14 @@ class UserHistorySerializer(serializers.ModelSerializer):
         model = UserHistory
         fields = ['id', 'user', 'action', 'timestamp', 'device_brand', 'device_type', 'operation_result']
 
+
+class ChartConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChartConfiguration
+        fields = ['id', 'name', 'chart_type', 'data_source', 'x_axis_field', 'y_axis_field', 'filter_condtions', 'refresh_interval', 'is_active']
+
+class SalesDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TEST_Sales
+        fields = '__all__'  # 或者指定要序列化的字段
+        

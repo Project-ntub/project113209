@@ -50,6 +50,10 @@ export default {
     };
   },
   methods: {
+    renderChart(){
+      // 在这里定义 renderChart 的逻辑
+      console.log("Rendering chart...");
+    },
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },
@@ -72,6 +76,7 @@ export default {
     },
   },
   mounted() {
+    this.renderChart();
     this.$nextTick(() => {
       if (this.renderChart) {
         this.renderChart();

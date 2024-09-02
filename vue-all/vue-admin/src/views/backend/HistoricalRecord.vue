@@ -1,4 +1,5 @@
 <template>
+  <TopNavbar title="儀表板管理" />
   <div>
     <div class="container">
       <!-- Search Box -->
@@ -40,7 +41,6 @@
   
       <!-- History Records Section -->
       <div class="history-container">
-        <h2>歷史紀錄</h2>
         <table class="history-table" id="history-table">
           <thead>
             <tr>
@@ -68,9 +68,13 @@
 
 <script>
 import axios from '@/axios';
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 
 export default {
   name: 'HistoricalRecord',
+  components: {
+    TopNavbar
+  },
   data() {
     return {
       searchQuery: '',
