@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)  # 新增的欄位
 
     # 新增的字段
     failed_attempts = models.IntegerField(default=0)  # 密碼錯誤嘗試次數

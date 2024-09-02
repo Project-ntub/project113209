@@ -5,10 +5,10 @@
 </template>
 
 <script>
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, LineElement, PointElement, LinearScale, CategoryScale, ArcElement } from 'chart.js';
+import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement } from 'chart.js';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, LineElement, PointElement, LinearScale, CategoryScale, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement);
 
 export default {
   name: 'InventoryChart',
@@ -30,6 +30,9 @@ export default {
       chartInstance: null,
     };
   },
+  mounted() {
+    this.renderChart();
+  },
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
@@ -42,9 +45,6 @@ export default {
         },
       });
     }
-  },
-  mounted() {
-    this.renderChart();
   }
 };
 </script>

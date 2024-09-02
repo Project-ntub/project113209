@@ -22,3 +22,4 @@ urlpatterns = [
     path('changepassword/', frontend_views.changepassword, name='changepassword'),
     path('preferences/', frontend_views.user_preferences, name='user_preferences'),
 ]
+
