@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 import pyotp
 
@@ -23,9 +23,6 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, username, password, **extra_fields)
 
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.db import models
-
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
@@ -45,6 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     otp_secret = models.CharField(max_length=32, blank=True, null=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)  # 新增的欄位
 
     # 新增的字段
     failed_attempts = models.IntegerField(default=0)  # 密碼錯誤嘗試次數

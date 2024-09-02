@@ -4,8 +4,8 @@
     <div v-if="isHomePage" class="export-container">
       <button class="export-button" @click="toggleExportMenu">匯出</button>
       <div v-if="showExportMenu" class="export-menu">
-        <button @click="exportFile('pdf')">匯出PDF</button>
-        <button @click="exportFile('excel')">匯出Excel</button>
+        <button @click="triggerExport('pdf')">匯出PDF</button>
+        <button @click="triggerExport('excel')">匯出Excel</button>
       </div>
     </div>
   </nav>
@@ -30,11 +30,12 @@ export default {
     toggleExportMenu() {
       this.showExportMenu = !this.showExportMenu;
     },
-    exportFile(type) {
-      this.$emit('export', type);
+    triggerExport(type) {
+      this.$emit('trigger-export', type); // 改用另一個事件名避免混淆
       this.showExportMenu = false;
     }
   }
 };
 </script>
-<style scoped src="@/assets/css/frontend/TopNavbar.css"></style>v
+
+<style scoped src="@/assets/css/frontend/TopNavbar.css"></style>
