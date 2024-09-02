@@ -185,5 +185,5 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/backend/PersonalPreference.css"></style>
+<style src="@/assets/css/backend/PersonalPreference.css"></style>
 

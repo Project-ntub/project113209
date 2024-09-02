@@ -207,6 +207,74 @@ class UserPreference(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Preferences"
+    
+class TEST_Inventory(models.Model):
+    inventory_id = models.AutoField(primary_key=True)
+    store_id = models.IntegerField()
+    product_id = models.IntegerField()
+    stock_quantity = models.IntegerField()
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'TEST_Inventory'
+    
+    def __str__(self):
+        return f"Inventory ID: {self.inventory_id}, Store ID: {self.store_id}, Product ID: {self.product_id}"
+
+class TEST_Products(models.Model):
+    product_id = models.AutoField(primary_key=True)
+    product_name = models.CharField(max_length=255)
+    category = models.CharField(max_length=255, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TEST_Products'
+
+    def __str__(self):
+        return self.product_name
+
+class TEST_Revenue(models.Model):
+    revenue_id = models.AutoField(primary_key=True)
+    store_name = models.CharField(max_length=255)
+    total_revenue = models.DecimalField(max_digits=15, decimal_places=2)
+    revenue_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TEST_Revenue'
+
+    def __str__(self):
+        return f"Revenue ID: {self.revenue_id}, Store: {self.store_name}, Date: {self.revenue_date}"
+
+class TEST_Sales(models.Model):
+    sale_id = models.AutoField(primary_key=True)
+    store_id = models.IntegerField()
+    product_id = models.IntegerField()
+    quantity = models.IntegerField()
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2)
+    sale_date = models.DateField()
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TEST_Sales'
+
+    def __str__(self):
+        return f"Sale ID: {self.sale_id}, Store ID: {self.store_id}, Product ID: {self.product_id}"
+
+class TEST_Stores(models.Model):
+    store_id = models.AutoField(primary_key=True)
+    store_name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TEST_Stores'
+
+    def __str__(self):
+        return self.store_name
 
 
 #frontend

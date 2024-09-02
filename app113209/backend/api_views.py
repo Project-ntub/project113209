@@ -1,24 +1,27 @@
 # C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
-import logging
 import json
+import logging
+import datetime
+import plotly.graph_objs as go
+from django.db.models import F  # 導入 transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.db import transaction  # 導入 transaction
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from app113209.models import User, Module, Role, RolePermission, UserHistory, UserPreference
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from app113209.models import User, Module, Role, RolePermission, UserHistory, UserPreference, TEST_Inventory, TEST_Revenue, TEST_Sales
 from app113209.serializers import UserSerializer, ModuleSerializer, RoleSerializer, RolePermissionSerializer, UserHistorySerializer
 from app113209.utils import record_history  # 導入記錄歷史紀錄的函數
 # 待審核
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+
 
 logger = logging.getLogger(__name__)
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.filter(is_deleted=False, is_active=True)
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
@@ -65,6 +68,27 @@ class UserViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         logger.debug(f"收到更新使用者 ID 的請求: {kwargs.get('pk')}")
         return super().update(request, *args, **kwargs)
+    
+    @action(detail=False, methods=['get'])
+    def get_departments(self, request):
+        try:
+            departments = User.objects.values(department=F('department_id')).distinct()
+            department_list = [dept['department'] for dept in departments if dept['department']]
+            return Response(department_list, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error retrieving departments: {e}")
+            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='get_positions_by_department/(?P<department_id>[^/.]+)')
+    def get_positions_by_department(self, request, department_id=None):
+        try:
+            positions = User.objects.filter(department_id=department_id).values(position=F('position_id')).distinct()
+            position_list = [pos['position'] for pos in positions if pos['position']]
+            return Response(position_list, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error retrieving positions for department {department_id}: {e}")
+            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -92,17 +116,21 @@ class PendingUserListView(generics.ListAPIView):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
 
-@api_view(['POST'])
-@permission_classes([IsAdminUser])  # 確保只有管理員可以訪問
-def approve_user(request, user_id):
-    try:
-        user = User.objects.get(id=user_id, is_approved=False)
-        user.is_approved = True
-        user.is_active = True  # 啟用用戶
-        user.save()
-        return Response({'success': True, 'message': '用戶已成功審核'})
-    except User.DoesNotExist:
-        return Response({'success': False, 'message': '用戶不存在或已審核'}, status=404)
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def approve_user(self, request, pk=None):
+        try:
+            user = User.objects.get(id=pk, is_approved=False)
+            user.is_approved = True
+            user.is_active = True  # 啟用用戶
+            user.save()
+
+            # 記錄開通用戶的操作
+            record_history(request.user, f"管理員 {request.user.username} 開通了用戶 {user.username}")
+
+            return Response({'success': True, 'message': '用戶已成功審核'})
+        except User.DoesNotExist:
+            return Response({'success': False, 'message': '用戶不存在或已審核'}, status=404)
+
     
 class ModuleViewSet(viewsets.ModelViewSet):
     queryset = Module.objects.filter(is_deleted = False)
@@ -461,3 +489,37 @@ class UserPreferenceView(APIView):
             logger.error(f"Error deleting preference: {e}")
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+# 圖表
+@csrf_exempt
+def update_chart_data(request):
+    # 這裡的fetch_latest_data()是您獲取最新資料的函數
+    data = fetch_latest_data()
+
+    # 使用Plotly來創建一個新的圖表
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=data['time'], y=data['values'], mode='lines+markers', name='Latest Data'))
+    
+    # 將圖表轉換成JSON格式以返回給前端
+    chart_json = fig.to_json()
+    
+    return JsonResponse(chart_json, safe=False)
+
+class InventoryDataAPIView(APIView):
+    def get(self, request):
+        # 獲取 TEST_Inventory 數據
+        inventory_data = list(TEST_Inventory.objects.values())
+        return JsonResponse(inventory_data, safe=False)
+    
+class SalesDataAPIView(APIView):
+    def get(self, request):
+        # 獲取 TEST_Sales 數據
+        sales_data = list(TEST_Sales.objects.values())
+        return JsonResponse(sales_data, safe=False)
+    
+class RevenueDataAPIView(APIView):
+    def get(self, request):
+        # 獲取 TEST_Revenue 數據
+        revenue_data = list(TEST_Revenue.objects.values())
+        return JsonResponse(revenue_data, safe=False)

@@ -76,4 +76,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/frontend/ChangePassword.css"></style>
+<style src="@/assets/css/frontend/ChangePassword.css"></style>

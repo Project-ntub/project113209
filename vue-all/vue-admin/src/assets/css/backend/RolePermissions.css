@@ -1,57 +1,60 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
 .container {
-  max-width: 800px;
+  max-width: 500px; /* Extended the width for a wider appearance */
   margin: 0 auto;
   background-color: #ffffff;
-  padding: 20px;
+  padding: 15px; /* Reduced padding for vertical compression */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  text-align: center;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px; /* Reduced margin for vertical compression */
   text-align: left;
 }
 
 .checkbox-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Each row contains 3 checkboxes */
+  gap: 8px; /* Reduced gap for compact layout */
   text-align: center;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-th, td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-td input[type="checkbox"] {
-  transform: scale(1.2);
-  margin: 0;
-  display: inline-block;
-}
-
-td .checkbox-container {
+.checkbox-container label {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+}
+
+.checkbox-container input[type="checkbox"] {
+  transform: scale(1.2);
+  margin-right: 5px;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px; /* Reduced margin for vertical compression */
 }
 
 .btn {
-  padding: 10px 20px;
+  flex: 1;
+  padding: 8px 16px; /* Reduced padding for smaller button size */
   border: none;
   border-radius: 4px;
   cursor: pointer;
   background-color: #6c757d;
   color: white;
-  margin-right: 10px;
+  transition: background-color 0.3s ease;
+  margin: 0 5px;
+  text-align: center;
 }
 
 .btn.secondary {
@@ -66,8 +69,47 @@ td .checkbox-container {
   background-color: #5a6268;
 }
 
-.table-buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    width: 90%;
+    padding: 10px; /* Further reduced padding for medium screens */
+  }
+
+  .checkbox-container {
+    grid-template-columns: repeat(2, 1fr); /* 2 checkboxes per row on medium screens */
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 95%;
+    padding: 8px; /* Further reduced padding for small screens */
+  }
+
+  .checkbox-container {
+    grid-template-columns: 1fr; /* 1 checkbox per row on small screens */
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    padding: 5px;
+  }
+
+  .btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
 }

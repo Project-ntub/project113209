@@ -46,6 +46,9 @@ export default {
 };
 </script>
 
+<!-- 引入全局樣式 -->
+<style src="./assets/css/global.css"></style>
+
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -59,5 +62,42 @@ export default {
 
 #app.shifted {
   margin-left: 250px; /* 當側邊欄打開時，主內容區域向右移動 */
+}
+
+.main-content {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box; /* 確保 padding 不影響寬度 */
+}
+
+/* 響應式設計的樣式 */
+@media (max-width: 600px) {
+  #app {
+    margin-left: 0; /* 在小螢幕設備上側邊欄收起，主內容不移動 */
+  }
+
+  .main-content {
+    padding: 10px; /* 在小螢幕上縮小內邊距 */
+  }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  #app.shifted {
+    margin-left: 200px; /* 在中等螢幕設備上側邊欄展開時主內容區域稍微移動 */
+  }
+
+  .main-content {
+    padding: 20px; /* 中等螢幕設備上的內邊距 */
+  }
+}
+
+@media (min-width: 1025px) {
+  #app.shifted {
+    margin-left: 250px; /* 大螢幕設備上側邊欄展開時主內容區域正常移動 */
+  }
+
+  .main-content {
+    padding: 30px; /* 大螢幕設備上的內邊距 */
+  }
 }
 </style>

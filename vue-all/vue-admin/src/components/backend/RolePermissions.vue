@@ -18,13 +18,16 @@
         <label><input type="checkbox" v-model="newPermission.can_maintain" /> 維護</label>
       </div>
     </div>
-    <button @click="savePermission">新增</button>
-    <button @click="cancelPermission">取消</button>
+    <div class="btn-container">
+      <button @click="savePermission" class="btn">新增</button>
+      <button @click="cancelPermission" class="btn secondary">取消</button>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from '@/axios'; 
+import '@/assets/css/backend/RolePermissions.css';  // 引入CSS文件
 
 export default {
   data() {
@@ -68,5 +71,3 @@ export default {
   }
 };
 </script>
-
-<style scoped src="@/assets/css/backend/RolePermissions.css"></style>

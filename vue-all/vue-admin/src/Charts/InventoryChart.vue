@@ -1,15 +1,20 @@
 <template>
-  <div ref="chartComponent">
+  <ChartContainer>
     <canvas ref="chartCanvas"></canvas>
-  </div>
+  </ChartContainer>
 </template>
 
 <script>
-import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
-ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale);
+import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement } from 'chart.js';
+import ChartContainer from '@/Charts/ChartContainer.vue';
+
+ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement);
 
 export default {
   name: 'InventoryChart',
+  components: {
+    ChartContainer
+  },
   data() {
     return {
       chartData: {
@@ -18,10 +23,11 @@ export default {
           {
             label: 'Inventory',
             backgroundColor: '#f87979',
-            data: [50, 25, 18, 45, 20, 50, 45, 100, 50, 45, 100, 50]
-          }
-        ]
-      }
+            data: [50, 25, 18, 45, 20, 50, 45, 100, 50, 45, 100, 50],
+          },
+        ],
+      },
+      chartInstance: null,
     };
   },
   mounted() {
@@ -30,10 +36,13 @@ export default {
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
-      new ChartJS(ctx, {
-        type: 'line',
+      this.chartInstance = new ChartJS(ctx, {
+        type: 'line', // 根據需要調整類型
         data: this.chartData,
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false 
+        },
       });
     }
   }
@@ -42,7 +51,20 @@ export default {
 
 <style scoped>
 canvas {
-  width: 100% !important;
-  height: 400px !important;
+  width: 100% !important; /* 設定寬度為100%以適應容器 */
+  height: 300px !important; /* 設定基本高度為300px */
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  canvas {
+    height: 250px !important; /* 在小屏幕上縮小高度 */
+  }
+}
+
+@media (max-width: 480px) {
+  canvas {
+    height: 200px !important; /* 在超小屏幕上縮小高度 */
+  }
 }
 </style>

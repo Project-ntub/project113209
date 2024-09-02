@@ -120,7 +120,7 @@ export default {
     fetchUsers() {
       axios.get('/api/backend/users/')
         .then(response => {
-          this.users = response.data;
+          this.users = response.data.filter(user => user.is_active);
         })
         .catch(error => {
           console.error('Error fetching users:', error);

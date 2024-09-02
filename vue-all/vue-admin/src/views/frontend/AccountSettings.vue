@@ -6,7 +6,7 @@
           <!-- 用户头像 -->
           <img class="profile-pic" src="https://via.placeholder.com/100" alt="Profile Picture">
           <!-- 用户名 -->
-          <h3>wang</h3>
+          <h3></h3>
           <!-- 修改密码链接 -->
           <router-link to="/frontend/changepassword" class="setting-option">
             <img src="https://img.icons8.com/ios-filled/50/000000/lock.png" alt="修改密碼">
@@ -29,4 +29,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/frontend/AccountSettings.css"></style>
+<style src="@/assets/css/frontend/AccountSettings.css"></style>

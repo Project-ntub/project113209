@@ -2,7 +2,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api_views
-from .api_views import PendingUserListView, approve_user
 
 router = DefaultRouter()
 router.register(r'users', api_views.UserViewSet)
@@ -32,6 +31,10 @@ urlpatterns = [
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
     path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
     path('user_preferences/', api_views.UserPreferenceView.as_view(), name='user_preferences'),
-    path('approve-user/<int:user_id>/', approve_user, name='approve-user'),
-
+    path('approve-user/<int:user_id>/', api_views.UserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),  # 這裡要用正確的方法
+    path('departments/', api_views.UserViewSet.as_view({'get': 'get_departments'}), name='get_departments'),  # 正確設置actions參數
+    path('get_positions_by_department/<str:department_id>/', api_views.UserViewSet.as_view({'get': 'get_positions_by_department'}), name='get_positions_by_department'),  # 正確設置actions參數
+    path('inventory/', api_views.InventoryDataAPIView.as_view(), name='inventory-data'),
+    path('sales/', api_views.SalesDataAPIView.as_view(), name='sales-data'),
+    path('revenue/', api_views.RevenueDataAPIView.as_view(), name='sales-data'),
 ]

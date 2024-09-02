@@ -18,7 +18,7 @@
       <button type="submit" class="btn-login">登入</button>
     </form>
     <p>
-      還未擁有帳號? <router-link to="/frontend/register">註冊</router-link>
+      還未擁有帳號? <router-link to="/backend/register">註冊</router-link>
     </p>
     <p>
       忘記密碼? <router-link to="/frontend/forgot_password">重置密碼</router-link>
@@ -29,7 +29,6 @@
 
 <script>
 import axios from '@/axios'; // 使用配置好的 axios 实例
-
 
 export default {
   name: 'AppLogin',
@@ -43,7 +42,7 @@ export default {
   },
   
   methods: {
-        async login() {
+    async login() {
       try {
         const csrfToken = getCookie('csrftoken');
         const response = await axios.post('/api/token/', {
@@ -74,7 +73,7 @@ function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
+    for (let i = 0; cookies[i]; i++) {
       const cookie = cookies[i].trim();
       if (cookie.substring(0, name.length + 1) === (name + '=')) {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));

@@ -9,11 +9,11 @@ body {
   width: 100%;
   background-color: black;
   color: white;
-  height: 60px;
+  height: 8vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 2.5vh;
   position: fixed;
   top: 0;
   left: 0;
@@ -21,56 +21,61 @@ body {
 }
 
 .container {
-  margin-top: 80px;
+  margin-top: 10vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 10vh);
   width: 90%;
   max-width: 600px;
   margin: 0 auto;
+  padding: 2vh;
 }
 
 .preferences {
   background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  border-radius: 1.5vh;
+  box-shadow: 0 1vh 2vh rgba(0, 0, 0, 0.1);
+  padding: 2vh;
   width: 100%;
   text-align: center;
 }
 
 .form-group {
-  margin: 15px 0;
+  margin: 2vh 0;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 1vh;
+  font-size: 2vh;
 }
 
 .form-group select {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 1.5vh;
+  font-size: 2vh;
+  border: 0.2vh solid #ccc;
+  border-radius: 1vh;
 }
 
 .buttons {
   display: flex;
   justify-content: space-between;
+  margin-top: 3vh;
 }
 
 .buttons button {
-  padding: 10px 20px;
+  padding: 1.5vh 4vh;
+  font-size: 2vh;
+  border-radius: 1vh;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
 }
 
 .cancel-button {
   background-color: white;
-  border: 1px solid #ccc;
+  border: 0.2vh solid #ccc;
 }
 
 .submit-button {
@@ -82,8 +87,8 @@ body {
   display: none;
   flex-direction: column;
   justify-content: space-around;
-  width: 30px;
-  height: 30px;
+  width: 6vh;
+  height: 6vh;
   background: none;
   border: none;
   cursor: pointer;
@@ -91,8 +96,8 @@ body {
 }
 
 .hamburger-menu div {
-  width: 30px;
-  height: 3px;
+  width: 6vh;
+  height: 0.5vh;
   background-color: white;
 }
 
@@ -103,5 +108,57 @@ body {
 
   .hamburger-menu {
     display: flex;
+  }
+
+  .container {
+    width: 95%;
+    max-width: 450px;
+  }
+
+  .preferences {
+    padding: 3vh;
+    border-radius: 2vh;
+  }
+
+  .form-group label,
+  .form-group select {
+    font-size: 1.8vh;
+  }
+
+  .buttons button {
+    font-size: 1.8vh;
+    padding: 1.5vh 3vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .preferences {
+    padding: 2vh;
+    border-radius: 1vh;
+  }
+
+  .form-group label,
+  .form-group select {
+    font-size: 1.6vh;
+  }
+
+  .buttons button {
+    font-size: 1.6vh;
+    padding: 1vh 2.5vh;
+  }
+
+  .hamburger-menu {
+    width: 5vh;
+    height: 5vh;
+  }
+
+  .hamburger-menu div {
+    width: 5vh;
+    height: 0.4vh;
   }
 }
