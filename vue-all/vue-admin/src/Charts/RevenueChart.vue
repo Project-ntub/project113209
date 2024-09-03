@@ -27,7 +27,7 @@ export default {
           {
             label: 'Revenue',
             backgroundColor: '#f87979',
-            data: [50, 25, 18, 45, 20, 50, 45, 100, 50, 45, 100, 50]
+            data: [30, 10, 5, 25, 15, 30, 25, 60, 30, 25, 60, 30]
           }
         ]
       },
@@ -69,41 +69,91 @@ export default {
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
-      new ChartJS(ctx, {
-        type: 'line', // 根據需要調整類型
+      this.chartInstance = new ChartJS(ctx, {
+        type: 'line',
         data: this.chartData,
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false 
-        }
+        options: this.chartOptions,
       });
     }
-  }
-};
+  },
+  mounted() {
+    this.renderChart();
+  },
+}
 </script>
 
 <style scoped>
-.chart-container {
-  width: 100%; /* 確保容器寬度佔滿父級 */
-  max-height: 300px; /* 設置最大高度 */
-  overflow: auto; /* 啟用滾動條 */
+.resizable-container {
+  resize: both; /* 允许拖动 */
+  overflow: auto; /* 自动溢出 */
+  aspect-ratio: 16/9; /* 保持容器的宽高比 */
+  background-color: #f8f9fa; /* 白邊顏色 */
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  margin-left: auto;
+  margin-right: auto;
+  display: block; /* 确保块级显示，以使resize生效 */
+  width: 220px; /* 默认宽度 */
+  height: auto; /* 自动高度 */
+}
+
+.chart-inner {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
 }
 
 canvas {
-  width: 100% !important; /* 設定寬度為100%以適應容器 */
-  height: 100% !important; /* 高度自動適應容器 */
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: inherit; /* 保持 canvas 的宽高比 */
 }
 
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .chart-container {
-    max-height: 250px; /* 在小屏幕上調整最大高度 */
+/* 超小屏幕 (如手机) */
+@media (max-width: 480px) {
+  .resizable-container {
+    width: 200px;
+    height: auto;
+  }
+
+  .chart-inner {
+    padding: 4px;
   }
 }
 
-@media (max-width: 480px) {
-  .chart-container {
-    max-height: 200px; /* 在超小屏幕上調整最大高度 */
+/* 小型设备 (如小平板) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .resizable-container {
+    width: 200px;
+    height: auto;
+  }
+
+  .chart-inner {
+    padding: 6px;
+  }
+}
+
+/* 中型设备 (如大平板) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .resizable-container {
+    width: 200px;
+    height: auto;
+  }
+
+  .chart-inner {
+    padding: 6px;
+  }
+}
+
+/* 大型设备 (如桌面) */
+@media (min-width: 1025px) {
+  .resizable-container {
+    width: 220px;
+    height: auto;
+  }
+
+  .chart-inner {
+    padding: 8px;
   }
 }
 </style>

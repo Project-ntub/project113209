@@ -12,6 +12,7 @@ import ChartContainer from '@/Charts/ChartContainer.vue';
 
 ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement);
 
+
 export default {
   name: 'InventoryChart',
   components: {
