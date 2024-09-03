@@ -1,3 +1,4 @@
+# app113209\frontend\views.py
 import logging
 import json
 import random
@@ -110,6 +111,45 @@ class SendVerificationCodeView(View):
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': '無效的數據格式'}, status=400)
+# 匯出圖表
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import pandas as pd
+import io
+from openpyxl import Workbook
+
+def export_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="chart.pdf"'
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    p.drawString(100, 750, "Your Chart Data Here")
+    p.showPage()
+    p.save()
+
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+def export_excel(request):
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="chart.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Chart Data"
+
+    data = [["Month", "Sales"], ["Jan", 40], ["Feb", 30], ["Mar", 20]]  # Example data
+    for row in data:
+        ws.append(row)
+
+    output = io.BytesIO()
+    wb.save(output)
+    response.write(output.getvalue())
+    return response
 
 # 注册
 User = get_user_model()
@@ -157,9 +197,13 @@ class FrontendRegisterView(View):
 
             cache.delete(email)
 
-            # 發送通知給管理員審核
-            # 這裡可以發送郵件或推送通知到管理員系統
-            # send_mail(...)
+            send_mail(
+            '您的帳號已啟用',
+            '恭喜！您的帳號已經被管理員審核並啟用。',
+            'leewesley527@gmail.com',
+            [user.email],
+            fail_silently=False,
+        )
 
             return JsonResponse({'success': True, 'message': '註冊成功！請等待管理員審核您的帳號。'}, status=201)
 

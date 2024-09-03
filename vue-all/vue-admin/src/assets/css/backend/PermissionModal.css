@@ -16,6 +16,8 @@
     padding: 20px;
     border-radius: 5px;
     width: 500px;
+    max-height: 80vh; /* Limit height */
+    overflow-y: auto; /* Add scrolling */
   }
   
   .modal-header {
@@ -33,11 +35,17 @@
   
   .modal-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between; /* Change to space-between for better alignment */
     margin-top: 20px;
   }
   
-  /* 新增樣式以水平對齊部門/職位與模組/角色選項 */
+  .checkbox-group, .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adjust the spacing */
+    margin-bottom: 20px;
+  }
+  
   .flex-container {
     display: flex;
     flex-direction: row;

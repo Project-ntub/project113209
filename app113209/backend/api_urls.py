@@ -8,10 +8,12 @@ router.register(r'users', api_views.UserViewSet)
 router.register(r'modules', api_views.ModuleViewSet)
 router.register(r'roles', api_views.RoleViewSet)
 router.register(r'role_permissions', api_views.RolePermissionViewSet)
+router.register(r'pending-users', api_views.PendingUserViewSet, basename='pending-user')
+
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('pending-users/', api_views.PendingUserListView.as_view(), name='pending-users-list'),
+    # path('pending-users/', api_views.PendingUserViewSet.as_view(), name='pending-users-list'),
     path('create_role/', api_views.RoleViewSet.as_view({'post': 'create'}), name='create_role'),
     path('create_module/', api_views.ModuleViewSet.as_view({'post': 'create'}), name='create_module'),
     path('toggle_role_status/<int:pk>/', api_views.RoleViewSet.as_view({'post': 'toggle_status'}), name='toggle_role_status'),
@@ -31,10 +33,19 @@ urlpatterns = [
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
     path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
     path('user_preferences/', api_views.UserPreferenceView.as_view(), name='user_preferences'),
-    path('approve-user/<int:user_id>/', api_views.UserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),  # 這裡要用正確的方法
+    path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
     path('departments/', api_views.UserViewSet.as_view({'get': 'get_departments'}), name='get_departments'),  # 正確設置actions參數
     path('get_positions_by_department/<str:department_id>/', api_views.UserViewSet.as_view({'get': 'get_positions_by_department'}), name='get_positions_by_department'),  # 正確設置actions參數
+    path('data-sources/', api_views.get_data_sources, name='get_data_sources'),
+    path('table-fields/<str:table_name>/', api_views.get_table_fields, name='get_table_fields'),
+    path('charts/', api_views.ChartConfigurationViewSet.as_view({'get': 'list'}), name='charts-list'),
     path('inventory/', api_views.InventoryDataAPIView.as_view(), name='inventory-data'),
-    path('sales/', api_views.SalesDataAPIView.as_view(), name='sales-data'),
+    path('sales-data/', api_views.SalesDataAPIView.as_view(), name='sales-data'),
     path('revenue/', api_views.RevenueDataAPIView.as_view(), name='sales-data'),
+    path('revenue-chart-data/', api_views.revenue_chart_data, name='revenue_chart_data'),
+    path('sales-chart-data/', api_views.sales_chart_data, name='sales_chart_data'),
+    path('inventory-chart-data/', api_views.inventory_chart_data, name='inventory_chart_data'),
+    path('chart-data/', api_views.ChartDataAPIView.as_view(), name='chart-data'),
+    path('create-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'create_chart'}), name='create_chart'),
+    path('update-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'update_chart'}), name='update_chart'),
 ]

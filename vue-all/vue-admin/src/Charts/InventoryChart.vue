@@ -7,10 +7,23 @@
 </template>
 
 <script>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d28eb3a1ea3efbd75341fd8a5d2c70c2ceb49d46
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale);
+<<<<<<< HEAD
+=======
+=======
+import { Chart as ChartJS, Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement } from 'chart.js';
+import ChartContainer from '@/Charts/ChartContainer.vue';
+
+ChartJS.register(Title, Tooltip, Legend, LineController, LineElement, PointElement, LinearScale, CategoryScale, BarElement, ArcElement);
+>>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
+>>>>>>> d28eb3a1ea3efbd75341fd8a5d2c70c2ceb49d46
 
 export default {
   name: 'InventoryChart',
@@ -64,6 +77,9 @@ export default {
       }
     };
   },
+  mounted() {
+    this.renderChart();
+  },
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
@@ -73,9 +89,6 @@ export default {
         options: this.chartOptions,
       });
     }
-  },
-  mounted() {
-    this.renderChart();
   }
 };
 </script>

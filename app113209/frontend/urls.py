@@ -1,3 +1,4 @@
+# app113209\frontend\urls.py
 from django.urls import path
 from . import views as frontend_views
 from .views import get_data  
@@ -21,3 +22,4 @@ urlpatterns = [
     path('changepassword/', frontend_views.changepassword, name='changepassword'),
     path('preferences/', frontend_views.user_preferences, name='user_preferences'),
 ]
+
