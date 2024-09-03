@@ -84,24 +84,6 @@ export default {
 
 <style scoped>
 .chart-wrapper {
-<<<<<<< HEAD
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 220px;  /* 白邊包住圖的寬度 */
-  height: 120px; /* 白邊包住圖的高度 */
-  background-color: #f8f9fa; /* 白邊顏色 */
-  border-radius: 8px;
-  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.chart-inner {
-  width: 100%;
-  height: 100%;
-  padding: 8px;
-=======
   width: 100%; /* 容器寬度占滿父級 */
   max-height: 400px; /* 設置最大高度以啟用滾動條 */
   overflow: auto; /* 啟用滾動條 */
@@ -110,71 +92,34 @@ export default {
 canvas {
   width: 100% !important; /* 默認占據容器的全部寬度 */
   height: 100% !important; /* 高度設為100%以適應容器 */
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
 }
 
 /* 響應式設計 */
 @media (max-width: 480px) {
   .chart-wrapper {
-<<<<<<< HEAD
-    width: 200px;
-    height: 100px;
-  }
-
-  .chart-inner {
-    padding: 4px;
-=======
     max-height: 250px !important; /* 在小屏幕上減少最大高度 */
   }
 
   canvas {
     height: auto !important; /* 確保 canvas 高度自動適應容器 */
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
   }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
   .chart-wrapper {
-<<<<<<< HEAD
-    width: 200px;
-    height: 100px;
-  }
-
-  .chart-inner {
-    padding: 6px;
-=======
     max-height: 300px !important; /* 小平板設備的最大高度適中 */
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .chart-wrapper {
-<<<<<<< HEAD
-    width: 200px;
-    height: 100px;
-  }
-
-  .chart-inner {
-    padding: 6px;
-=======
     max-height: 350px !important; /* 大平板設備的最大高度適中 */
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
   }
 }
 
 @media (min-width: 1025px) {
   .chart-wrapper {
-<<<<<<< HEAD
-    width: 220px;
-    height: 120px;
-  }
-
-  .chart-inner {
-    padding: 8px;
-=======
     max-height: 400px !important; /* 在桌面上恢復默認最大高度 */
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
   }
 }
 </style>

@@ -58,13 +58,8 @@
 </template>
 
 <script>
-<<<<<<< HEAD
-import axios from '@/axios';
-import '@/assets/css/backend/UserManagement.css'; // 引用外部的 CSS 文件
-=======
 import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 import axios from '@/axios'; 
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
 
 export default {
   name: 'UserManagement',

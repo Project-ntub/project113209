@@ -69,93 +69,6 @@ export default {
   methods: {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
-<<<<<<< HEAD
-      this.chartInstance = new ChartJS(ctx, {
-        type: 'line',
-        data: this.chartData,
-        options: this.chartOptions,
-      });
-    }
-  },
-  mounted() {
-    this.renderChart();
-  },
-}
-</script>
-
-<style scoped>
-.resizable-container {
-  resize: both; /* 允许拖动 */
-  overflow: auto; /* 自动溢出 */
-  aspect-ratio: 16/9; /* 保持容器的宽高比 */
-  background-color: #f8f9fa; /* 白邊顏色 */
-  border-radius: 8px;
-  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-  margin-left: auto;
-  margin-right: auto;
-  display: block; /* 确保块级显示，以使resize生效 */
-  width: 220px; /* 默认宽度 */
-  height: auto; /* 自动高度 */
-}
-
-.chart-inner {
-  width: 100%;
-  height: 100%;
-  padding: 8px;
-}
-
-canvas {
-  width: 100% !important;
-  height: 100% !important;
-  aspect-ratio: inherit; /* 保持 canvas 的宽高比 */
-}
-
-/* 超小屏幕 (如手机) */
-@media (max-width: 480px) {
-  .resizable-container {
-    width: 200px;
-    height: auto;
-  }
-
-  .chart-inner {
-    padding: 4px;
-  }
-}
-
-/* 小型设备 (如小平板) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .resizable-container {
-    width: 200px;
-    height: auto;
-  }
-
-  .chart-inner {
-    padding: 6px;
-  }
-}
-
-/* 中型设备 (如大平板) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .resizable-container {
-    width: 200px;
-    height: auto;
-  }
-
-  .chart-inner {
-    padding: 6px;
-  }
-}
-
-/* 大型设备 (如桌面) */
-@media (min-width: 1025px) {
-  .resizable-container {
-    width: 220px;
-    height: auto;
-  }
-
-  .chart-inner {
-    padding: 8px;
-=======
       new ChartJS(ctx, {
         type: 'line', // 根據需要調整類型
         data: this.chartData,
@@ -191,7 +104,6 @@ canvas {
 @media (max-width: 480px) {
   .chart-container {
     max-height: 200px; /* 在超小屏幕上調整最大高度 */
->>>>>>> 8a888822e1bac3a59bd1c0078cf3a04af3d271d3
   }
 }
 </style>
