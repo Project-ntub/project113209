@@ -1,0 +1,99 @@
+[33m4d7a0ae[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m 0903
+[33m477b0b5[m 解決合併衝突
+[33m4242a30[m 0903
+[33m2e6981d[m Resolved merge conflicts
+[33mc4875b0[m Resolved merge conflicts
+[33md28eb3a[m Resolved merge conflicts
+[33m18b5cf5[m 後台改完
+[33m8a88882[m Resolve merge conflicts
+[33m190e647[m 0902
+[33m52076dd[m Resolve merge conflicts
+[33m7ad1ffd[m 0902
+[33m373d4d3[m python plotly
+[33mfacf66c[m Resolved merge conflicts in InventoryChart.vue, InventorySC.vue, RevenueChart.vue, RevenueSC.vue, and SalesChart.vue
+[33m0dcdbef[m 0901
+[33m37fde04[m RWD手機電腦除了儀表板偏好
+[33m3b40a7a[m Initial commit
+[33mb24ac94[m 前台
+[33m01e9208[m 更新前端樣式和視圖文件
+[33m5a04ad4[m views.py
+[33mf0c3f55[m admin.py
+[33m39b046d[m PersonalPreference.vue
+[33mf631b25[m chart container delete zoom and information
+[33m007a3a9[m Complete merge after resolving conflicts
+[33med3bf65[m 用戶註冊資料傳送到後端
+[33mb03dc93[m 設定修改密碼規則
+[33m3841fe2[m changepassword
+[33ma45db02[m 0826
+[33m7fdfcb3[m 解決衝突
+[33m3a87ece[m Resolved merge conflicts
+[33mb06b9ec[m 0825
+[33m519b8df[m user preference
+[33m49c4c27[m Merge branch 'main' of https://github.com/Project-ntub/project113209
+[33m0c2bbc0[m history insert
+[33mf88ce7d[m 解決合併衝突並合併遠端更改
+[33m5f751d7[m change
+[33m31d6c22[m 個人偏好
+[33maceee1a[m __init__.py
+[33ma889380[m 個人偏好
+[33m9ea0270[m Add files via upload
+[33mf11f6d3[m HistoricalRecord.vue
+[33m116fe98[m change
+[33m6376fff[m 修改
+[33m7799580[m Merge branch 'main' of https://github.com/Project-ntub/project113209
+[33m164110c[m 0823
+[33mf739ea6[m Resolved merge conflict
+[33m262e5de[m 檔案
+[33m9e8bcbe[m user history
+[33m3a2d453[m Merge branch 'main' of https://github.com/Project-ntub/project113209
+[33m9288e6a[m modify dashboard management
+[33m7aeb220[m Add files via upload
+[33m217058a[m views.py
+[33m25119a3[m urls.py
+[33mb7c1123[m models.py
+[33m3219a79[m admin.py
+[33m5410c26[m 歷史紀錄0821
+[33m989ef2c[m 0821
+[33md014064[m Resolve merge conflict
+[33m2cc033f[m 0819
+[33m1e7dbfe[m Add files via upload
+[33m24ba21a[m __init__.py
+[33m1e7d975[m 個人資訊-後端
+[33mb02de1f[m Add files via upload
+[33m1ad0fbd[m __init__.py
+[33m562ca21[m 個人偏好
+[33me348fda[m __init__.py
+[33mdc4dcd2[m PersonalPreference.vue
+[33m5078941[m 個人資訊
+[33m799cb0f[m PersonalPreference.vue
+[33mf77ca51[m 0819
+[33m3f8713b[m 0819
+[33m8c0dc96[m Remove .pyc files and __pycache__ directory from version control
+[33maa11de4[m components to views
+[33md298d51[m Add files via upload
+[33m3463aca[m Merge branch 'main' of https://github.com/Project-ntub/project113209
+[33mec4abea[m 登入、註冊、忘記密碼
+[33m5accd41[m department_id and position_id
+[33mb4aad06[m user_profile
+[33ma7778fe[m 路徑更改
+[33m23d31a6[m Merge branch 'main' of https://github.com/Project-ntub/project113209
+[33m34d20ca[m 前端前後台整合
+[33m4f34380[m Add files via upload
+[33mb7c97ed[m admin.py
+[33m7979e63[m Add files via upload
+[33mda70b44[m README
+[33m85757fd[m information
+[33m6b41f9b[m 0814 排版調整
+[33m52a22fb[m 排版調整
+[33mb25decf[m 0813 後台整合
+[33m6a28829[m 0813
+[33mb632802[m 0813
+[33m44a0dd6[m 權限管理
+[33m904e7ef[m 0812 app113209
+[33m14d4cf0[m 0812
+[33m09df2eb[m delete vue admin backend files
+[33m24109e2[m 有加上vue-all的資料夾
+[33mdd48bf4[m manage.py
+[33m9568b64[m 0809
+[33mfd08bc2[m 0809
+[33mceed184[m Initial commit
