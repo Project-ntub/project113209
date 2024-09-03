@@ -1,7 +1,9 @@
 <template>
   <ChartContainer>
     <div class="chart-wrapper">
-      <canvas ref="chartCanvas"></canvas>
+      <div class="chart-inner">
+        <canvas ref="chartCanvas"></canvas>
+      </div>
     </div>
   </ChartContainer>
 </template>
@@ -28,6 +30,39 @@ export default {
             data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 39, 80, 40]
           }
         ]
+      },
+      chartOptions: {
+        plugins: {
+          tooltip: {
+            backgroundColor: '#007bff', // 工具提示背景改為藍色
+            titleColor: '#ffffff', // 標題顏色改為白色
+            bodyColor: '#ffffff',  // 內容顏色改為白色
+          },
+          legend: {
+            labels: {
+              color: '#007bff', // 圖例標籤顏色改為藍色
+              fontSize: 8, // 縮小圖例字體大小
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: {
+                size: 6, // 縮小x軸字體大小
+              }
+            }
+          },
+          y: {
+            ticks: {
+              font: {
+                size: 6, // 縮小y軸字體大小
+              }
+            }
+          }
+        },
+        responsive: true,
+        maintainAspectRatio: false,
       }
     };
   },
@@ -35,12 +70,9 @@ export default {
     renderChart() {
       const ctx = this.$refs.chartCanvas.getContext('2d');
       this.chartInstance = new ChartJS(ctx, {
-        type: 'line', // 根據需要調整類型
+        type: 'line',
         data: this.chartData,
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false 
-        },
+        options: this.chartOptions,
       });
     }
   },
@@ -52,47 +84,69 @@ export default {
 
 <style scoped>
 .chart-wrapper {
-  width: 100%; /* 容器宽度占满父级 */
-  max-height: 400px; /* 设置最大高度以启用滚动条 */
-  overflow: auto; /* 启用滚动条 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 220px;  /* 白邊包住圖的寬度 */
+  height: 120px; /* 白邊包住圖的高度 */
+  background-color: #f8f9fa; /* 白邊顏色 */
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  margin-left: auto;
+  margin-right: auto;
 }
 
-canvas {
-  width: 100% !important; /* 默认占据容器的全部宽度 */
-  height: 100% !important; /* 高度设为100%以适应容器 */
+.chart-inner {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
 }
 
 /* 超小屏幕 (如手机) */
 @media (max-width: 480px) {
   .chart-wrapper {
-    max-height: 250px !important; /* 在小屏幕上减少最大高度 */
+    width: 200px;
+    height: 100px;
   }
-}
 
-@media (max-width: 480px) {
-  canvas {
-    height: auto !important; /* 确保 canvas 高度自动适应容器 */
+  .chart-inner {
+    padding: 4px;
   }
 }
 
 /* 小型设备 (如小平板) */
 @media (min-width: 481px) and (max-width: 768px) {
   .chart-wrapper {
-    max-height: 300px !important; /* 小平板设备的最大高度适中 */
+    width: 200px;
+    height: 100px;
+  }
+
+  .chart-inner {
+    padding: 6px;
   }
 }
 
 /* 中型设备 (如大平板) */
 @media (min-width: 769px) and (max-width: 1024px) {
   .chart-wrapper {
-    max-height: 350px !important; /* 大平板设备的最大高度适中 */
+    width: 200px;
+    height: 100px;
+  }
+
+  .chart-inner {
+    padding: 6px;
   }
 }
 
 /* 大型设备 (如桌面) */
 @media (min-width: 1025px) {
   .chart-wrapper {
-    max-height: 400px !important; /* 在桌面上恢复默认最大高度 */
+    width: 220px;
+    height: 120px;
+  }
+
+  .chart-inner {
+    padding: 8px;
   }
 }
 </style>

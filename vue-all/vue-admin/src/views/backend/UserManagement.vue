@@ -22,41 +22,44 @@
       <input type="text" id="search-box" placeholder="搜尋..." v-model="query" @keydown.enter="applyFilters">
       <button @click="applyFilters" class="search-btn">搜尋</button>
     </div>
-    <table class="user-table">
-      <thead>
-        <tr>
-          <th>姓名</th>
-          <th>電子郵件</th>
-          <th>電話號碼</th>
-          <th>部門</th>
-          <th>職位</th>
-          <th>建立時間</th>
-          <th>最近登入時間</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in filteredUsers" :key="user.id">
-          <td>{{ user.username }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.phone }}</td>
-          <td>{{ user.department_id }}</td>
-          <td>{{ user.position_id }}</td>
-          <td>{{ formatDate(user.date_joined) }}</td>
-          <td>{{ formatDate(user.last_login) }}</td>
-          <td>
-            <button class="edit-btn" @click="navigateToEditUser(user.id)">編輯</button>
-            <button class="delete-btn" @click="deleteUser(user.id)">刪除</button>
-            <button class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">分配角色</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-container">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>電子郵件</th>
+            <th>電話號碼</th>
+            <th>部門</th>
+            <th>職位</th>
+            <th>建立時間</th>
+            <th>最近登入時間</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="user in filteredUsers" :key="user.id">
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.phone }}</td>
+            <td>{{ user.department_id }}</td>
+            <td>{{ user.position_id }}</td>
+            <td>{{ formatDate(user.date_joined) }}</td>
+            <td>{{ formatDate(user.last_login) }}</td>
+            <td>
+              <button class="edit-btn" @click="navigateToEditUser(user.id)">編輯</button>
+              <button class="delete-btn" @click="deleteUser(user.id)">刪除</button>
+              <button class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">分配角色</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from '@/axios'; 
+import axios from '@/axios';
+import '@/assets/css/backend/UserManagement.css'; // 引用外部的 CSS 文件
 
 export default {
   name: 'UserManagement',
@@ -143,6 +146,3 @@ export default {
   }
 };
 </script>
-
-
-<style scoped src="@/assets/css/backend/UserManagement.css"></style>

@@ -1,51 +1,35 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-}
 
 .container {
-  max-width: 350px; /* 減少容器的最大寬度 */
-  margin: 0 auto;
+  max-width: 1000px; /* 設置固定寬度 */
+  margin: 0 auto; /* 居中對齊 */
   background-color: #ffffff;
-  padding: 15px; /* 減少內邊距 */
+  padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
-.form-group {
-  margin-bottom: 15px; /* 減少表單組件的下邊距 */
-  text-align: left;
-}
-
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
+.table-container {
+  max-height: 400px; /* 設置表格容器的最大高度 */
+  overflow-y: auto; /* 允許垂直滾動 */
 }
 
 .user-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 5px; /* 減少表格的上邊距 */
+  margin-top: 10px;
+  overflow-x: auto;
 }
 
 .user-table th,
 .user-table td {
   border: 1px solid #ddd;
-  padding: 6px; /* 減少單元格的填充 */
-  text-align: center;
-  font-size: 12px; /* 減小字體大小 */
+  padding: 8px;
+  text-align: left;
 }
 
 .user-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-.user-table td {
-  white-space: nowrap;
+  background-color: #f2f2f2;
 }
 
 .user-table tr:nth-child(even) {
@@ -56,49 +40,72 @@ body {
   background-color: #ddd;
 }
 
-@media (max-width: 1024px) {
-  .user-table th,
-  .user-table td {
-    font-size: 11px;
-    padding: 5px;
-  }
+.edit-btn,
+.delete-btn,
+.assigning-roles-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  text-align: center;
+  margin: 2px;
 }
 
+.edit-btn {
+  background-color: #ffa500;
+}
+
+.edit-btn:hover {
+  background-color: #e59400;
+}
+
+.delete-btn {
+  background-color: #f44336;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.assigning-roles-btn {
+  background-color: #2196F3;
+}
+
+.assigning-roles-btn:hover {
+  background-color: #1976D2;
+}
+
+/* Add responsive design */
 @media (max-width: 768px) {
-  .container {
-    width: 90%;
-    padding: 10px;
+  .header {
+      flex-direction: column;
+      align-items: center; /* 在手機上居中 */
   }
 
   .user-table th,
   .user-table td {
-    font-size: 10px;
-    padding: 3px;
+      font-size: 12px;
+      padding: 4px;
   }
 
-  .user-table th {
-    white-space: normal; /* 允許標題換行 */
+  .edit-btn,
+  .delete-btn,
+  .assigning-roles-btn {
+      font-size: 12px;
+      padding: 4px 8px;
+      margin: 5px 0;
   }
-}
 
-@media (max-width: 480px) {
+  .filter-section label,
+  .filter-section select,
+  .filter-section input {
+      width: 100%;
+      margin-bottom: 5px;
+  }
+
   .container {
-    width: 95%;
-    padding: 5px;
-  }
-
-  .user-table th,
-  .user-table td {
-    font-size: 9px;
-    padding: 2px;
-  }
-
-  .user-table th {
-    white-space: normal; /* 允許標題換行 */
-    line-height: 1.2; /* 調整行高 */
-  }
-
-  .user-table td {
-    white-space: normal; /* 允許內容換行 */
+      width: 100%;
+      margin-left: 0;
   }
 }
