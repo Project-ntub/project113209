@@ -37,9 +37,5 @@ export default {
   }
 };
 </script>
-<<<<<<< HEAD
-<style scoped src="@/assets/css/frontend/TopNavbar.css"></style>
-=======
 
 <style scoped src="@/assets/css/frontend/TopNavbar.css"></style>
->>>>>>> 52076dd484a07528b0836eaaddb1357e7dfb0f05
