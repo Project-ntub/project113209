@@ -21,7 +21,7 @@ from django.views.generic import TemplateView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.decorators import api_view
-from app113209.models import User, UserPreference  # 確保此模型存在
+from app113209.models import User, UserPreferences  # 確保此模型存在
 from app113209.models import HistoryRecord
 from django.shortcuts import render, redirect
 from django.conf import settings
@@ -80,6 +80,43 @@ def changepassword(request):
 
     except Exception as e:
         return JsonResponse({'message': f'發生錯誤: {str(e)}'}, status=500)
+
+
+@login_required
+@csrf_exempt  # 如果您使用的是 Session 認證，這是必須的
+def user_preferences(request):
+    user = request.user  # 獲取當前登入的用戶
+
+    # 處理 GET 請求，返回用戶的偏好設置
+    if request.method == 'GET':
+        try:
+            user_preferences = UserPreferences.objects.get(user_id=user.id)
+            data = {
+                'user_id': user.id,
+                'fontsize': user_preferences.fontsize,
+                'notificationSettings': user_preferences.notificationSettings,
+                'autoLogin': user_preferences.autoLogin,
+                'authentication': user_preferences.authentication,
+            }
+            return JsonResponse(data)
+        except UserPreferences.DoesNotExist:
+            return JsonResponse({'error': '偏好設置不存在'}, status=404)
+
+    # 處理 POST 請求，更新用戶的偏好設置
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        try:
+            user_preferences = UserPreferences.objects.get(user_id=user.id)
+            user_preferences.fontsize = data['fontsize']
+            user_preferences.notificationSettings = data['notificationSettings']
+            user_preferences.autoLogin = data['autoLogin']
+            user_preferences.authentication = data['authentication']
+            user_preferences.save()
+            return JsonResponse({'status': 'success'})
+        except UserPreferences.DoesNotExist:
+            return JsonResponse({'error': '偏好設置不存在'}, status=404)
+
+    return JsonResponse({'error': '無效的請求'}, status=400)
 
 
 
@@ -478,30 +515,3 @@ def get_data(request):
     
     data_list = list(data.values())  # 將數據轉為列表格式
     return JsonResponse(data_list, safe=False)
-# 获取和更新用户偏好设置视图
-@api_view(['GET', 'POST'])
-@csrf_exempt
-def user_preferences(request):
-    user = request.user
-    if request.method == 'GET':
-        try:
-            preferences = UserPreference.objects.get(user=user)
-            data = {
-                "fontSize": preferences.font_size,
-                "notification": preferences.notifications_enabled,
-                "autoLogin": preferences.auto_login_enabled,
-                "authentication": preferences.authentication_enabled
-            }
-            return JsonResponse(data, safe=False)
-        except UserPreference.DoesNotExist:
-            return JsonResponse({'error': 'Preferences not found'}, status=404)
-
-    elif request.method == 'POST':
-        data = json.loads(request.body)
-        preferences, created = UserPreference.objects.get_or_create(user=user)
-        preferences.font_size = data.get('fontSize', preferences.font_size)
-        preferences.notifications_enabled = data.get('notification', preferences.notifications_enabled)
-        preferences.auto_login_enabled = data.get('autoLogin', preferences.auto_login_enabled)
-        preferences.authentication_enabled = data.get('authentication', preferences.authentication_enabled)
-        preferences.save()
-        return JsonResponse({'success': True, 'message': 'Preferences updated successfully'})
