@@ -34,56 +34,11 @@
         </div>
         <div class="btn-container">
           <button type="submit" class="btn btn-save">保存更改</button>
-          <button type="button" class="btn btn-add" @click="showAddModal">新增</button>
-          <button type="button" class="btn btn-delete" @click="deletePreference">刪除</button>
           <button type="button" class="btn btn-cancel" @click="resetPreferences">取消更改</button>
         </div>
       </form>
   
       <div v-if="successMessage" class="success-message">保存成功！</div>
-  
-      <!-- 新增彈出窗口 -->
-      <div v-if="showModal" class="modal">
-        <div class="modal-content">
-          <span class="close" @click="closeAddModal">&times;</span>
-          <h2 class="title">新增個人偏好</h2>
-          <form @submit.prevent="addPreference" class="preferences-form">
-            <div class="form-group">
-              <label for="add-font-size">字體大小:</label>
-              <select v-model="newPreference.fontsize" id="add-font-size" class="form-control">
-                <option value="small">小</option>
-                <option value="medium">中</option>
-                <option value="large">大</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="add-notifications">通知:</label>
-              <select v-model="newPreference.notificationSettings" id="add-notifications" class="form-control">
-                <option :value="1">啟用</option>
-                <option :value="0">不啟用</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="add-auto-login">自動登入:</label>
-              <select v-model="newPreference.autoLogin" id="add-auto-login" class="form-control">
-                <option :value="1">啟用</option>
-                <option :value="0">不啟用</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="add-authentication">是否驗證:</label>
-              <select v-model="newPreference.authentication" id="add-authentication" class="form-control">
-                <option :value="1">已驗證</option>
-                <option :value="0">未驗證</option>
-              </select>
-            </div>
-            <div class="btn-container">
-              <button type="submit" class="btn btn-save">保存</button>
-              <button type="button" class="btn btn-cancel" @click="closeAddModal">取消</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -92,7 +47,7 @@
 import axios from 'axios';
 
 export default {
-  name: 'PersonalPreference',
+  name: 'PreferenceSetting',
   data() {
     return {
       preferences: {
@@ -102,14 +57,7 @@ export default {
         autoLogin: 0,
         authentication: 0
       },
-      newPreference: {
-        fontsize: 'medium',
-        notificationSettings: 0,
-        autoLogin: 0,
-        authentication: 0
-      },
       successMessage: false,
-      showModal: false,
       isSidebarActive: false
     };
   },
@@ -118,16 +66,16 @@ export default {
   },
   methods: {
     loadPreferences() {
-      axios.get('/api/user_preferences/')
+      axios.get('/frontend/user_preferences/')
         .then(response => {
             this.preferences = response.data;
         })
         .catch(error => {
-            console.error('Error loading preferences:', error);
+            console.error('載入偏好時出錯:', error);
         });
     },
     updatePreferences() {
-      axios.post('/api/user_preferences/', this.preferences)
+      axios.post('/frontend/user_preferences/', this.preferences)
         .then(response => {
             if (response.status === 200) {
                 this.showSuccessMessage();
@@ -136,40 +84,7 @@ export default {
             }
         })
         .catch(error => {
-            console.error('Error updating preferences:', error);
-        });
-    },
-    showAddModal() {
-      this.showModal = true;
-    },
-    closeAddModal() {
-      this.showModal = false;
-    },
-    addPreference() {
-      axios.post('/api/user_preferences/', this.newPreference)
-        .then(response => {
-            if (response.status === 200) {
-                this.closeAddModal();
-                this.showSuccessMessage();
-            } else {
-                alert('新增失敗');
-            }
-        })
-        .catch(error => {
-            console.error('Error adding preference:', error);
-        });
-    },
-    deletePreference() {
-      axios.post('/api/user_preferences/', { user_id: this.preferences.user_id })
-        .then(response => {
-            if (response.status === 200) {
-                this.showSuccessMessage();
-            } else {
-                alert('刪除失敗');
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting preference:', error);
+            console.error('更新偏好時出錯:', error);
         });
     },
     resetPreferences() {
@@ -184,6 +99,3 @@ export default {
   }
 };
 </script>
-
-<style src="@/assets/css/backend/PersonalPreference.css"></style>
-
