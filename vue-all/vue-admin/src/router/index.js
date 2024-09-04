@@ -52,24 +52,24 @@ const routes = [
 
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
-  { path: '/backend/register', name: 'BackendRegister', component: Register, meta: {hideSidebar: true} },
+  { path: '/backend/register', name: 'BackendRegister', component: Register },
   { path: '/backend/forgetpassword', name: 'BackendForgetPassword', component: ForgetPassword },
   { path: '/backend/management', name: 'BackendManagement', component: Management },
-  { path: '/backend/dashboard', name: '儀表板管理', component: Dashboard },
-  { path: '/backend/user-management', name: '用戶管理', component: UserManagement },
-  { path: '/backend/role-management', name: '角色管理', component: RoleManagement },
-  { path: '/backend/pending_list', name: '待審核名單', component: PendingList },
+  { path: '/backend/dashboard', name: 'BackendDashboard', component: Dashboard },
+  { path: '/backend/user-management', name: 'BackendUserManagement', component: UserManagement },
+  { path: '/backend/role-management', name: 'BackendRoleManagement', component: RoleManagement },
+  { path: '/backend/pending_list', name: 'BackendPendingList', component: PendingList },
   { path: '/backend/edit_user/:userId', name: 'BackendEditUser', component: EditUser },
   { path: '/backend/assign_role/:userId', name: 'BackendAssignRole', component: AssignRole },
-  { path: '/backend/module-management', name: '模組管理', component: ModuleManagement },
+  { path: '/backend/module-management', name: 'BackendModuleManagement', component: ModuleManagement },
   { path: '/backend/create_role', name: 'BackendCreateRole', component: RoleForm },
   { path: '/backend/edit_role/:roleId', name: 'BackendEditRole', component: RoleForm },
   { path: '/backend/create-module', name: 'BackendCreateModule', component: ModuleForm },
   { path: '/backend/edit_module/:moduleId', name: 'BackendEditModule', component: ModuleForm },
   { path: '/backend/role_permissions/:roleId', name: 'BackendRolePermissions', component: RolePermissions },
-  { path: '/backend/history', name: '歷史紀錄', component: HistoricalRecord },    
-  { path: '/backend/preferences', name: '個人偏好', component: PersonalPreference },
-  { path: '/backend/profile', name: '個人資料', component: Profile }
+  { path: '/backend/history', name: 'BackendHistory', component: HistoricalRecord },    
+  { path: '/backend/preferences', name: 'BackendPreference', component: PersonalPreference },
+  { path: '/backend/profile', name: 'BackendProfile', component: Profile }
 ];
 
 const router = createRouter({
