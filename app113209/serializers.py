@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales
+from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -79,4 +79,10 @@ class SalesDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = TEST_Sales
         fields = '__all__'  # 或者指定要序列化的字段
+
+
+class UserPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreferences
+        fields = ['id', 'user_id', 'fontsize', 'notificationSettings', 'autoLogin', 'authentication']
         
