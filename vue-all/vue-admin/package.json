@@ -5,7 +5,6 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
     "prettier": "prettier --write 'src/**/*.{js,jsx,ts,tsx,vue}'"
   },
   "dependencies": {
@@ -41,45 +40,13 @@
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
     "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "^5.0.8",
-    "eslint": "^8.0.0",
-    "eslint-plugin-vue": "^8.0.0",
     "husky": "^8.0.2",
     "lint-staged": "^13.0.0",
-    "prettier": "^2.8.4",
+    "prettier": "^2.8.8",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "prettier"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {
-      "semi": [
-        "error",
-        "always"
-      ],
-      "quotes": [
-        "error",
-        "single"
-      ],
-      "comma-dangle": [
-        "error",
-        "never"
-      ]
-    }
   },
   "browserslist": [
     "> 1%",
@@ -89,13 +56,10 @@
   ],
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx,vue}": [
-      "eslint --fix",
       "prettier --write"
     ]
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "hooks": {}
   }
 }

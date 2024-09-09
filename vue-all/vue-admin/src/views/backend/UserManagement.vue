@@ -1,7 +1,7 @@
 <template>
-  <TopNavbar title="用戶管理" />
   <div class="container">
     <div class="header">
+      <h2>用戶管理</h2>
       <button id="pending-approval-btn" class="pending-approval-btn" @click="navigateToPendingList">待審核</button>
     </div>
     <div class="filter-section">
@@ -58,15 +58,11 @@
 </template>
 
 <script>
-import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
-import axios from '@/axios'; 
-
+import axios from '@/axios';
+import '@/assets/css/backend/UserManagement.css'; // 引用外部的 CSS 文件
 
 export default {
   name: 'UserManagement',
-  components: {
-    TopNavbar
-  },  
   data() {
     return {
       sortBy: 'name',

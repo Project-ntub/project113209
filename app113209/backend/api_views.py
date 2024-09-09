@@ -11,12 +11,11 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from app113209.models import (User, Module, Role, RolePermission, UserHistory, 
-                             UserPreference, ChartConfiguration, TEST_Inventory, 
+                             UserPreferences, ChartConfiguration, TEST_Inventory, 
                               TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer, 
                                    ChartConfigurationSerializer, SalesDataSerializer, UserPreferencesSerializer)
-
 from app113209.utils import record_history
 from plotly.graph_objs import Bar, Scatter, Pie
 
@@ -420,7 +419,7 @@ class UserHistoryListView(APIView):
 
 
 class UserPreferencesViewSet(viewsets.ModelViewSet):
-    queryset = UserPreference.objects.all()  # 修改這裡的模型名稱為 UserPreference
+    queryset = UserPreferences.objects.all()
     serializer_class = UserPreferencesSerializer
 
 
