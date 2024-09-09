@@ -8,7 +8,7 @@
 
 <script>
 export default {
-  name: "RegistrationSuccess",
+  name: 'RegistrationSuccess',
   methods: {
     goToLogin() {
       this.$router.push({ name: 'login' });

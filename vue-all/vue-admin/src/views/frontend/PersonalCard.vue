@@ -22,7 +22,7 @@ import SidebarPage from '@/components/frontend/SidebarPage.vue'; // 导入 Sideb
 export default {
   name: 'PersonalCard',
   components: {
-    SidebarPage, // 注册 SidebarPage 组件
+    SidebarPage // 注册 SidebarPage 组件
   },
   data() {
     return {

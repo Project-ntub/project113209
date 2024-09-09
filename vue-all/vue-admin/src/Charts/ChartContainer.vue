@@ -39,20 +39,20 @@ export default {
   components: {
     VueResizable,
     PermissionModal,
-    ChartModal,
+    ChartModal
   },
   data() {
     return {
       showMenu: false,
       isPermissionModalVisible: false, // 控制彈跳視窗的顯示
       isChartModalVisible: false, // 控制圖表編輯模態窗口的顯示
-      chartInstance: null, // 初始化圖表實例
+      chartInstance: null // 初始化圖表實例
     };
   },
   methods: {
     renderChart(){
       // 在这里定义 renderChart 的逻辑
-      console.log("Rendering chart...");
+      console.log('Rendering chart...');
     },
     toggleMenu() {
       this.showMenu = !this.showMenu;
@@ -66,14 +66,14 @@ export default {
       this.showMenu = false;
     },
     exportChart() {
-      alert("匯出圖表");
+      alert('匯出圖表');
       this.showMenu = false;
     },
     onResize() {
       if (this.chartInstance) {
         this.chartInstance.resize(); // 當容器大小改變時，重新調整圖表大小
       }
-    },
+    }
   },
   mounted() {
     this.renderChart();
@@ -84,7 +84,7 @@ export default {
         console.warn('renderChart method is not defined in this component.');
       }
     });
-  },
+  }
 };
 </script>
 

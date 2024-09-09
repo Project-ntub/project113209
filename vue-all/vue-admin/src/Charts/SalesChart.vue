@@ -36,12 +36,12 @@ export default {
           tooltip: {
             backgroundColor: '#007bff', // 工具提示背景改為藍色
             titleColor: '#ffffff', // 標題顏色改為白色
-            bodyColor: '#ffffff',  // 內容顏色改為白色
+            bodyColor: '#ffffff'  // 內容顏色改為白色
           },
           legend: {
             labels: {
               color: '#007bff', // 圖例標籤顏色改為藍色
-              fontSize: 8, // 縮小圖例字體大小
+              fontSize: 8 // 縮小圖例字體大小
             }
           }
         },
@@ -49,20 +49,20 @@ export default {
           x: {
             ticks: {
               font: {
-                size: 6, // 縮小x軸字體大小
+                size: 6 // 縮小x軸字體大小
               }
             }
           },
           y: {
             ticks: {
               font: {
-                size: 6, // 縮小y軸字體大小
+                size: 6 // 縮小y軸字體大小
               }
             }
           }
         },
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: false
       }
     };
   },
@@ -72,14 +72,14 @@ export default {
       this.chartInstance = new ChartJS(ctx, {
         type: 'line',
         data: this.chartData,
-        options: this.chartOptions,
+        options: this.chartOptions
       });
     }
   },
   mounted() {
     this.renderChart();
-  },
-}
+  }
+};
 </script>
 
 <style scoped>

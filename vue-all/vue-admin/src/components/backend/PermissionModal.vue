@@ -1,213 +1,128 @@
 <template>
-    <div v-if="isVisible" class="modal-overlay">
-      <div class="modal-content">
-        <!-- Modal header with close button -->
-        <div class="modal-header">
-          <h3>權限設定</h3>
-          <button class="close-button" @click="closeModal">X</button>
-        </div>
-  
-        <!-- Modal body -->
-        <div class="modal-body">
-          <!-- Checkbox for permissions -->
-          <div class="checkbox-group">
-            <label>
-              <input type="checkbox" v-model="allUsers" @change="handleAllUsersChange" />
-              所有使用者
-            </label>
-            <label>
-              <input type="checkbox" v-model="custom" @change="handleCustomChange" />
-              自訂
-            </label>
-          </div>
-  
-          <!-- Radio buttons for division type -->
-          <div class="radio-group" v-if="custom">
-            <label>
-              <input type="radio" value="department" v-model="divisionType" />
-              依部門職位
-            </label>
-            <label>
-              <input type="radio" value="role" v-model="divisionType" />
-              依模組角色
-            </label>
-          </div>
-  
-          <!-- Module and role selection -->
-          <div v-if="custom && divisionType === 'department'">
-            <div class="flex-container">
-              <div class="dropdown-group">
-                <!-- 部門選擇 -->
-                <div>
-                  <label>授權的部門</label>
-                  <select v-model="selectedDepartment" @change="fetchPositions">
-                    <option value="">選擇部門</option>
-                    <option v-for="department in departments" :key="department.id" :value="department.id">{{ department.name }}</option>
-                  </select>
-                </div>
-                <div>
-                  <label>授權的職位</label>
-                  <select v-model="selectedPosition">
-                    <option value="">選擇職位</option>
-                    <option v-for="position in positions" :key="position.id" :value="position.id">{{ position.name }}</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-  
-          <!-- Module and role selection -->
-          <div v-if="custom && divisionType === 'role'">
-            <div class="flex-container">
-              <div class="dropdown-group">
-                <!-- 模組選擇 -->
-                <div>
-                  <label>授權的模組</label>
-                  <select v-model="selectedModule" @change="fetchRoles">
-                    <option value="">選擇模組</option>
-                    <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
-                  </select>
-                </div>
-                <div>
-                  <label>授權的角色</label>
-                  <select v-model="selectedRole">
-                    <option value="">選擇角色</option>
-                    <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-                  </select>
-                </div>
-  
-                <!-- New module and role inputs -->
-                <div>
-                  <input type="text" v-model="newModuleName" placeholder="輸入新模組名稱" />
-                  <button type="button" @click="addModule">新增模組</button>
-                </div>
-                <div>
-                  <input type="text" v-model="newRoleName" placeholder="輸入新角色名稱" />
-                  <button type="button" @click="addRole">新增角色</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <!-- Modal footer with buttons -->
-        <div class="modal-footer">
-          <button @click="closeModal">取消</button>
-          <button @click="savePermissions">保存</button>
-        </div>
+  <div class="modal-container">
+    <div class="modal-content">
+      <h3>權限設定</h3>
+
+      <!-- 分店勾選框 -->
+      <div class="checkbox-group">
+        <label v-for="branch in branches" :key="branch.branch_id">
+          <input type="checkbox" :value="branch.branch_id" v-model="selectedBranches" />
+          {{ branch.branch_name }}
+        </label>
+        <!-- 額外的選項：所有分店 -->
+        <label>
+          <input type="checkbox" value="all" v-model="selectedBranches" />
+          所有分店
+        </label>
+      </div>
+
+      <!-- 確認和取消按鈕 -->
+      <div class="button-group">
+        <button class="cancel-btn" @click="closeModal">取消</button>
+        <button class="save-btn" :disabled="!isFormValid" @click="savePermissions">保存</button>
       </div>
     </div>
-  </template>  
-  
-  <script>
-  import axios from 'axios';
-  
-  export default {
-    props: ['isVisible'],
-    data() {
-      return {
-        allUsers: false,
-        custom: false,
-        divisionType: '', // Added to track the selection type
-        selectedModule: '',
-        selectedRole: '',
-        selectedDepartment: '', // Added department selection
-        selectedPosition: '',   // Added position selection
-        modules: [],
-        roles: [],
-        departments: [], // Added department data
-        positions: [],   // Added position data
-        newModuleName: '',  // For tracking new module name
-        newRoleName: '',    // For tracking new role name
-      };
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      branches: [], // 存儲 API 獲取的分店數據
+      selectedBranches: [] // 存儲選擇的分店
+    };
+  },
+  computed: {
+    isFormValid() {
+      // 表單驗證，當至少選擇了一個分店時表單才有效
+      return this.selectedBranches.length > 0;
+    }
+  },
+  methods: {
+    closeModal() {
+      // 關閉模態框
+      this.$emit('close');
     },
-    methods: {
-      closeModal() {
-        this.$emit('close');
-      },
-      savePermissions() {
-        // Handle saving logic
-        this.closeModal();
-      },
-      handleAllUsersChange() {
-        if (this.allUsers) {
-          this.custom = false;
-          this.divisionType = ''; // Reset the division type if "All Users" is selected
-        }
-      },
-      handleCustomChange() {
-        if (this.custom) {
-          this.allUsers = false;
-        }
-      },
-      async fetchData() {
-        try {
-          const modulesResponse = await axios.get('/api/backend/modules/');
-          this.modules = modulesResponse.data;
-  
-          const departmentsResponse = await axios.get('/api/backend/departments/'); // Fetch department data
-          this.departments = departmentsResponse.data;
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-      },
-      async fetchRoles() {
-        if (!this.selectedModule) {
-          this.roles = [];
-          return;
-        }
-        try {
-          const rolesResponse = await axios.get(`/api/backend/get_roles_by_module/${this.selectedModule}/`);
-          this.roles = rolesResponse.data;
-        } catch (error) {
-          console.error('Error fetching roles:', error);
-        }
-      },
-      async fetchPositions() {
-            if (!this.selectedDepartment) {
-                this.positions = [];
-                return;
-            }
-            try {
-                const positionsResponse = await axios.get(`/api/backend/get_positions_by_department/${this.selectedDepartment}/`);
-                console.log('Positions fetched:', positionsResponse.data); // 打印回應數據
-                this.positions = positionsResponse.data;
-            } catch (error) {
-                console.error('Error fetching positions:', error);
-            }
-        },
-      async addModule() {
-        try {
-          const response = await axios.post('/api/backend/modules/', { name: this.newModuleName });
-          this.modules.push(response.data);
-          this.newModuleName = ''; // Clear new module name input
-          alert('模組新增成功');
-        } catch (error) {
-          console.error('Error adding module:', error);
-          alert('模組新增失敗');
-        }
-      },
-      async addRole() {
-        if (!this.selectedModule) {
-          alert('請先選擇模組');
-          return;
-        }
-        try {
-          const response = await axios.post('/api/backend/roles/', { name: this.newRoleName, module: this.selectedModule });
-          this.roles.push(response.data);
-          this.newRoleName = ''; // Clear new role name input
-          alert('角色新增成功');
-        } catch (error) {
-          console.error('Error adding role:', error);
-          alert('角色新增失敗');
-        }
+    savePermissions() {
+      // 傳遞選擇的分店權限並關閉模態框
+      this.$emit('save', this.selectedBranches);
+      this.closeModal();
+    },
+    async fetchBranches() {
+      // 從 API 獲取分店資料
+      try {
+        const response = await axios.get('/api/branches/'); // 假設你在後端有 `/api/branches/` 這個 API
+        this.branches = response.data;
+      } catch (error) {
+        console.error('Error fetching branches:', error);
       }
-    },
-    mounted() {
-      this.fetchData(); // Fetch data when component loads
-    },
-  };
-  </script>
-  
-  <style scoped src="@/assets/css/backend/PermissionModal.css"></style>
-  
+    }
+  },
+  mounted() {
+    // 組件加載時調用 API 獲取分店資料
+    this.fetchBranches();
+  }
+};
+</script>
+
+<style scoped>
+.modal-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.cancel-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 48%;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 48%;
+}
+
+.save-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+</style>

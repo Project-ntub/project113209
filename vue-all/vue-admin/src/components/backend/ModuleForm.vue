@@ -14,7 +14,7 @@
 
 <script>
 export default {
-  name: "ModuleForm",
+  name: 'ModuleForm',
   props: {
     moduleId: {
       type: [String, Number],
@@ -22,7 +22,7 @@ export default {
     },
     moduleName: {
       type: String,
-      default: ""
+      default: ''
     }
   },
   data() {

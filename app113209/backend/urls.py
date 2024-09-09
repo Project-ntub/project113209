@@ -13,6 +13,7 @@ urlpatterns = [
     path('delete_user/<int:user_id>/', backend_views.delete_user, name='delete_user'),
     path('assign_role_and_module/<int:user_id>/', backend_views.assign_role_and_module, name='assign_role_and_module'),
     path('delete_module/<int:module_id>/', api_views.ModuleViewSet.as_view({'post': 'delete_module'}), name='delete_module'),
+    # path('api/branches/', backend_views.get_branches, name='get_branches'),
     # path('get_preferences/', backend_views.get_preferences, name='get_preferences'),
     # path('update_preference/', backend_views.update_preference, name='update_preference'),
     # path('add_preference/', backend_views.add_preference, name='add_preference'),

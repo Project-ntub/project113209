@@ -45,7 +45,7 @@ export default {
         email: '',
         phone: '',
         department_id: '',
-        position_id: '',
+        position_id: ''
       },
       editData: {},
       isEditing: false

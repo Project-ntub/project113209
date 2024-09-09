@@ -63,7 +63,7 @@ export default {
       isLoading: false,
       records: [],
       sortField: 'timestamp', // 默認排序字段
-      sortOrder: 'asc', // 默認排序順序
+      sortOrder: 'asc' // 默認排序順序
     };
   },
   computed: {
@@ -88,7 +88,7 @@ export default {
       });
 
       return records;
-    },
+    }
   },
   methods: {
     async fetchRecords() {
@@ -114,10 +114,10 @@ export default {
     },
     toggleSortOrder() {
       this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    },
+    }
   },
   mounted() {
     this.fetchRecords();
-  },
+  }
 };
 </script>

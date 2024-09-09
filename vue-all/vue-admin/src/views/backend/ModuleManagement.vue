@@ -39,18 +39,18 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的T
 import ModuleForm from '@/components/backend/ModuleForm.vue';
 
 export default {
-  name: "ModuleManagement",
+  name: 'ModuleManagement',
   components: {
     TopNavbar,
-    ModuleForm,
+    ModuleForm
   },
   data() {
     return {
       modules: [],
       showCreateModuleModal: false,
       showEditModuleModal: false,
-      newModuleName: "",
-      editModuleName: "",
+      newModuleName: '',
+      editModuleName: '',
       editModuleId: null,
       isSidebarActive: false
     };
@@ -77,13 +77,13 @@ export default {
         if (response.status === 201) {
           this.loadModules();
           this.closeCreateModuleModal();
-          alert("新增模組成功");
+          alert('新增模組成功');
         } else {
-          alert("新增模組失敗");
+          alert('新增模組失敗');
         }
       } catch (error) {
         console.error('Error creating module:', error.response ? error.response.data : error.message);
-        alert("新增模組失敗");
+        alert('新增模組失敗');
       }
     },
     openEditModuleModal(id, name) {
@@ -100,13 +100,13 @@ export default {
         if (response.status === 200) {
           this.loadModules();
           this.closeEditModuleModal();
-          alert("編輯模組成功");
+          alert('編輯模組成功');
         } else {
-          alert("編輯模組失敗");
+          alert('編輯模組失敗');
         }
       } catch (error) {
         console.error('Error editing module:', error.response ? error.response.data : error.message);
-        alert("編輯模組失敗");
+        alert('編輯模組失敗');
       }
     },
     async deleteModule(id) {
@@ -115,14 +115,14 @@ export default {
         console.log('Delete response:', response);
         if (response.status === 204) {
           this.loadModules();
-          alert("刪除成功");
+          alert('刪除成功');
         } else {
-          alert("刪除模組失敗");
+          alert('刪除模組失敗');
           console.error('Error deleting module:', response.data.message);
         }
       } catch (error) {
         console.error('Error deleting module:', error.response ? error.response.data : error.message);
-        alert("刪除模組失敗");
+        alert('刪除模組失敗');
       }
     },
     navigateToRoleManagement() {
@@ -137,7 +137,7 @@ export default {
     },
     toggleSidebar() {
       this.isSidebarActive = !this.isSidebarActive;
-    },
+    }
   },
   created() {
     this.loadModules();

@@ -83,7 +83,7 @@ export default {
       showCreateRoleModal: false,
       showEditRoleModal: false,
       editingRoleId: null,
-      isSidebarActive: false,
+      isSidebarActive: false
     };
   },
   computed: {

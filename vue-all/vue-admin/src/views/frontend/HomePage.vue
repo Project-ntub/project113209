@@ -47,7 +47,7 @@ export default {
     TopNavbar,
     SalesChart,
     RevenueChart,
-    InventoryChart,
+    InventoryChart
   },
   data() {
     return {
@@ -55,7 +55,7 @@ export default {
       currentChart: 'SalesChart', // 默认显示的图表组件
       branches: [], // 动态存储所有可访问的分店
       selectedBranch: null, // 当前选中的分店
-      userPosition: null,  // 存储用户角色
+      userPosition: null  // 存储用户角色
     };
   },
   methods: {
@@ -111,12 +111,12 @@ export default {
 
       const formattedData = chartData.labels.map((label, index) => ({
         label,
-        value: chartData.datasets[0].data[index],
+        value: chartData.datasets[0].data[index]
       }));
 
       doc.autoTable({
         head: [['Month', 'Value']],
-        body: formattedData.map((data) => [data.label, data.value]),
+        body: formattedData.map((data) => [data.label, data.value])
       });
 
       doc.save('chart-data.pdf');
@@ -124,18 +124,18 @@ export default {
     exportExcel(chartData) {
       const formattedData = chartData.labels.map((label, index) => ({
         label,
-        value: chartData.datasets[0].data[index],
+        value: chartData.datasets[0].data[index]
       }));
 
       const ws = XLSX.utils.json_to_sheet(formattedData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Chart Data');
       XLSX.writeFile(wb, 'chart-data.xlsx');
-    },
+    }
   },
   async mounted() {
     await this.fetchUserPosition();
-  },
+  }
 };
 </script>
 

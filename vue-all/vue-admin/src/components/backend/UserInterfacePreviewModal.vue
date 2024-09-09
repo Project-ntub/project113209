@@ -75,13 +75,13 @@
         modules: [],
         roles: [],
         departments: [],
-        positions: [],
+        positions: []
       };
     },
     components: {
       SalesChart,
       RevenueChart,
-      InventoryChart,
+      InventoryChart
     },
     methods: {
       async fetchRolesOrPositions() {
@@ -124,19 +124,19 @@
         } catch (error) {
           console.error('Error fetching positions:', error);
         }
-      },
+      }
     },
     computed: {
       roleOrPositionCharts() {
         const chartsMap = {
           department: {
             '1': ['SalesChart', 'RevenueChart'], // 部門職位映射
-            '2': ['InventoryChart'],
+            '2': ['InventoryChart']
           },
           role: {
             '1': ['SalesChart', 'InventoryChart'], // 模組角色映射
-            '2': ['RevenueChart'],
-          },
+            '2': ['RevenueChart']
+          }
         };
         if (this.selectedDivision === 'department') {
           return chartsMap.department[this.selectedPosition] || [];
@@ -144,8 +144,8 @@
           return chartsMap.role[this.selectedRole] || [];
         }
         return [];
-      },
-    },
+      }
+    }
   };
   </script>
   

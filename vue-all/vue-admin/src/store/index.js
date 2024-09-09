@@ -3,7 +3,7 @@ import { createStore } from 'vuex';
 const store = createStore({
   state: {
     token: null,
-    user: null,
+    user: null
   },
   mutations: {
     setToken(state, token) {
@@ -11,7 +11,7 @@ const store = createStore({
     },
     setUser(state, user) {
       state.user = user;
-    },
+    }
   },
   actions: {
     setToken({ commit }, token) {
@@ -19,8 +19,8 @@ const store = createStore({
     },
     setUser({ commit }, user) {
       commit('setUser', user);
-    },
-  },
+    }
+  }
 });
 
 export default store;

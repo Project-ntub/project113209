@@ -71,7 +71,7 @@ export default {
     InventoryChart: markRaw(InventoryChart),
     Modal,
     UserInterfacePreviewModal,
-    PlotlyChart,
+    PlotlyChart
   },
   data() {
     return {
@@ -110,11 +110,11 @@ export default {
             data: {
               x: chart.x_data,
               y: chart.y_data
-            },
+            }
           }));
         })
         .catch(error => {
-          console.error("Fetching charts data failed:", error);
+          console.error('Fetching charts data failed:', error);
         });
     },
     fetchSalesData() {
@@ -124,7 +124,7 @@ export default {
           this.updateChart(); // 更新圖表
         })
         .catch(error => {
-          console.error("Error fetching sales data:", error);
+          console.error('Error fetching sales data:', error);
         });
     },
     updateChart() {
@@ -170,7 +170,7 @@ export default {
     onMove() {
       return true;
     }
-  },
+  }
 };
 </script>
 

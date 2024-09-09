@@ -26,11 +26,11 @@
 import axios from '@/axios';
 
 export default {
-  name: "AssignRoleAndModule",
+  name: 'AssignRoleAndModule',
   data() {
     return {
-      selectedModule: "",
-      selectedRole: "",
+      selectedModule: '',
+      selectedRole: '',
       modules: [],
       roles: [],
       user: {}
@@ -38,7 +38,7 @@ export default {
   },
   methods: {
     loadModules() {
-      axios.get("/api/backend/get_modules/")
+      axios.get('/api/backend/get_modules/')
         .then(response => {
           this.modules = response.data;
         })
@@ -52,7 +52,7 @@ export default {
           .then(response => {
             this.roles = response.data;
             if (!this.roles.some(role => role.id === this.selectedRole)){
-              this.selectedRole = "";
+              this.selectedRole = '';
             }
           })
           .catch(error => {
@@ -69,14 +69,14 @@ export default {
         role: this.selectedRole
       }).then(response => {
         if (response.data.success) {
-          alert("保存成功");
+          alert('保存成功');
           this.$router.push({ name: 'userManagement' });
         } else {
-          alert("保存失敗");
+          alert('保存失敗');
         }
       }).catch(error => {
         console.error('Error saving role and module:', error);
-        alert("保存失敗");
+        alert('保存失敗');
       });
     },
     goBack() {
@@ -89,8 +89,8 @@ export default {
             this.user = response.data;
             console.log(this.user);
             // 設定用戶目前的模組和角色
-            this.selectedModule = this.user.module ? this.user.module.id : "";
-            this.selectedRole = this.user.roles.length > 0 ? this.user.roles[0].id : "";  // 確保 roles 是一個陣列
+            this.selectedModule = this.user.module ? this.user.module.id : '';
+            this.selectedRole = this.user.roles.length > 0 ? this.user.roles[0].id : '';  // 確保 roles 是一個陣列
             // 加載模組下的角色
             if (this.selectedModule) {
               this.loadRoles();

@@ -44,8 +44,8 @@ export default {
     return {
       searchQuery: '',
       items: [],
-      isLoggedIn: false,
-    }
+      isLoggedIn: false
+    };
   },
   computed: {
     filteredItems() {
@@ -106,7 +106,7 @@ export default {
   mounted() {
     this.checkLoginStatus();
   }
-}
+};
 </script>
 
 <style scoped>

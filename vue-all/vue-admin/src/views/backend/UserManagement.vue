@@ -73,7 +73,7 @@ export default {
       departmentFilter: 'all',
       query: '',
       users: [],
-      departments: ["銷售部", "人力資源部", "資訊部", "業務部", "財務部"]
+      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部']
     };
   },
   computed: {

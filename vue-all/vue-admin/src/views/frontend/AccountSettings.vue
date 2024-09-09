@@ -25,7 +25,7 @@
 
 <script>
 export default {
-  name: 'AccountSettings',
+  name: 'AccountSettings'
 };
 </script>
 

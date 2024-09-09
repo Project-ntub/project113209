@@ -14,22 +14,22 @@
 
 <script>
 export default {
-  name: "VerifyOtp",
+  name: 'VerifyOtp',
   data() {
     return {
-      otp: "",
+      otp: '',
       error: null
     };
   },
   methods: {
     verifyOtp() {
       // 發送請求到後端
-      this.$http.post("/backend/verify_otp", { otp: this.otp })
+      this.$http.post('/backend/verify_otp', { otp: this.otp })
         .then(response => {
           if (response.data.success) {
             this.$router.push({ name: 'home' });
           } else {
-            this.error = "驗證失敗";
+            this.error = '驗證失敗';
           }
         });
     }

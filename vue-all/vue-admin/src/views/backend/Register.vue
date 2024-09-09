@@ -66,7 +66,7 @@ export default {
       verificationCode: '',
       verificationFeedback: '',
       feedbackSuccess: false,
-      csrfToken: '',  
+      csrfToken: ''  
     };
   },
   methods: {
@@ -156,7 +156,7 @@ export default {
       } catch (error) {
         alert('註冊失敗，請稍後再試。');
       }
-    },
+    }
   },
   created() {
     this.fetchCsrfToken();

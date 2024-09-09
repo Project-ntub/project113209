@@ -2,7 +2,7 @@
 import logging
 import uuid
 import json
-from app113209.models import User, Role, RolePermission, Module, UserPreference, UserHistory
+from app113209.models import User, Role, RolePermission, Module, UserPreference, UserHistory,  Branch
 from app113209.serializers import UserSerializer, RoleSerializer, ModuleSerializer, RolePermissionSerializer
 from app113209.utils import record_history
 from datetime import timedelta

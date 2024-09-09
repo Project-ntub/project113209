@@ -13,7 +13,7 @@
     name: 'TESTSalesChart',
     data() {
       return {
-        salesData: [],
+        salesData: []
       };
     },
     async mounted() {
@@ -34,18 +34,18 @@
           x: item.sale_date,
           y: item.total_amount,
           type: 'line',
-          name: '銷售額',
+          name: '銷售額'
         }));
   
         const layout = {
           title: '銷售圖表',
           xaxis: { title: '日期' },
-          yaxis: { title: '銷售額' },
+          yaxis: { title: '銷售額' }
         };
   
         Plotly.newPlot('sales-chart', data, layout);
-      },
-    },
+      }
+    }
   };
   </script>
   

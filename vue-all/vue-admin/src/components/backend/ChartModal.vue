@@ -74,8 +74,8 @@ export default {
     isEditing: Boolean,
     chartId: { // 新增 chartId 用來識別是否為編輯模式
       type: Number,
-      default: null,
-    },
+      default: null
+    }
   },
   data() {
     return {
@@ -87,7 +87,7 @@ export default {
         yAxisField: '',
         filterConditions: '{}',
         x_data: [],
-        y_data: [],
+        y_data: []
       },
       dataSource: []  // 用於存儲從後端獲取的資料來源選項
     };
@@ -142,7 +142,7 @@ export default {
         yAxisField: this.chartData.yAxisField,
         filterConditions: JSON.parse(this.chartData.filterConditions),
         x_data: this.chartData.x_data,
-        y_data: this.chartData.y_data,
+        y_data: this.chartData.y_data
       };
 
       const apiUrl = this.isEditing ? `/api/backend/update-chart/${this.chartId}/` : '/api/create-chart/';
@@ -159,7 +159,7 @@ export default {
     },
     closeModal() {
       this.$emit('close');
-    },
+    }
   },
   watch: {
     // eslint-disable-next-line no-unused-vars
@@ -170,7 +170,7 @@ export default {
   mounted() {
     this.fetchData(); // 在組件加載時調用此方法
     this.fetchDataSources(); // 加載組件時獲取資料來源選項
-  },
+  }
 };
 </script>
 

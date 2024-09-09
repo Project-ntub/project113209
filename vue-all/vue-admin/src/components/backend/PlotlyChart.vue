@@ -20,13 +20,13 @@ export default {
           this.renderChart(data, layout);
         })
         .catch(error => {
-          console.error("Error fetching chart data:", error);
+          console.error('Error fetching chart data:', error);
         });
     },
     renderChart() {
       const chartEl = this.$refs.chart; // 假设你有一个 ref 名为 chart 的元素
       if (!chartEl) {
-        console.error("Chart element is not available.");
+        console.error('Chart element is not available.');
         return;
       }
 
