@@ -49,6 +49,6 @@ urlpatterns = [
     path('chart-data/', api_views.ChartDataAPIView.as_view(), name='chart-data'),
     path('create-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'create_chart'}), name='create_chart'),
     path('update-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'update_chart'}), name='update_chart'),
-    path('api/branches/', api_views.get_branches, name='get_branches'),
+    # path('api/branches/', api_views.get_branches, name='get_branches'),
 
 ]

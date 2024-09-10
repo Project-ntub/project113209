@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences
+from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -86,3 +86,10 @@ class UserPreferencesSerializer(serializers.ModelSerializer):
         model = UserPreferences
         fields = ['id', 'user_id', 'fontsize', 'notificationSettings', 'autoLogin', 'authentication']
         
+# 圖表權限
+
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['branch_id', 'branch_name']

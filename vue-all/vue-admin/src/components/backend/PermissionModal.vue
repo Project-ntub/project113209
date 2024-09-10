@@ -1,25 +1,34 @@
 <template>
-  <div class="modal-container">
+  <div v-if="isVisible" class="modal-overlay">
     <div class="modal-content">
-      <h3>權限設定</h3>
-
-      <!-- 分店勾選框 -->
-      <div class="checkbox-group">
-        <label v-for="branch in branches" :key="branch.branch_id">
-          <input type="checkbox" :value="branch.branch_id" v-model="selectedBranches" />
-          {{ branch.branch_name }}
-        </label>
-        <!-- 額外的選項：所有分店 -->
-        <label>
-          <input type="checkbox" value="all" v-model="selectedBranches" />
-          所有分店
-        </label>
+      <!-- Modal 標題 -->
+      <div class="modal-header">
+        <h3>權限設定</h3>
+        <button class="close-button" @click="closeModal">X</button>
       </div>
 
-      <!-- 確認和取消按鈕 -->
-      <div class="button-group">
-        <button class="cancel-btn" @click="closeModal">取消</button>
-        <button class="save-btn" :disabled="!isFormValid" @click="savePermissions">保存</button>
+      <!-- Modal 內容 -->
+      <div class="modal-body">
+        <!-- 顯示分店 -->
+        <div class="branch-selection">
+          <label>選擇分店</label>
+          <!-- 添加「所有分店」選項 -->
+          <div class="checkbox-item">
+            <input type="checkbox" value="all" v-model="allBranches" @change="selectAllBranches" />
+            <span>所有分店</span>
+          </div>
+          <!-- 顯示分店列表 -->
+          <div v-for="branch in branches" :key="branch.branch_id" class="checkbox-item">
+            <input type="checkbox" :value="branch.branch_id" v-model="selectedBranches" :disabled="allBranches" />
+            <span>{{ branch.branch_name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 底部按鈕 -->
+      <div class="modal-footer">
+        <button class="btn cancel-btn" @click="closeModal">取消</button>
+        <button class="btn save-btn" :disabled="!selectedBranches.length && !allBranches" @click="savePermissions">保存</button>
       </div>
     </div>
   </div>
@@ -29,100 +38,48 @@
 import axios from 'axios';
 
 export default {
+  props: ['isVisible'],
   data() {
     return {
-      branches: [], // 存儲 API 獲取的分店數據
-      selectedBranches: [] // 存儲選擇的分店
+      selectedBranches: [], // 已選擇的分店（多選）
+      allBranches: false, // 是否選擇了「所有分店」
+      branches: [] // 分店資料
     };
-  },
-  computed: {
-    isFormValid() {
-      // 表單驗證，當至少選擇了一個分店時表單才有效
-      return this.selectedBranches.length > 0;
-    }
   },
   methods: {
     closeModal() {
-      // 關閉模態框
       this.$emit('close');
     },
     savePermissions() {
-      // 傳遞選擇的分店權限並關閉模態框
-      this.$emit('save', this.selectedBranches);
+      if (!this.selectedBranches.length && !this.allBranches) {
+        alert('請選擇至少一個分店');
+        return;
+      }
+      // 處理保存邏輯
+      console.log('選擇的分店:', this.selectedBranches);
+      console.log('所有分店:', this.allBranches);
       this.closeModal();
     },
     async fetchBranches() {
-      // 從 API 獲取分店資料
       try {
-        const response = await axios.get('/api/branches/'); // 假設你在後端有 `/api/branches/` 這個 API
+        const response = await axios.get('/backend/branches/');
         this.branches = response.data;
       } catch (error) {
-        console.error('Error fetching branches:', error);
+        console.error('無法獲取分店資料:', error);
+      }
+    },
+    selectAllBranches() {
+      if (this.allBranches) {
+        // 如果選擇了「所有分店」，清空選中的單個分店
+        this.selectedBranches = [];
       }
     }
   },
   mounted() {
-    // 組件加載時調用 API 獲取分店資料
-    this.fetchBranches();
+    this.fetchBranches(); // 在組件掛載後獲取分店資料
   }
 };
 </script>
 
-<style scoped>
-.modal-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  text-align: center;
-}
-
-.checkbox-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 48%;
-}
-
-.save-btn {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 48%;
-}
-
-.save-btn:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-</style>
+<!-- 確保使用正確的路徑引入 CSS -->
+<style src="@/assets/css/backend/PermissionsModal.css"></style>
