@@ -109,8 +109,11 @@ body {
     background-color: #c82333;
 }
 
+/* 彈出式表單 */
 .modal {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     z-index: 1;
     left: 0;
@@ -119,15 +122,16 @@ body {
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
-    padding-top: 60px;
 }
 
 .modal-content {
     background-color: #fefefe;
-    margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .close {

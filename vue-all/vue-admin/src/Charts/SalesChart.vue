@@ -7,7 +7,6 @@
     </div>
   </ChartContainer>
 </template>
-
 <script>
 import { Chart as ChartJS, LineController, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
 import ChartContainer from '@/Charts/ChartContainer.vue';  // 引入通用容器组件
@@ -81,19 +80,19 @@ export default {
   }
 };
 </script>
-
 <style scoped>
-.chart-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 220px;  /* 白邊包住圖的寬度 */
-  height: 120px; /* 白邊包住圖的高度 */
-  background-color: #f8f9fa; /* 白邊顏色 */
+.resizable-container {
+  resize: both;
+  overflow: auto;
+  aspect-ratio: 16/9;
+  background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
   margin-left: auto;
   margin-right: auto;
+  display: block;
+  width: 320px; /* 調大初始寬度 */
+  height: 180px; /* 調大初始高度 */
 }
 
 .chart-inner {
@@ -102,11 +101,17 @@ export default {
   padding: 8px;
 }
 
-/* 超小屏幕 (如手机) */
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: inherit;
+}
+
+/* 手機螢幕 */
 @media (max-width: 480px) {
-  .chart-wrapper {
-    width: 200px;
-    height: 100px;
+  .resizable-container {
+    width: 250px;
+    height: auto;
   }
 
   .chart-inner {
@@ -114,11 +119,11 @@ export default {
   }
 }
 
-/* 小型设备 (如小平板) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .chart-wrapper {
-    width: 200px;
-    height: 100px;
+/* 平板 */
+@media (min-width: 481px) and (max-width: 1024px) {
+  .resizable-container {
+    width: 280px;
+    height: auto;
   }
 
   .chart-inner {
@@ -126,27 +131,16 @@ export default {
   }
 }
 
-/* 中型设备 (如大平板) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .chart-wrapper {
-    width: 200px;
-    height: 100px;
-  }
-
-  .chart-inner {
-    padding: 6px;
-  }
-}
-
-/* 大型设备 (如桌面) */
+/* 桌面設備 */
 @media (min-width: 1025px) {
-  .chart-wrapper {
-    width: 220px;
-    height: 120px;
+  .resizable-container {
+    width: 400px; /* 桌面版保持較大寬度 */
+    height: 225px; /* 桌面版保持較大高度 */
   }
 
   .chart-inner {
-    padding: 8px;
+    padding: 10px;
   }
 }
 </style>
+

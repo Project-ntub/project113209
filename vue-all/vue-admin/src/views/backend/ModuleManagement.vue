@@ -28,14 +28,30 @@
         </tr>
       </tbody>
     </table>
-    <ModuleForm v-if="showCreateModuleModal" @close="closeCreateModuleModal" @create="createModule" />
-    <ModuleForm v-if="showEditModuleModal" :moduleId="editModuleId" :moduleName="editModuleName" @close="closeEditModuleModal" @edit="editModule" />
+
+    <!-- 彈出式表單 (新增模組) -->
+    <div v-if="showCreateModuleModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeCreateModuleModal">&times;</span>
+        <h2>新增模組</h2>
+        <ModuleForm @close="closeCreateModuleModal" @create="createModule" />
+      </div>
+    </div>
+
+    <!-- 彈出式表單 (編輯模組) -->
+    <div v-if="showEditModuleModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeEditModuleModal">&times;</span>
+        <h2>編輯模組</h2>
+        <ModuleForm :moduleId="editModuleId" :moduleName="editModuleName" @close="closeEditModuleModal" @edit="editModule" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from '@/axios'; 
-import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; 
 import ModuleForm from '@/components/backend/ModuleForm.vue';
 
 export default {
@@ -59,7 +75,6 @@ export default {
     async loadModules() {
       try {
         const response = await axios.get('/api/backend/modules/');
-        console.log('Modules from backend:', response.data);
         this.modules = response.data.filter(module => !module.is_deleted) || [];
       } catch (error) {
         console.error('Error fetching modules:', error.response ? error.response.data : error.message);
@@ -112,7 +127,6 @@ export default {
     async deleteModule(id) {
       try {
         const response = await axios.delete(`/api/backend/modules/${id}/`);
-        console.log('Delete response:', response);
         if (response.status === 204) {
           this.loadModules();
           alert('刪除成功');

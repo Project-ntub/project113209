@@ -82,19 +82,20 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .resizable-container {
-  resize: both; /* 允许拖动 */
-  overflow: auto; /* 自动溢出 */
-  aspect-ratio: 16/9; /* 保持容器的宽高比 */
-  background-color: #f8f9fa; /* 白邊顏色 */
+  resize: both;
+  overflow: auto;
+  aspect-ratio: 16/9;
+  background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
   margin-left: auto;
   margin-right: auto;
-  display: block; /* 确保块级显示，以使resize生效 */
-  width: 220px; /* 默认宽度 */
-  height: auto; /* 自动高度 */
+  display: block;
+  width: 320px; /* 調大初始寬度 */
+  height: 180px; /* 調大初始高度 */
 }
 
 .chart-inner {
@@ -106,13 +107,13 @@ export default {
 canvas {
   width: 100% !important;
   height: 100% !important;
-  aspect-ratio: inherit; /* 保持 canvas 的宽高比 */
+  aspect-ratio: inherit;
 }
 
-/* 超小屏幕 (如手机) */
+/* 手機螢幕 */
 @media (max-width: 480px) {
   .resizable-container {
-    width: 200px;
+    width: 250px;
     height: auto;
   }
 
@@ -121,10 +122,10 @@ canvas {
   }
 }
 
-/* 小型设备 (如小平板) */
-@media (min-width: 481px) and (max-width: 768px) {
+/* 平板 */
+@media (min-width: 481px) and (max-width: 1024px) {
   .resizable-container {
-    width: 200px;
+    width: 280px;
     height: auto;
   }
 
@@ -133,27 +134,15 @@ canvas {
   }
 }
 
-/* 中型设备 (如大平板) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .resizable-container {
-    width: 200px;
-    height: auto;
-  }
-
-  .chart-inner {
-    padding: 6px;
-  }
-}
-
-/* 大型设备 (如桌面) */
+/* 桌面設備 */
 @media (min-width: 1025px) {
   .resizable-container {
-    width: 220px;
-    height: auto;
+    width: 400px; /* 桌面版保持較大寬度 */
+    height: 225px; /* 桌面版保持較大高度 */
   }
 
   .chart-inner {
-    padding: 8px;
+    padding: 10px;
   }
 }
 </style>
