@@ -25,6 +25,7 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.3",
     "mitt": "^3.0.1",
+    "plotly.js": "^2.35.0",
     "plotly.js-dist": "^2.35.0",
     "vue": "^3.4.38",
     "vue-apexcharts": "^1.6.2",

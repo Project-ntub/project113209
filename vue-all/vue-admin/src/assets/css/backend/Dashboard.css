@@ -1,8 +1,8 @@
+/* src\assets\css\backend\Dashboard.css */
 .dashboard-container {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  /* max-width: 100%; */
   margin: 0;
   padding: 20px;
   background-color: #ffffff;
@@ -40,17 +40,17 @@
 }
 
 .chart-selection {
-  display: flex;  /* 使用 flex 布局 */
-  justify-content: space-between; /* 在父容器中平分按鈕 */
-  align-items: center;  /* 垂直居中按鈕 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
 }
 
 .chart-controls {
-  display: flex; /* 使用 flex 布局 */
-  justify-content: space-between; /* 在父容器中平分按鈕 */
-  align-items: center; /* 垂直居中按鈕 */
-  gap: 10px; /* 增加按钮之间的间距 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
@@ -68,13 +68,12 @@
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 5px;
-  /* width: 100%;  確保按鈕寬度佔滿容器 */
 }
 
 .chart-button {
   background-color: #28a745; /* 綠色背景 */
   margin: 5px; /* 每個按鈕之間的距離 */
-  flex: 1;  /* 每個按鈕佔滿可用空間 */
+  flex: 1;
 }
 
 .chart-container {
@@ -83,14 +82,15 @@
   gap: 20px;
 }
 
-.chart-item {
+.chart-wrapper {
   flex: 1 1 300px;
-  min-width: 300px; /* 增加最小寬度以避免過度壓縮 */
+  min-width: 300px;
+  background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
+  position: relative; /* 確保縮放操作能夠正常工作 */
 }
 
 /* 響應式設計 */
@@ -126,7 +126,7 @@
   .chart-selection button,
   .chart-actions button {
     width: 100%;
-    margin-bottom: 10px; /* 增加按鈕之間的間距 */
+    margin-bottom: 10px;
   }
 
   .chart-container {
@@ -134,43 +134,42 @@
     align-items: stretch;
   }
 
-  .chart-item {
-    min-width: 100%; /* 保持適當的最小寬度 */
-    margin-bottom: 20px; /* 增加每個圖表項目之間的距離 */
+  .chart-wrapper {
+    min-width: 100%;
+    margin-bottom: 20px;
   }
 }
 
 /* 等比例縮放 */
 html {
-  font-size: 100%; /* 設置根元素的字體大小，根據需要調整 */
+  font-size: 100%;
 }
 
 body {
-  transform: scale(1); /* 默認比例，根據需要進行調整 */
-  transform-origin: top left; /* 縮放的原點設置為左上角 */
+  transform: scale(1);
+  transform-origin: top left;
 }
 
-/* 設置不同設備上的縮放 */
 @media (max-width: 1200px) {
   body {
-    transform: scale(0.9); /* 縮放比例為90% */
+    transform: scale(0.9);
   }
 }
 
 @media (max-width: 992px) {
   body {
-    transform: scale(0.8); /* 縮放比例為80% */
+    transform: scale(0.8);
   }
 }
 
 @media (max-width: 768px) {
   body {
-    transform: scale(0.7); /* 縮放比例為70% */
+    transform: scale(0.7);
   }
 }
 
 @media (max-width: 576px) {
   body {
-    transform: scale(0.6); /* 縮放比例為60% */
+    transform: scale(0.6);
   }
 }

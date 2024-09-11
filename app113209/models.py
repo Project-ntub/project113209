@@ -237,19 +237,18 @@ class UserPreference(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Preferences"
     
-class TEST_Inventory(models.Model):
-    inventory_id = models.AutoField(primary_key=True)
-    store_id = models.IntegerField()
-    product_id = models.IntegerField()
-    stock_quantity = models.IntegerField()
-    last_updated = models.DateTimeField(auto_now=True)
+class TEST_Stores(models.Model):
+    store_id = models.AutoField(primary_key=True)
+    store_name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'TEST_Inventory'
-    
-    def __str__(self):
-        return f"Inventory ID: {self.inventory_id}, Store ID: {self.store_id}, Product ID: {self.product_id}"
+        db_table = 'TEST_Stores'
 
+    def __str__(self):
+        return self.store_name
+    
 class TEST_Products(models.Model):
     product_id = models.AutoField(primary_key=True)
     product_name = models.CharField(max_length=255)
@@ -263,10 +262,24 @@ class TEST_Products(models.Model):
 
     def __str__(self):
         return self.product_name
+    
+class TEST_Inventory(models.Model):
+    inventory_id = models.AutoField(primary_key=True)
+    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # 將 store_id 變成外鍵，連結到 TEST_Stores
+    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE)  # 將 product_id 變成外鍵，連結到 TEST_Products
+    stock_quantity = models.IntegerField()
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'TEST_Inventory'
+    
+    def __str__(self):
+        return f"Inventory ID: {self.inventory_id}, Store: {self.store.store_name}, Product: {self.product.product_name}"
+
 
 class TEST_Revenue(models.Model):
     revenue_id = models.AutoField(primary_key=True)
-    store_name = models.CharField(max_length=255)
+    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # Link to TEST_Stores
     total_revenue = models.DecimalField(max_digits=15, decimal_places=2)
     revenue_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -275,12 +288,12 @@ class TEST_Revenue(models.Model):
         db_table = 'TEST_Revenue'
 
     def __str__(self):
-        return f"Revenue ID: {self.revenue_id}, Store: {self.store_name}, Date: {self.revenue_date}"
+        return f"Revenue ID: {self.revenue_id}, Store: {self.store.store_name}, Date: {self.revenue_date}"
 
 class TEST_Sales(models.Model):
     sale_id = models.AutoField(primary_key=True)
-    store_id = models.IntegerField()
-    product_id = models.IntegerField()
+    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # 將 store_id 變成外鍵，連結到 TEST_Stores
+    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE)  # 將 product_id 變成外鍵，連結到 TEST_Products
     quantity = models.IntegerField()
     sale_price = models.DecimalField(max_digits=10, decimal_places=2)
     sale_date = models.DateField()
@@ -291,19 +304,7 @@ class TEST_Sales(models.Model):
         db_table = 'TEST_Sales'
 
     def __str__(self):
-        return f"Sale ID: {self.sale_id}, Store ID: {self.store_id}, Product ID: {self.product_id}"
-
-class TEST_Stores(models.Model):
-    store_id = models.AutoField(primary_key=True)
-    store_name = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'TEST_Stores'
-
-    def __str__(self):
-        return self.store_name
+        return f"Sale ID: {self.sale_id}, Store: {self.store.store_name}, Product: {self.product.product_name}"
 
 
 #frontend

@@ -6,38 +6,35 @@ body {
   font-size: 16px;
 }
 
-.container {
-  max-width: 80vw;
-  margin: 10vh auto 20px auto;
+.main-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-left: 7vw;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
   background-color: #ffffff;
-  padding: 2vw;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  text-align: center;
-  min-width: 320px;
-  margin-left: 7vw;
 }
 
 .header {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 2vw;
+  margin-bottom: 1rem;
 }
 
 .header button {
-  margin: 1vw;
-  padding: 1vw 2vw;
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   background-color: #6c757d;
   color: white;
-  font-size: 1.2rem;
-  width: 100%;
-  max-width: 20vw;
-  min-width: 100px;
+  font-size: 1rem;
 }
 
 .header button.active {
@@ -57,20 +54,20 @@ body {
 
 .table-container {
   overflow-y: auto;
-  max-height: 60vh; /* 根据需要调整这个高度值 */
+  max-height: 60vh;
+  margin-top: 1rem;
 }
 
 .role-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 2vw;
+  font-size: 0.9rem; /* 調整字體大小 */
 }
 
 .role-table th, .role-table td {
   border: 1px solid #ddd;
-  padding: 1vw;
+  padding: 0.5rem;
   text-align: left;
-  font-size: 1.2rem;
 }
 
 .role-table th {
@@ -124,11 +121,8 @@ body {
 .switch {
   position: relative;
   display: inline-block;
-  width: 4vw;
-  height: 2vw;
-  margin: 0 auto;
-  min-width: 60px;
-  min-height: 30px;
+  width: 2rem; /* 更小的寬度 */
+  height: 1rem; /* 更小的高度 */
 }
 
 .switch input {
@@ -152,15 +146,13 @@ body {
 .slider:before {
   position: absolute;
   content: "";
-  height: 1.6vw;
-  width: 1.6vw;
-  left: 0.2vw;
-  bottom: 0.2vw;
+  height: 0.8rem; /* 更小的滑塊 */
+  width: 0.8rem;
+  left: 0.1rem;
+  bottom: 0.1rem;
   background-color: white;
   transition: .4s;
   border-radius: 50%;
-  min-width: 25px;
-  min-height: 25px;
 }
 
 input:checked + .slider {
@@ -168,7 +160,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(2vw);
+  transform: translateX(1rem); /* 調整滑塊的位移 */
 }
 
 @media (max-width: 768px) {

@@ -1,7 +1,7 @@
 <template>
   <TopNavbar title="角色管理" />
-  <div :class="['container', { shifted: isSidebarActive }]">
-    <!-- 添加遮罩層 -->
+  <div class="main-container">
+    <!-- 遮罩層 -->
     <div v-if="showCreateRoleModal || showEditRoleModal" class="modal-backdrop" @click="closeAllModals"></div>
 
     <div class="header">
@@ -9,13 +9,14 @@
       <button class="btn" @click="navigateToRoleManagement">角色</button>
       <button class="btn" @click="navigateToModuleManagement">模組</button>
     </div>
-    <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal">
-      <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
-    </RoleModal>
+    
+    <!-- 選擇模組的下拉選單 -->
     <select id="chart-module-select" v-model="selectedModule" @change="filterRolesByModule">
       <option value="all">所有模組</option>
       <option v-for="module in modules" :key="module.id" :value="module.id">{{ module.name }}</option>
     </select>
+
+    <!-- 角色表格 -->
     <div class="table-container">
       <table class="role-table">
         <thead>
@@ -28,7 +29,7 @@
             <th>操作</th>
           </tr>
         </thead>
-        <tbody id="role-tbody">
+        <tbody>
           <tr v-for="role in filteredRoles" :key="role.id" :data-module="role.module.id">
             <td>{{ role.name }}</td>
             <td>
@@ -45,17 +46,18 @@
             </td>
             <td>{{ role.module_name ? role.module_name : '未知模組' }}</td>
             <td>
-              <button class="permissions-btn" @click="openEditRoleModal(role.id)">
-                編輯角色
-              </button>
-              <button class="delete-btn" @click="deleteRole(role.id)">
-                刪除
-              </button>
+              <button class="permissions-btn" @click="openEditRoleModal(role.id)">編輯角色</button>
+              <button class="delete-btn" @click="deleteRole(role.id)">刪除</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <!-- 編輯角色和新增角色的模態窗口 -->
+    <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal">
+      <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
+    </RoleModal>
     <RoleModal :isVisible="showEditRoleModal" @close="closeEditRoleModal">
       <RoleForm :roleId="editingRoleId" @role-saved="fetchRoles" @close="closeEditRoleModal" />
     </RoleModal>
