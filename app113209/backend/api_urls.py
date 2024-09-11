@@ -10,6 +10,8 @@ router.register(r'modules', api_views.ModuleViewSet)
 router.register(r'roles', api_views.RoleViewSet)
 router.register(r'role_permissions', api_views.RolePermissionViewSet)
 router.register(r'pending-users', api_views.PendingUserViewSet, basename='pending-user')
+router.register(r'user_preferences', api_views.UserPreferencesViewSet, basename='user_preferences')
+
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -35,7 +37,7 @@ urlpatterns = [
     # 與用戶相關的視圖
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
     path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
-    path('user_preferences/', api_views.UserPreferenceView.as_view(), name='user_preferences'),
+    path('user_preferences/', api_views.UserPreferencesViewSet.as_view({'get': 'list', 'post': 'create'}), name='user_preferences'),
     path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
     path('departments/', api_views.UserViewSet.as_view({'get': 'get_departments'}), name='get_departments'),
     path('get_positions_by_department/<str:department_id>/', api_views.UserViewSet.as_view({'get': 'get_positions_by_department'}), name='get_positions_by_department'),

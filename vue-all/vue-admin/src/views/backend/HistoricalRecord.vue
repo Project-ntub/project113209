@@ -1,5 +1,4 @@
 <template>
-  <TopNavbar title="儀表板管理" />
   <div>
     <div class="container">
       <!-- Search Box -->
@@ -23,26 +22,29 @@
   
       <!-- History Records Section -->
       <div class="history-container">
-        <table class="history-table" id="history-table">
-          <thead>
-            <tr>
-              <th>編號</th>
-              <th>用戶</th>
-              <th>歷史操作</th>
-              <th>電子郵件</th>
-              <th>操作時間</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(record, index) in filteredRecords" :key="index">
-              <td>{{ index + 1 }}</td>
-              <td>{{ record.user ? record.user.username : '未知' }}</td>
-              <td>{{ record.action }}</td>
-              <td>{{ record.user ? record.user.email : 'N/A' }}</td>
-              <td>{{ formatDateTime(record.timestamp) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <h2>歷史紀錄</h2>
+        <div class="table-container">
+          <table class="history-table" id="history-table">
+            <thead>
+              <tr>
+                <th>編號</th>
+                <th>用戶</th>
+                <th>歷史操作</th>
+                <th>電子郵件</th>
+                <th>操作時間</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(record, index) in filteredRecords" :key="index">
+                <td>{{ index + 1 }}</td>
+                <td>{{ record.user ? record.user.username : '未知' }}</td>
+                <td>{{ record.action }}</td>
+                <td>{{ record.user ? record.user.email : 'N/A' }}</td>
+                <td>{{ formatDateTime(record.timestamp) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -50,20 +52,16 @@
 
 <script>
 import axios from '@/axios';
-import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
 
 export default {
   name: 'HistoricalRecord',
-  components: {
-    TopNavbar
-  },
   data() {
     return {
       searchQuery: '',
       isLoading: false,
       records: [],
       sortField: 'timestamp', // 默認排序字段
-      sortOrder: 'asc', // 默認排序順序
+      sortOrder: 'asc' // 默認排序順序
     };
   },
   computed: {
@@ -88,7 +86,7 @@ export default {
       });
 
       return records;
-    },
+    }
   },
   methods: {
     async fetchRecords() {
@@ -114,10 +112,10 @@ export default {
     },
     toggleSortOrder() {
       this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    },
+    }
   },
   mounted() {
     this.fetchRecords();
-  },
+  }
 };
 </script>

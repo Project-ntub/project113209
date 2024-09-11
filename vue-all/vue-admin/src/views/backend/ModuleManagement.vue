@@ -28,29 +28,45 @@
         </tr>
       </tbody>
     </table>
-    <ModuleForm v-if="showCreateModuleModal" @close="closeCreateModuleModal" @create="createModule" />
-    <ModuleForm v-if="showEditModuleModal" :moduleId="editModuleId" :moduleName="editModuleName" @close="closeEditModuleModal" @edit="editModule" />
+
+    <!-- 彈出式表單 (新增模組) -->
+    <div v-if="showCreateModuleModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeCreateModuleModal">&times;</span>
+        <h2>新增模組</h2>
+        <ModuleForm @close="closeCreateModuleModal" @create="createModule" />
+      </div>
+    </div>
+
+    <!-- 彈出式表單 (編輯模組) -->
+    <div v-if="showEditModuleModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeEditModuleModal">&times;</span>
+        <h2>編輯模組</h2>
+        <ModuleForm :moduleId="editModuleId" :moduleName="editModuleName" @close="closeEditModuleModal" @edit="editModule" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from '@/axios'; 
-import TopNavbar from '@/components/frontend/TopNavbar.vue'; // 引入前台的TopNavbar组件
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; 
 import ModuleForm from '@/components/backend/ModuleForm.vue';
 
 export default {
-  name: "ModuleManagement",
+  name: 'ModuleManagement',
   components: {
     TopNavbar,
-    ModuleForm,
+    ModuleForm
   },
   data() {
     return {
       modules: [],
       showCreateModuleModal: false,
       showEditModuleModal: false,
-      newModuleName: "",
-      editModuleName: "",
+      newModuleName: '',
+      editModuleName: '',
       editModuleId: null,
       isSidebarActive: false
     };
@@ -59,7 +75,6 @@ export default {
     async loadModules() {
       try {
         const response = await axios.get('/api/backend/modules/');
-        console.log('Modules from backend:', response.data);
         this.modules = response.data.filter(module => !module.is_deleted) || [];
       } catch (error) {
         console.error('Error fetching modules:', error.response ? error.response.data : error.message);
@@ -77,13 +92,13 @@ export default {
         if (response.status === 201) {
           this.loadModules();
           this.closeCreateModuleModal();
-          alert("新增模組成功");
+          alert('新增模組成功');
         } else {
-          alert("新增模組失敗");
+          alert('新增模組失敗');
         }
       } catch (error) {
         console.error('Error creating module:', error.response ? error.response.data : error.message);
-        alert("新增模組失敗");
+        alert('新增模組失敗');
       }
     },
     openEditModuleModal(id, name) {
@@ -100,29 +115,28 @@ export default {
         if (response.status === 200) {
           this.loadModules();
           this.closeEditModuleModal();
-          alert("編輯模組成功");
+          alert('編輯模組成功');
         } else {
-          alert("編輯模組失敗");
+          alert('編輯模組失敗');
         }
       } catch (error) {
         console.error('Error editing module:', error.response ? error.response.data : error.message);
-        alert("編輯模組失敗");
+        alert('編輯模組失敗');
       }
     },
     async deleteModule(id) {
       try {
         const response = await axios.delete(`/api/backend/modules/${id}/`);
-        console.log('Delete response:', response);
         if (response.status === 204) {
           this.loadModules();
-          alert("刪除成功");
+          alert('刪除成功');
         } else {
-          alert("刪除模組失敗");
+          alert('刪除模組失敗');
           console.error('Error deleting module:', response.data.message);
         }
       } catch (error) {
         console.error('Error deleting module:', error.response ? error.response.data : error.message);
-        alert("刪除模組失敗");
+        alert('刪除模組失敗');
       }
     },
     navigateToRoleManagement() {
@@ -137,7 +151,7 @@ export default {
     },
     toggleSidebar() {
       this.isSidebarActive = !this.isSidebarActive;
-    },
+    }
   },
   created() {
     this.loadModules();

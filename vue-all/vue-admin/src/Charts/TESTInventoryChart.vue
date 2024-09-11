@@ -13,7 +13,7 @@
     name: 'TESTInventoryChart',
     data() {
       return {
-        inventoryData: [],
+        inventoryData: []
       };
     },
     async mounted() {
@@ -34,18 +34,18 @@
           x: item.product_name,
           y: item.stock_level,
           type: 'bar',
-          name: '庫存量',
+          name: '庫存量'
         }));
   
         const layout = {
           title: '庫存圖表',
           xaxis: { title: '產品' },
-          yaxis: { title: '庫存量' },
+          yaxis: { title: '庫存量' }
         };
   
         Plotly.newPlot('inventory-chart', data, layout);
-      },
-    },
+      }
+    }
   };
   </script>
   

@@ -8,12 +8,12 @@
 
 <script>
 export default {
-  name: "LogoutSuccess",
+  name: 'LogoutSuccess',
   methods: {
     goToLogin() {
       this.$router.push({ name: 'login' });
-    },
-  },
+    }
+  }
 };
 </script>
 

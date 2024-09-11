@@ -41,7 +41,7 @@ import axios from '@/axios';
 export default {
   name: 'PendingList',
   components: {
-    TopNavbar,
+    TopNavbar
   },
   data() {
     return {

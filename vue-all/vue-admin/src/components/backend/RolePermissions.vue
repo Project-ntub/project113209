@@ -41,8 +41,8 @@ export default {
         can_delete: false,
         can_print: false,
         can_export: false,
-        can_maintain: false,
-      },
+        can_maintain: false
+      }
     };
   },
   methods: {
@@ -50,7 +50,7 @@ export default {
       try {
         const response = await axios.post('/api/backend/role_permissions/', {
           ...this.newPermission,
-          role: this.$route.params.roleId,
+          role: this.$route.params.roleId
         });
         if (response.status >= 200 && response.status < 300) {
           alert('新增成功');
@@ -67,7 +67,7 @@ export default {
     cancelPermission() {
       this.$emit('permission-cancelled');  // 通知父組件取消了新增權限
       this.$router.back();  // 返回到上一个页面
-    },
+    }
   }
 };
 </script>

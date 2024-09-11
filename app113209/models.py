@@ -224,18 +224,19 @@ class UserHistory(models.Model):
         return f"User {user_display} performed '{self.action}' on {device_brand} ({device_type}) with result {'success' if self.operation_result else 'failure'} at {self.timestamp}"
 
 
-class UserPreference(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    fontsize = models.CharField(max_length=10, default='medium')
-    notificationSettings = models.BooleanField(default=True)
+
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    fontsize = models.CharField(max_length=10, choices=[('small', '小'), ('medium', '中'), ('large', '大')], default='medium')
+    notificationSettings = models.BooleanField(default=False)
     autoLogin = models.BooleanField(default=False)
-    authentication = models.BooleanField(default=True)
+    authentication = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'userpreferences'
 
     def __str__(self):
-        return f"{self.user.username}'s Preferences"
+        return f"{self.user.username} 的偏好設置"
     
 class TEST_Stores(models.Model):
     store_id = models.AutoField(primary_key=True)

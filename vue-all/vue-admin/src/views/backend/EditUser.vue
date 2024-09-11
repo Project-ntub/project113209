@@ -53,8 +53,8 @@ export default {
         department_id: '',
         position_id: ''
       },
-      departments: ["銷售部", "人力資源部", "資訊部", "業務部", "財務部"],
-      positions: ["經理", "主管", "員工"]
+      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部'],
+      positions: ['經理', '主管', '員工']
     };
   },
   methods: {

@@ -1,3 +1,10 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
 
 .container {
   max-width: 1000px; /* 設置固定寬度 */
@@ -28,16 +35,18 @@
   text-align: left;
 }
 
-.user-table th {
-  background-color: #f2f2f2;
+/* 改變表格行的背景色，使其看起來像第二張圖 */
+.user-table tr {
+  background-color: #f9f9f9; /* 設置每行的背景顏色 */
 }
 
 .user-table tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f2f2f2; /* 偶數行顏色略深 */
 }
 
+/* 當滑過時變更顏色 */
 .user-table tr:hover {
-  background-color: #ddd;
+  background-color: #ddd; /* 鼠標懸停時加深背景顏色 */
 }
 
 .edit-btn,
@@ -76,7 +85,7 @@
   background-color: #1976D2;
 }
 
-/* Add responsive design */
+/* 加入響應式設計 */
 @media (max-width: 768px) {
   .header {
       flex-direction: column;

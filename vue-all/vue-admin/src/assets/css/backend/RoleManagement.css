@@ -165,7 +165,7 @@ input:checked + .slider:before {
 
 @media (max-width: 768px) {
   .container {
-    max-width: 90vw;
+    max-width: 100vw;  /* 在小螢幕上設置最大寬度為100vw */
   }
 
   .header {

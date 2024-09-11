@@ -31,7 +31,7 @@ export default {
   components: {
     VueResizable,
     PermissionModal,
-    ChartModal,
+    ChartModal
   },
   data() {
     return {
@@ -42,6 +42,10 @@ export default {
     };
   },
   methods: {
+    renderChart(){
+      // 在这里定义 renderChart 的逻辑
+      console.log('Rendering chart...');
+    },
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },
@@ -54,14 +58,14 @@ export default {
       this.showMenu = false;
     },
     exportChart() {
-      alert("匯出圖表");
+      alert('匯出圖表');
       this.showMenu = false;
     },
     onResize() {
       if (this.chartInstance) {
         Plotly.Plots.resize(this.$refs.chart);
       }
-    },
+    }
   },
   mounted() {
     this.$nextTick(() => {

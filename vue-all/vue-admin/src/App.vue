@@ -28,7 +28,7 @@ export default {
   },
   data() {
     return {
-      isSidebarActive: false,
+      isSidebarActive: false
     };
   },
   computed: {

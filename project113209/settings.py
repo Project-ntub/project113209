@@ -19,7 +19,7 @@ SECRET_KEY = 'django-insecure-y&%10_w2a%0v)(jqe46d2)mevjv0f^ro8!#+pu#67d%md8k8vr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip]
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.109']
 
 # Application definition
 
@@ -190,6 +190,8 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     f"http://{fixed_ip}:8080",  # 固定的 IP 地址
+    "http://192.168.168.109:8080",  # 手機的內部 IP 地址
+
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -198,7 +200,9 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     f"http://{fixed_ip}:8080",  # 固定的 IP 地址
+    "http://192.168.168.109:8080",  # 手機的內部 IP 地址
 ]
+
 
 LOGGING = {
     'version': 1,

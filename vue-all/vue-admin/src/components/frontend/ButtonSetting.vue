@@ -14,7 +14,7 @@
         this.$emit('show-chart', chartType);
       }
     }
-  }
+  };
   </script>
   
   <style scoped>

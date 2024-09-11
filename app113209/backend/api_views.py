@@ -14,12 +14,12 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from app113209.models import (User, Module, Role, RolePermission, UserHistory, 
-                              UserPreference, ChartConfiguration, TEST_Inventory, 
-                              TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
+                             UserPreferences, ChartConfiguration, UserPreference, 
+                             TEST_Inventory, TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer,
                                    ChartConfigurationSerializer, SalesDataSerializer,
-                                   RevenueDataSerializer, InventoryDataSerializer)
+                                   RevenueDataSerializer, InventoryDataSerializer, UserPreferencesSerializer)
 from app113209.utils import record_history
 from plotly.graph_objs import Bar, Scatter, Pie
 # from generate_chart import save_chart_as_image

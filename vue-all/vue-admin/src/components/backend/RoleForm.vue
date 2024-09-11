@@ -76,7 +76,7 @@
 import axios from '@/axios';
 
 export default {
-  name: "RoleForm",
+  name: 'RoleForm',
   props: {
     roleId: {
       type: Number,
@@ -105,22 +105,22 @@ export default {
           users: this.localRole.users,
           permissions: this.rolePermissions  // 确保权限数据包含在请求中
         };
-        console.log("Sending role data:", roleData);
+        console.log('Sending role data:', roleData);
         const response = this.isEdit
           ? await axios.put(`/api/backend/roles/${this.localRole.id}/`, roleData)
-          : await axios.post("/api/backend/roles/", roleData);
+          : await axios.post('/api/backend/roles/', roleData);
 
         if (response.status === 200 || response.status === 201) {
-          alert("保存成功");
+          alert('保存成功');
           await this.fetchRolePermissions(this.localRole.id);
           this.$emit('role-saved');
           this.$emit('close');
         } else {
-          alert("保存失敗");
+          alert('保存失敗');
         }
       } catch (error) {
         console.error('Error saving role:', error.response ? error.response.data : error.message);
-        alert("保存失敗");
+        alert('保存失敗');
       }
     },
     async fetchUsers() {
@@ -135,7 +135,7 @@ export default {
       try {
         const response = await axios.get('/api/backend/modules/');
         this.availableModules = response.data;
-        console.log("Avaliable Modules:", this.availableModules);
+        console.log('Avaliable Modules:', this.availableModules);
       } catch (error) {
         console.error('Error fetching modules:', error);
       }
@@ -188,7 +188,7 @@ export default {
         const role = response.data;
 
         // 确认 role.module 是模块的 ID
-        console.log("API返回的Role:", role);
+        console.log('API返回的Role:', role);
 
         this.localRole = {
           id: role.id,
@@ -198,7 +198,7 @@ export default {
           is_active: role.is_active
         };
 
-        console.log("当前角色模块 ID:", this.localRole.module);
+        console.log('当前角色模块 ID:', this.localRole.module);
 
         await this.fetchRolePermissions(roleId);
 
@@ -206,7 +206,7 @@ export default {
 
         // 确保在 DOM 更新后模块已经加载正确
         this.$nextTick(() => {
-          console.log("DOM 更新完成，模块已加载:", this.localRole.module);
+          console.log('DOM 更新完成，模块已加载:', this.localRole.module);
         });
       } catch (error) {
         console.error('加载角色信息时出错:', error.response ? error.response.data : error.message);

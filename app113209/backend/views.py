@@ -2,8 +2,8 @@
 import logging
 import uuid
 import json
-from app113209.models import User, Role, RolePermission, Module, UserPreference, UserHistory
-from app113209.serializers import UserSerializer, RoleSerializer, ModuleSerializer, RolePermissionSerializer
+from app113209.models import User, Role, RolePermission, Module, UserHistory, Branch
+from app113209.serializers import UserSerializer, RoleSerializer, ModuleSerializer, RolePermissionSerializer, BranchSerializer
 from app113209.utils import record_history
 from datetime import timedelta
 from django.contrib.auth import get_user_model
@@ -18,6 +18,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import render
+
+from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -226,3 +228,27 @@ def delete_module(request, module_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Module.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+# 圖表權限設置
+# backend/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+class BranchListAPIView(APIView):
+    def get(self, request):
+        # 從資料庫中獲取所有分店資料
+        branches = Branch.objects.all()
+        serializer = BranchSerializer(branches, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class SavePermissionsAPIView(APIView):
+    def post(self, request):
+        selected_branches = request.data.get('selected_branches', [])
+        
+        if not selected_branches:
+            return Response({"error": "請選擇至少一個分店"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 處理保存邏輯，例如將分店與用戶或角色進行綁定
+        # 假設我們將選擇的分店與某個用戶/角色綁定
+        # 這裡省略具體的邏輯，只是模擬返回
+        return Response({"message": "權限設置已保存"}, status=status.HTTP_200_OK)

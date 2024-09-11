@@ -9,7 +9,7 @@
 
 <script>
 export default {
-  name: "RoleModal",
+  name: 'RoleModal',
   props: {
     isVisible: {
       type: Boolean,

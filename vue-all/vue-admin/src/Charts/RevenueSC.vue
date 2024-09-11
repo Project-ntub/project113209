@@ -41,7 +41,7 @@ export default {
             label: 'Scatter Dataset',
             backgroundColor: '#ff6384',
             borderColor: '#ff6384',
-            data: [{ x: 10, y: 20 }, { x: 15, y: 10 }, { x: 20, y: 25 }, { x: 30, y: 35 }],
+            data: [{ x: 10, y: 20 }, { x: 15, y: 10 }, { x: 20, y: 25 }, { x: 30, y: 35 }]
           }
         ]
       }

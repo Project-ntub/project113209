@@ -28,7 +28,7 @@ import axios from 'axios';
 export default {
   data() {
     return {
-      detail: null,
+      detail: null
     };
   },
   mounted() {

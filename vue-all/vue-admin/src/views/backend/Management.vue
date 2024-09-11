@@ -40,7 +40,7 @@ export default {
     return {
       isSidebarActive,
       toggleSidebar,
-      hasRouteComponent,
+      hasRouteComponent
     };
   }
 };

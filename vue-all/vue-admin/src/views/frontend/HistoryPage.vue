@@ -1,36 +1,3 @@
-<template>
-  <div>
-    <SidebarPage />
-    <div class="history-page">
-      <div class="container">
-        <div v-if="!isLoggedIn" class="no-history centered-content">
-          <p>未登入，無紀錄顯示。</p>
-        </div>
-        <div v-else>
-          <div class="search-container centered-content">
-            <input type="text" id="searchInput" placeholder="搜尋紀錄..." v-model="searchQuery">
-            <button @click="filterTimeline">搜尋</button>
-          </div>
-          <ul class="timeline centered-content" id="timeline">
-            <li class="timeline-item" v-for="item in filteredItems" :key="item.id" @click="showDetail(item.id)">
-              <div class="timeline-panel">
-                <div class="timeline-heading">
-                  <h4>{{ item.action_time }}</h4>
-                </div>
-                <div class="timeline-body">
-                  <p>{{ item.action_description }}</p>
-                  <p v-if="item.additional_info">更多信息: {{ item.additional_info }}</p>
-                  <div class="timeline-user">使用者: {{ item.user }}</div>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
 import SidebarPage from '@/components/frontend/SidebarPage.vue';
 import axios from 'axios';
@@ -44,8 +11,8 @@ export default {
     return {
       searchQuery: '',
       items: [],
-      isLoggedIn: false,
-    }
+      isLoggedIn: false // 刪除逗號
+    };
   },
   computed: {
     filteredItems() {
@@ -106,55 +73,58 @@ export default {
   mounted() {
     this.checkLoginStatus();
   }
-}
+}; 
 </script>
 
-<style scoped>
-.history-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
 
-.container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  text-align: center;
-}
-
-.centered-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-
-.no-history {
-  font-size: 18px;
-  color: #555;
-}
-
-.search-container {
-  margin-bottom: 20px;
-}
-
-.timeline {
-  list-style: none;
-  padding: 0;
-}
-
-.timeline-item {
-  margin-bottom: 20px;
-}
-
-.timeline-panel {
-  background: #f8f9fa;
-  border-radius: 5px;
-  padding: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: left;
-}
-</style>
+  
+  <style scoped>
+  .history-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .centered-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  
+  .no-history {
+    font-size: 18px;
+    color: #555;
+  }
+  
+  .search-container {
+    margin-bottom: 20px;
+  }
+  
+  .timeline {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .timeline-item {
+    margin-bottom: 20px;
+  }
+  
+  .timeline-panel {
+    background: #f8f9fa;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: left;
+  }
+  </style>
+  

@@ -18,18 +18,18 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
     name: 'AppLayout', // 更改组件名称以符合 ESLint 规则
     components: {
       SidebarPage,
-      TopNavbar,
+      TopNavbar
     },
     data() {
       return {
-        isSidebarExpanded: false, // 控制侧边栏展开或收起状态
+        isSidebarExpanded: false // 控制侧边栏展开或收起状态
       };
     },
     methods: {
       handleSidebarToggle(isExpanded) {
         this.isSidebarExpanded = isExpanded; // 更新侧边栏状态
-      },
-    },
+      }
+    }
   };
   </script>
   

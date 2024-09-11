@@ -45,6 +45,7 @@ export default {
         })
         .catch(error => {
           console.error('Error fetching chart data:', error);
+          console.error('Error fetching chart data:', error);
         });
     },
     renderChart(xData, yData) {

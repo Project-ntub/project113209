@@ -13,7 +13,7 @@
     name: 'TESTRevenueChart',
     data() {
       return {
-        revenueData: [],
+        revenueData: []
       };
     },
     async mounted() {
@@ -34,18 +34,18 @@
           x: item.revenue_date,
           y: item.total_revenue,
           type: 'bar',
-          name: '營業額',
+          name: '營業額'
         }));
   
         const layout = {
           title: '營業額圖表',
           xaxis: { title: '日期' },
-          yaxis: { title: '營業額' },
+          yaxis: { title: '營業額' }
         };
   
         Plotly.newPlot('revenue-chart', data, layout);
-      },
-    },
+      }
+    }
   };
   </script>
   

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch
 from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, TEST_Inventory, TEST_Revenue
 
 
@@ -80,6 +81,21 @@ class SalesDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = TEST_Sales
         fields = '__all__'  # 或者指定要序列化的字段
+
+
+class UserPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPreferences
+        fields = ['id', 'user_id', 'fontsize', 'notificationSettings', 'autoLogin', 'authentication']
+        
+# 圖表權限
+
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['branch_id', 'branch_name']
+
 
 class InventoryDataSerializer(serializers.ModelSerializer):
     store_name = serializers.CharField(source='store.store_name', read_only=True)

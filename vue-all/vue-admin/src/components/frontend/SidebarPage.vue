@@ -33,7 +33,7 @@
 import axios from 'axios';
 
 export default {
-  name: "SidebarPage",
+  name: 'SidebarPage',
   data() {
     return {
       isSidebarOpen: false,
@@ -45,13 +45,13 @@ export default {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
     confirmLogout() {
-      const confirmed = confirm("確定要登出嗎？");
+      const confirmed = confirm('確定要登出嗎？');
       if (confirmed) {
         this.logout();
       }
     },
     logout() {
-      alert("已登出");
+      alert('已登出');
       this.$router.push('/frontend/login');
     },
     async fetchUserData() {
