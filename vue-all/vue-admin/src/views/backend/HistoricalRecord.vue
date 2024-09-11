@@ -1,4 +1,5 @@
 <template>
+  <TopNavbar title="歷史紀錄" />
   <div>
     <div class="container">
       <!-- Search Box -->
@@ -22,7 +23,6 @@
   
       <!-- History Records Section -->
       <div class="history-container">
-        <h2>歷史紀錄</h2>
         <div class="table-container">
           <table class="history-table" id="history-table">
             <thead>
@@ -52,9 +52,14 @@
 
 <script>
 import axios from '@/axios';
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; 
+
 
 export default {
   name: 'HistoricalRecord',
+  components: {
+    TopNavbar,
+  },
   data() {
     return {
       searchQuery: '',

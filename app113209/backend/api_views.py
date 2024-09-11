@@ -14,7 +14,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from app113209.models import (User, Module, Role, RolePermission, UserHistory, 
-                             UserPreferences, ChartConfiguration, UserPreference, 
+                             UserPreferences, ChartConfiguration, UserPreferences, 
                              TEST_Inventory, TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer,
@@ -423,72 +423,9 @@ class UserHistoryListView(APIView):
         return Response({"message": "Record added successfully", "record_id": new_record.id}, status=status.HTTP_201_CREATED)
 
 
-class UserPreferenceView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            preferences = UserPreference.objects.first()  # 取得偏好設定
-            if preferences:
-                data = {
-                    'user_id': preferences.user_id,
-                    'fontsize': preferences.fontsize,
-                    'notificationSettings': preferences.notificationSettings,
-                    'autoLogin': preferences.autoLogin,
-                    'authentication': preferences.authentication
-                }
-                return Response(data)
-            else:
-                return Response({'error': '無法找到偏好設定'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            logger.error(f"取得偏好設定時發生錯誤：{e}")
-            return Response({'error': '內部伺服器錯誤'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def post(self, request):
-        try:
-            data = request.data
-            preferences = get_object_or_404(UserPreference, user_id=data['user_id'])
-            preferences.fontsize = data.get('fontsize', preferences.fontsize)
-            preferences.notificationSettings = data.get('notificationSettings', preferences.notificationSettings)
-            preferences.autoLogin = data.get('autoLogin', preferences.autoLogin)
-            preferences.authentication = data.get('authentication', preferences.authentication)
-            preferences.save()
-            return Response({'status': '成功'}, status=status.HTTP_200_OK)
-        except UserPreference.DoesNotExist:
-            logger.error("更新時找不到偏好設定")
-            return Response({'error': '找不到偏好設定'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            logger.error(f"更新偏好設定時發生錯誤：{e}")
-            return Response({'error': '內部伺服器錯誤'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def put(self, request):
-        try:
-            data = request.data
-            new_preference = UserPreference(
-                fontsize=data['fontsize'],
-                notificationSettings=data['notificationSettings'],
-                autoLogin=data['autoLogin'],
-                authentication=data['authentication']
-            )
-            new_preference.save()
-            return Response({'status': 'success'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Error adding preference: {e}")
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def delete(self, request):
-        try:
-            data = request.data
-            preferences = get_object_or_404(UserPreference, user_id=data['user_id'])
-            preferences.delete()
-            return Response({'status': 'success'}, status=status.HTTP_200_OK)
-        except UserPreference.DoesNotExist:
-            logger.error("Preferences not found for deletion")
-            return Response({'error': 'Preferences not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            logger.error(f"Error deleting preference: {e}")
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+class UserPreferencesViewSet(viewsets.ModelViewSet):
+    queryset = UserPreferences.objects.all()
+    serializer_class = UserPreferencesSerializer
 
 # 圖表
 # 返回可用的資料表列表
