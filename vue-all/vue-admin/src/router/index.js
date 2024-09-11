@@ -13,9 +13,8 @@ import HistoryPage from '@/views/frontend/HistoryPage.vue';
 import HistoryDetails from '@/views/frontend/HistoryDetails.vue';
 import ManagerHome from '@/views/frontend/ManagerHome.vue';
 import BranchManagerHome from '@/views/frontend/BranchManagerHome.vue';
-// import ResetPasswordPage from '@/views/frontend/ResetPasswordPage.vue';
 
-// Backend Views 保持不變...
+// Backend Views
 import Login from '@/views/backend/Login.vue';
 import Register from '@/views/backend/Register.vue';
 import ForgetPassword from '@/views/backend/ForgetPassword.vue';
@@ -76,5 +75,18 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 });
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token');  // 檢查 token 是否存在
+  
+  if (!token && to.name !== 'FrontendLogin') {
+    // 如果沒有 token，且不是登入頁，則跳轉到登入頁
+    next({ name: 'FrontendLogin' });
+  } else {
+    // 否則，允許繼續導航
+    next();
+  }
+});
+
 
 export default router;

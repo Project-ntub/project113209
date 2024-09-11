@@ -3,7 +3,7 @@
     <div :class="['sidebar', { open: isSidebarOpen }]">
       <div class="sidebar-header">
         <font-awesome-icon icon="user" class="icon" />
-        <span v-if="isSidebarOpen">{{ username }}</span> <!-- 只在展开时显示 -->
+        <span v-if="isSidebarOpen">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
       <router-link to="/frontend/home" class="sidebar-link">
@@ -37,7 +37,7 @@ export default {
   data() {
     return {
       isSidebarOpen: false,
-      username: '' // 用来存储用户名
+      username: '' // 用來存儲用戶名
     };
   },
   methods: {
@@ -47,24 +47,48 @@ export default {
     confirmLogout() {
       const confirmed = confirm('確定要登出嗎？');
       if (confirmed) {
-        this.logout();
+        this.handleLogout(); // 調用 handleLogout 方法進行登出
       }
     },
-    logout() {
-      alert('已登出');
-      this.$router.push('/frontend/login');
+    async handleLogout() {
+      try {
+        // 發送登出請求到後端，清除 session
+        await axios.get('/frontend/logout/');
+
+        // 清除前端的 localStorage 和 sessionStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('branch_id');
+        localStorage.removeItem('position');
+
+        // 防止使用返回按鈕回到已登入頁面
+        history.replaceState(null, null, '/frontend/login');
+        window.addEventListener('popstate', () => {
+          history.pushState(null, null, document.URL);
+        });
+
+        // 導向登入頁面
+        this.$router.push('/frontend/login');
+
+        // 強制刷新頁面，清除所有舊的狀態
+        setTimeout(() => {
+          location.reload();
+        }, 100);
+
+      } catch (error) {
+        console.error('登出失敗', error);
+      }
     },
     async fetchUserData() {
       try {
-        const response = await axios.get('/api/frontend/profile/'); // 替换为你的用户信息 API 路径
+        const response = await axios.get('/api/frontend/profile/');
         this.username = response.data.username;
       } catch (error) {
-        console.error('Failed to fetch user data:', error);
+        console.error('無法獲取用戶資料:', error);
       }
     }
   },
   mounted() {
-    this.fetchUserData(); // 获取用户信息
+    this.fetchUserData(); // 進入頁面時加載用戶資料
   }
 };
 </script>
