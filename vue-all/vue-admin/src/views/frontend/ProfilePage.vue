@@ -45,13 +45,14 @@ export default {
         email: '',
         phone: '',
         department_id: '',
-        position_id: ''
+        position_id: '',
       },
       editData: {},
       isEditing: false
     };
   },
   methods: {
+    // 獲取用戶資料
     async fetchUserProfile() {
       try {
         const response = await axios.get('/api/frontend/profile/');
@@ -60,22 +61,42 @@ export default {
         console.error('Error fetching user profile:', error);
       }
     },
+    // 編輯用戶資料
     editProfile() {
       this.editData = { ...this.userData };
       this.isEditing = true;
     },
+    // 取消編輯
     cancelEdit() {
       this.isEditing = false;
     },
+    // 保存用戶資料並紀錄歷史
     async saveProfile() {
       try {
+        // 更新個人資訊
         await axios.put('/api/frontend/profile/', this.editData);
         this.userData = { ...this.editData };
         this.isEditing = false;
         alert('個人信息已更新');
+
+        // 發送成功的歷史紀錄
+        await this.recordHistory({
+          action: '更新個人資訊',
+          operation_result: 1  // 操作成功
+        });
+
       } catch (error) {
         console.error('Error saving profile:', error);
         alert('保存失敗');
+      }
+    },
+    // 發送歷史紀錄
+    async recordHistory(historyData) {
+      try {
+        await axios.post('/api/frontend/history/', historyData);
+        console.log('歷史紀錄成功');
+      } catch (error) {
+        console.error('歷史紀錄失敗:', error);
       }
     }
   },
