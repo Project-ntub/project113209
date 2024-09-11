@@ -5,15 +5,15 @@
 </template>
 
 <script>
-import VueResizable from 'vue-resizable';
+// import VueResizable from 'vue-resizable';
 import axios from 'axios';
 import Plotly from 'plotly.js-dist';
 
 export default {
   props: ['chartConfig'],
-  components: {
-    VueResizable
-  },
+  // components: {
+  //   VueResizable
+  // },
   watch: {
     chartConfig: {
       deep: true,

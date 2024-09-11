@@ -23,13 +23,13 @@
 
 <script>
 import Plotly from 'plotly.js-dist';
-import VueResizable from 'vue-resizable';
+// import VueResizable from 'vue-resizable';
 import PermissionModal from '@/components/backend/PermissionModal.vue';
 import ChartModal from '@/components/backend/ChartModal.vue';
 
 export default {
   components: {
-    VueResizable,
+    // VueResizable,
     PermissionModal,
     ChartModal
   },
