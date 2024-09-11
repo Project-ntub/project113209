@@ -1,23 +1,28 @@
 # C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
+import os
+import uuid
 import json
 import logging
-import plotly.graph_objs as go
+import plotly.graph_objects as go
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from django.http import JsonResponse
-from django.db.models import F  # 添加这行
+from django.db.models import F, Sum  # 添加这行
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from app113209.models import (User, Module, Role, RolePermission, UserHistory, 
-                             UserPreferences, ChartConfiguration, TEST_Inventory, 
-                              TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
+                             UserPreferences, ChartConfiguration, UserPreferences, 
+                             TEST_Inventory, TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
-                                   RolePermissionSerializer, UserHistorySerializer, 
-                                   ChartConfigurationSerializer, SalesDataSerializer, UserPreferencesSerializer)
+                                   RolePermissionSerializer, UserHistorySerializer,
+                                   ChartConfigurationSerializer, SalesDataSerializer,
+                                   RevenueDataSerializer, InventoryDataSerializer, UserPreferencesSerializer)
 from app113209.utils import record_history
 from plotly.graph_objs import Bar, Scatter, Pie
+# from generate_chart import save_chart_as_image
 
 
 logger = logging.getLogger(__name__)
@@ -422,12 +427,10 @@ class UserPreferencesViewSet(viewsets.ModelViewSet):
     queryset = UserPreferences.objects.all()
     serializer_class = UserPreferencesSerializer
 
-
-
 # 圖表
+# 返回可用的資料表列表
 @api_view(['GET'])
 def get_data_sources(request):
-    # 返回可用的資料表列表
     data_sources = [
         {"label": "TEST_Inventory", "value": "TEST_Inventory"},
         {"label": "TEST_Products", "value": "TEST_Products"},
@@ -437,9 +440,10 @@ def get_data_sources(request):
     ]
     return Response(data_sources)
 
+
+# 根據資料表獲取欄位
 @api_view(['GET'])
 def get_table_fields(request, table_name):
-    # 根據 table_name 獲取相應的欄位名稱
     fields = []
     if table_name == "TEST_Inventory":
         fields = [field.name for field in TEST_Inventory._meta.fields]
@@ -454,6 +458,20 @@ def get_table_fields(request, table_name):
     
     return Response(fields)
 
+# 動態生成圖表
+def create_chart(chart_type, x_data, y_data):
+    if chart_type == 'line':
+        return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
+    elif chart_type == 'bar':
+        return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
+    elif chart_type == 'pie':
+        return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+    elif chart_type == 'scatter':
+        return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
+    return go.Figure()  # 預設返回空白圖表
+
+
+# API：生成互動圖表（返回JSON格式）
 class ChartDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -463,47 +481,60 @@ class ChartDataAPIView(APIView):
         x_data = chart_config.get('x_data')
         y_data = chart_config.get('y_data')
 
-        fig = self.create_chart(chart_type, x_data, y_data)
+        fig = create_chart(chart_type, x_data, y_data)
         chart_json = fig.to_json()
         return JsonResponse(chart_json, safe=False)
 
-    def create_chart(self, chart_type, x_data, y_data):
-        if chart_type == 'line':
-            return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
-        elif chart_type == 'bar':
-            return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
-        elif chart_type == 'pie':
-            return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
-        elif chart_type == 'scatter':
-            return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
-        # 添加更多圖表類型支持
-        return go.Figure()
 
+# API：生成圖表並保存為圖片
+@api_view(['POST'])
+def generate_chart_image(request):
+    chart_type = request.data.get('chart_type')
+    x_data = request.data.get('x_data')
+    y_data = request.data.get('y_data')
+
+    file_name = f"chart_{uuid.uuid4().hex}.png"
+    file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+
+    fig = create_chart(chart_type, x_data, y_data)
+    fig.write_image(file_path)
+
+    return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
+
+# API：儲存圖表配置
+@api_view(['POST'])
+def save_chart_configuration(request):
+    user = request.user
+    config_data = request.data
+
+    ChartConfiguration.objects.create(
+        user=user,
+        chart_type=config_data['chart_type'],
+        data_source=config_data['data_source'],
+        x_axis_field=config_data['x_axis_field'],
+        y_axis_field=config_data['y_axis_field'],
+        filter_conditions=config_data['filter_conditions']
+    )
+    return Response({"message": "圖表配置已儲存"}, status=201)
+
+# API：根據圖表配置獲取數據
+@api_view(['GET'])
+def get_chart_data(request, chart_id):
+    config = get_object_or_404(ChartConfiguration, id=chart_id)
+    data = fetch_data_from_source(config.data_source, config.filter_conditions)
+    return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
+
+# API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
     queryset = ChartConfiguration.objects.all()
     serializer_class = ChartConfigurationSerializer
     permission_classes = [IsAuthenticated]
-
-    # def generate_chart(self, configuration):
-    #     data = fetch_data_from_source(configuration.data_source, configuration.filter_conditions)
-    #     fig = self.create_chart(configuration.chart_type, data[configuration.x_axis_field], data[configuration.y_axis_field])
-    #     return fig.to_json()
-
-    def create_chart(self, chart_type, x_data, y_data):
-        if chart_type == 'line':
-            return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
-        elif chart_type == 'bar':
-            return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
-        elif chart_type == 'pie':
-            return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
-        return go.Figure()
 
     @action(detail=False, methods=['post'])
     def create_chart_action(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            record_history(request.user, f"用户 {request.user.username} 创建了图表 {serializer.data['name']}")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -513,78 +544,54 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(chart_config, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            record_history(request.user, f"用户 {request.user.username} 更新了图表 {serializer.data['name']}")
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-def revenue_chart_data(request):
-    # 獲取營收圖表數據
-    revenue_data = TEST_Revenue.objects.values('store_name', 'total_revenue')
-    x = [item['store_name'] for item in revenue_data]
-    y = [item['total_revenue'] for item in revenue_data]
-
-    # 準備 Plotly 數據
-    data = [Bar(x=x, y=y)]
-    layout = {'title': '各店營收'}
-    chart_json = {
-        'data': [d.to_plotly_json() for d in data],
-        'layout': layout
-    }
-
-    return JsonResponse(chart_json)
-
-@api_view(['GET'])
-def sales_chart_data(request):
-    # 從資料庫中獲取銷售數據
-    sales_data = TEST_Sales.objects.all()
-    
-    # 創建一個數據框架
-    x = [item.store_id for item in sales_data]
-    y = [float(item.sale_price) * item.quantity for item in sales_data]  # 假設每個項目有 store_id 和 sale_price
-
-    # 使用 Plotly 創建柱狀圖
-    fig = go.Figure(data=[go.Bar(x=x, y=y)])
-    fig.update_layout(title='各商店銷售額')
-
-    # 將圖表數據轉換為 JSON 格式
-    chart_json = fig.to_plotly_json()
-    
-    return JsonResponse(chart_json, safe=False)
-
-@api_view(['GET'])
-def inventory_chart_data(request):
-    # 獲取庫存圖表數據
-    inventory_data = TEST_Inventory.objects.values('product_id', 'stock_quantity')
-    x = [item['product_id'] for item in inventory_data]
-    y = [item['stock_quantity'] for item in inventory_data]
-
-    # 準備 Plotly 數據
-    data = [Bar(x=x, y=y)]
-    layout = {'title': '各產品庫存量'}
-    chart_json = {
-        'data': [d.to_plotly_json() for d in data],
-        'layout': layout
-    }
-
-    return JsonResponse(chart_json)
-
-class InventoryDataAPIView(APIView):
-    def get(self, request):
-        # 獲取 TEST_Inventory 數據
-        inventory_data = list(TEST_Inventory.objects.values())
-        return JsonResponse(inventory_data, safe=False)
-    
+# 銷售數據 API
 class SalesDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        # 獲取 TEST_Sales 數據
+        # 從資料庫中取得銷售數據
         sales_data = TEST_Sales.objects.all()
         serializer = SalesDataSerializer(sales_data, many=True)
         return Response(serializer.data)
-    
+
+# 營業額數據 API
 class RevenueDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        # 獲取 TEST_Revenue 數據
-        revenue_data = list(TEST_Revenue.objects.values())
-        return JsonResponse(revenue_data, safe=False)
-    
+        # 從資料庫中取得營業額數據
+        revenue_data = TEST_Revenue.objects.all()
+        serializer = RevenueDataSerializer(revenue_data, many=True)
+        return Response(serializer.data)
+
+# 庫存數據 API
+class InventoryDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 從資料庫中取得庫存數據
+        inventory_data = TEST_Inventory.objects.all()
+        serializer = InventoryDataSerializer(inventory_data, many=True)
+        return Response(serializer.data)
+
+
+# @api_view(['POST'])
+# def generate_chart_image(request):
+#     # 從請求中獲取數據
+#     chart_type = request.data.get('chart_type')
+#     x_data = request.data.get('x_data')
+#     y_data = request.data.get('y_data')
+
+#     # 動態生成文件名
+#     file_name = f"chart_{uuid.uuid4().hex}.png"
+#     file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+
+#     # 呼叫生成圖表函數
+#     save_chart_as_image(chart_type, x_data, y_data, file_path)
+
+#     # 返回生成的圖片路徑
+#     return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
+

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch
+from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, TEST_Inventory, TEST_Revenue
+
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -93,3 +95,21 @@ class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = ['branch_id', 'branch_name']
+
+
+class InventoryDataSerializer(serializers.ModelSerializer):
+    store_name = serializers.CharField(source='store.store_name', read_only=True)
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+
+    class Meta:
+        model = TEST_Inventory
+        fields = ['inventory_id', 'store', 'store_name', 'product', 'product_name', 'stock_quantity', 'last_updated']
+
+class RevenueDataSerializer(serializers.ModelSerializer):
+    store_name = serializers.CharField(source='store.store_name', read_only=True)
+
+    class Meta:
+        model = TEST_Revenue
+        fields = ['revenue_id', 'store', 'store_name', 'total_revenue', 'revenue_date', 'created_at']  
+
+        

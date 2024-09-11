@@ -1,6 +1,6 @@
 <template>
+  <TopNavbar title="個人偏好管理" />
   <div class="personal-preference-container">
-    <h1>個人偏好管理</h1>
     <table class="preferences-table">
       <thead>
         <tr>
@@ -28,9 +28,14 @@
 
 <script>
 import axios from 'axios';
+import TopNavbar from '@/components/frontend/TopNavbar.vue'; 
+
 
 export default {
   name: 'PersonalPreference',
+  components: {
+    TopNavbar,
+  },
   data() {
     return {
       preferences: []

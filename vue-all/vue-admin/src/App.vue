@@ -1,3 +1,4 @@
+<!-- src\App.vue -->
 <template>
   <div id="app" :class="{ shifted: isSidebarActive }">
     <TopNavbar v-if="!isBackend && showTopNavbar" />

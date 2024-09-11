@@ -1,3 +1,4 @@
+# C:\Users\user\OneDrive\桌面\project113209\project113209\settings.pyimport logging
 import logging
 import os
 from pathlib import Path
@@ -224,3 +225,8 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_NAME = 'sessionid'
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
