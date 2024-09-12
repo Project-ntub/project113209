@@ -56,9 +56,8 @@ export default {
         await axios.get('/frontend/logout/');
 
         // 清除前端的 localStorage 和 sessionStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('branch_id');
-        localStorage.removeItem('position');
+        localStorage.removeItem('frontend_token');
+        localStorage.removeItem('backend_token');
 
         // 防止使用返回按鈕回到已登入頁面
         history.replaceState(null, null, '/frontend/login');
@@ -67,7 +66,7 @@ export default {
         });
 
         // 導向登入頁面
-        this.$router.push('/frontend/login');
+        this.$router.replace('/frontend/login');
 
         // 強制刷新頁面，清除所有舊的狀態
         setTimeout(() => {

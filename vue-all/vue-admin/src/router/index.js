@@ -51,24 +51,24 @@ const routes = [
 
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: {hideSidebar: true} },
-  { path: '/backend/register', name: 'BackendRegister', component: Register , meta: {hideSidebar: true} },
+  { path: '/backend/register', name: 'BackendRegister', component: Register },
   { path: '/backend/forgetpassword', name: 'BackendForgetPassword', component: ForgetPassword },
   { path: '/backend/management', name: 'BackendManagement', component: Management },
-  { path: '/backend/dashboard', name: '儀表板管理', component: Dashboard },
-  { path: '/backend/user-management', name: '用戶管理', component: UserManagement },
-  { path: '/backend/role-management', name: '角色管理', component: RoleManagement },
-  { path: '/backend/pending_list', name: '待審核名單', component: PendingList },
-  { path: '/backend/edit_user/:userId', name: '編輯用戶', component: EditUser },
-  { path: '/backend/assign_role/:userId', name: '分配角色', component: AssignRole },
-  { path: '/backend/module-management', name: '模組管理', component: ModuleManagement },
+  { path: '/backend/dashboard', name: 'BackendDashboard', component: Dashboard },
+  { path: '/backend/user-management', name: 'BackendUserManagement', component: UserManagement },
+  { path: '/backend/role-management', name: 'BackendRoleManagement', component: RoleManagement },
+  { path: '/backend/pending_list', name: 'BackendPendingList', component: PendingList },
+  { path: '/backend/edit_user/:userId', name: 'BackendEditUser', component: EditUser },
+  { path: '/backend/assign_role/:userId', name: 'BackendAssignRole', component: AssignRole },
+  { path: '/backend/module-management', name: 'BackendModuleManagement', component: ModuleManagement },
   { path: '/backend/create_role', name: 'BackendCreateRole', component: RoleForm },
   { path: '/backend/edit_role/:roleId', name: 'BackendEditRole', component: RoleForm },
   { path: '/backend/create-module', name: 'BackendCreateModule', component: ModuleForm },
   { path: '/backend/edit_module/:moduleId', name: 'BackendEditModule', component: ModuleForm },
   { path: '/backend/role_permissions/:roleId', name: 'BackendRolePermissions', component: RolePermissions },
-  { path: '/backend/history', name: '歷史紀錄', component: HistoricalRecord },    
-  { path: '/backend/preferences', name: '偏好設定', component: PersonalPreference },
-  { path: '/backend/profile', name: '個人資料', component: Profile }
+  { path: '/backend/history', name: 'BackendHistory', component: HistoricalRecord },    
+  { path: '/backend/preferences', name: 'BackendPreference', component: PersonalPreference },
+  { path: '/backend/profile', name: 'BackendProfile', component: Profile }
 ];
 
 const router = createRouter({
@@ -77,16 +77,28 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');  // 檢查 token 是否存在
-  
-  if (!token && to.name !== 'FrontendLogin') {
-    // 如果沒有 token，且不是登入頁，則跳轉到登入頁
-    next({ name: 'FrontendLogin' });
-  } else {
-    // 否則，允許繼續導航
-    next();
+  const frontendToken = localStorage.getItem('frontend_token');  // 前台 token
+  const backendToken = localStorage.getItem('backend_token');    // 後台 token
+
+  // 前台路由邏輯
+  if (to.path.startsWith('/frontend')) {
+    if (!frontendToken && to.name !== 'FrontendLogin') {
+      // 如果沒有前台 token，且路徑不是登入頁，則跳轉到前台登入頁
+      return next({ name: 'FrontendLogin' });
+    }
   }
+
+  // 後台路由邏輯
+  if (to.path.startsWith('/backend')) {
+    if (!backendToken && to.name !== 'BackendLogin') {
+      // 如果沒有後台 token，且路徑不是登入頁，則跳轉到後台登入頁
+      return next({ name: 'BackendLogin' });
+    }
+  }
+
+  next();
 });
+
 
 
 export default router;

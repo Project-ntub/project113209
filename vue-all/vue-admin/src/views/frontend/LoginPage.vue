@@ -23,7 +23,6 @@
             <router-link to="/frontend/forgot_password">忘記密碼?</router-link>
           </div>
           <input type="submit" value="登入" class="submit-button" />
-          <div id="login-feedback" class="feedback">{{ loginFeedback }}</div>
           <div v-if="error" class="error">{{ error }}</div>
         </form>
         <p>還未擁有帳號？ <router-link to="/frontend/register">註冊</router-link></p>
@@ -41,29 +40,35 @@ export default {
       email: '',
       password: '',
       rememberMe: false,
-      loginFeedback: '',
       error: '' // 新增 error 變量
     };
   },
   methods: {
-    async handleLogin() {  // 確保使用與模板中相同的名稱
+    async handleLogin() {
       try {
-        const csrfToken = getCookie('csrftoken');
+        // 向後端發送登入請求
         const response = await axios.post('/api/token/', {
           email: this.email,
           password: this.password,
           remember_me: this.rememberMe
-        }, {
-          headers: {
-            'X-CSRFToken': csrfToken
-          }
         });
+
         console.log('登入成功', response);
-        this.user = response.data.user; 
-        localStorage.setItem('token', response.data.access); // 確保令牌被存儲
-        this.$router.push('/frontend/home');
+
+        // 確認後端是否返回了 token
+        if (response.data && response.data.access) {
+          // 儲存 frontend_token 到 localStorage
+          localStorage.setItem('frontend_token', response.data.access);
+          
+          // 成功後跳轉至首頁
+          this.$router.push('/frontend/home');
+        } else {
+          this.error = '登入失敗，無法取得 Token';
+        }
       } catch (error) {
-        console.error('登入失败', error.response);
+        console.error('登入失敗', error.response);
+
+        // 處理錯誤信息
         if (error.response && error.response.data) {
           this.error = error.response.data.detail || '登入失敗，請檢查您的使用者名稱和密碼';
         } else {
@@ -77,21 +82,6 @@ export default {
     }
   }
 };
-
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
 </script>
 
 <style src="@/assets/css/frontend/LoginPage.css"></style>
