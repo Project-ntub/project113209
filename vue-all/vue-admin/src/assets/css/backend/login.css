@@ -1,74 +1,76 @@
-/* 移除全局設置 */
-
 /* 容器設置 */
 .container {
   background-color: white;
-  padding: 20px; /* 減少 padding 以節省空間 */
+  padding: 25px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   box-sizing: border-box;
   text-align: left;
   margin: 0 auto;
-  display: flex;  /* 僅對容器進行 flex 設置 */
-  justify-content: center; 
-  align-items: center; 
-  overflow: hidden; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
 h2 {
-  margin-bottom: 15px; /* 減少 margin */
-  font-size: 20px; /* 減少字體大小 */
+  margin-bottom: 18px;
+  font-size: 22px;
   color: #333;
   text-align: center;
 }
 
 .form-group {
-  margin-bottom: 10px; /* 減少 margin */
+  margin-bottom: 12px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 3px; /* 減少 margin */
+  margin-bottom: 4px;
   font-weight: 500;
+  font-size: 16px;
   color: #333;
 }
 
 .form-group input {
   width: 100%;
-  padding: 6px; /* 減少 padding */
-  font-size: 14px;
+  padding: 8px;
+  font-size: 15px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
 }
 
+/* 修改 checkbox-group */
 .checkbox-group {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  margin-left: 120px; /* 左移整個組合 */
 }
 
 .checkbox-group input[type="checkbox"] {
-  margin-right: 8px; /* 減少 margin */
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
   position: relative;
   vertical-align: middle;
 }
 
 .checkbox-group label {
-  font-size: 14px;
+  font-size: 15px;
   color: #333;
   margin: 0;
-  line-height: 1.2; /* 減少行距 */
-  white-space: nowrap;
+  line-height: 1.4;
+  white-space: nowrap; /* 確保文字和 checkbox 在同一行 */
 }
 
 .btn-login {
   width: 100%;
-  padding: 8px; /* 減少 padding */
-  font-size: 16px;
+  padding: 10px;
+  font-size: 17px;
   color: white;
   background-color: #28a745;
   border: none;
@@ -81,9 +83,9 @@ h2 {
 }
 
 p {
-  margin-top: 10px; /* 減少 margin */
+  margin-top: 15px;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   color: #555;
 }
 
@@ -99,8 +101,38 @@ p a:hover {
 /* 響應式設計 */
 @media (max-width: 768px) {
   .container {
-    max-width: 350px;
-    padding: 15px; /* 減少 padding */
+    max-width: 380px;
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .form-group input {
+    padding: 7px;
+    font-size: 13px;
+  }
+
+  .btn-login {
+    padding: 9px;
+    font-size: 15px;
+  }
+
+  p {
+    font-size: 12px;
+  }
+
+  .checkbox-group {
+    gap: 4px;
+    margin-left: -3px; /* 較小的左移距離 */
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    max-width: 330px;
+    padding: 15px;
   }
 
   h2 {
@@ -108,45 +140,20 @@ p a:hover {
   }
 
   .form-group input {
-    padding: 5px; /* 減少 padding */
+    padding: 6px;
     font-size: 12px;
   }
 
   .btn-login {
-    padding: 6px;
+    padding: 8px;
     font-size: 14px;
   }
 
   p {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    max-width: 280px;
-    padding: 10px; /* 減少 padding */
-  }
-
-  h2 {
-    font-size: 16px;
-  }
-
-  .form-group input {
-    padding: 4px; /* 減少 padding */
-    font-size: 10px;
-  }
-
-  .btn-login {
-    padding: 4px;
-    font-size: 12px;
-  }
-
-  p {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .checkbox-group label {
-    font-size: 12px;
+    font-size: 13px;
   }
 }

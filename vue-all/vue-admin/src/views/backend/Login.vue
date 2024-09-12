@@ -55,15 +55,31 @@ export default {
           }
         });
         console.log('登入成功', response);
-        localStorage.setItem('token', response.data.access); // 確保令牌被存儲
-        this.$router.push('/backend/management');
+        localStorage.setItem('backend_token', response.data.access); // 儲存後台 token
+        
+        // 登入成功後，記錄歷史紀錄
+        await this.recordLoginHistory();
+
+        this.$router.push('/backend/management'); // 跳轉至後台管理頁面
       } catch (error) {
-        console.error('登入失败', error.response);
+        console.error('登入失敗', error.response);
         if (error.response && error.response.data) {
           this.error = error.response.data.detail || '登入失敗，請檢查您的使用者名稱和密碼';
         } else {
           this.error = '登入失敗，請稍後再試';
         }
+      }
+    },
+
+    // 方法用於記錄登入的歷史紀錄
+    async recordLoginHistory() {
+      try {
+        const response = await axios.post('/backend/record-login-history/', {
+          action: '登入成功',
+        });
+        console.log('歷史紀錄已保存', response);
+      } catch (error) {
+        console.error('無法保存歷史紀錄', error.response);
       }
     }
   }

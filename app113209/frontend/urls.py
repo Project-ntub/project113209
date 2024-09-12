@@ -2,6 +2,7 @@
 from django.urls import path
 from . import views as frontend_views
 from .views import get_data  
+from .views import logout_view
 
 app_name = 'frontend'
 
@@ -21,5 +22,7 @@ urlpatterns = [
     path('history/<int:id>/', frontend_views.history_detail, name='history_detail'),
     path('changepassword/', frontend_views.changepassword, name='changepassword'),
     path('user_preferences/', frontend_views.user_preferences, name='user_preferences'),
+    path('logout/', logout_view, name='logout'),  # 登出的 URL
+
 ]
 

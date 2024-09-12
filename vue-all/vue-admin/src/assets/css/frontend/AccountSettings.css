@@ -1,24 +1,32 @@
+/* 去掉全局水平滾動條 */
+body {
+  overflow-x: hidden; /* 隱藏水平滾動條 */
+  margin: 0; /* 確保 body 沒有不必要的外邊距 */
+}
+
 /* account-settings 的样式 */
 .account-settings {
-  padding: 20px; /* 增加 padding 以增强整体布局 */
+  padding: 30px;
   width: 100%; 
-  max-width: 450px; /* 调整最大宽度以适应不同屏幕 */
-  margin: 30px auto; 
-  text-align: center; 
+  max-width: 550px;
+  margin: 40px auto; 
+  text-align: center;
+  overflow: hidden; /* 防止内部元素導致溢出 */
+  box-sizing: border-box; /* 確保 padding 不會超出寬度 */
 }
 
 /* 用户头像样式 */
 .account-settings img.profile-pic {
   border-radius: 50%; 
-  width: 120px; /* 增加宽度 */
-  height: 120px; /* 增加高度 */
-  margin-bottom: 20px; /* 增加底部间距 */
+  width: 150px; 
+  height: 150px; 
+  margin-bottom: 30px; 
 }
 
 /* 用户名样式 */
 .account-settings h3 {
   margin-top: 0; 
-  font-size: 26px; /* 增大字体 */
+  font-size: 32px; 
   color: #333; 
 }
 
@@ -26,72 +34,73 @@
 .account-settings .setting-option {
   display: flex; 
   align-items: center; 
-  justify-content: center; /* 保持文本和图标居中对齐 */
-  margin: 15px 0; /* 调整上下外边距 */
-  font-size: 22px; /* 增大字体 */
+  justify-content: center;
+  margin: 20px 0;
+  font-size: 26px;
   color: #333; 
-  text-decoration: none; 
-  white-space: nowrap; /* 防止文字换行 */
+  text-decoration: none;
+  white-space: nowrap;
+  box-sizing: border-box; /* 確保不超出容器 */
 }
 
 /* 设置选项图标的样式 */
 .account-settings .setting-option img {
-  width: 26px; /* 增大图标宽度 */
-  height: 26px; /* 增大图标高度 */
-  margin-right: 10px; /* 增加图标与文字之间的间距 */
+  width: 32px; 
+  height: 32px; 
+  margin-right: 15px; 
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
   .account-settings {
       width: 95%;
-      max-width: 400px; 
-      margin: 20px auto; 
-      padding: 20px; /* 增加 padding 以增强整体布局 */
+      max-width: 450px;
+      margin: 30px auto;
+      padding: 25px;
   }
 
   .account-settings img.profile-pic {
-      width: 100px; 
-      height: 100px; 
+      width: 120px; 
+      height: 120px; 
   }
 
   .account-settings h3 {
-      font-size: 24px; 
+      font-size: 28px;
   }
 
   .account-settings .setting-option {
-      font-size: 20px; 
+      font-size: 24px;
   }
 
   .account-settings .setting-option img {
-      width: 24px; 
-      height: 24px; 
+      width: 28px; 
+      height: 28px;
   }
 }
 
 @media (max-width: 480px) {
   .account-settings {
       width: 100%;
-      max-width: 350px; 
-      margin: 15px auto; 
-      padding: 15px; /* 增加 padding 以增强整体布局 */
+      max-width: 400px;
+      margin: 25px auto;
+      padding: 20px;
   }
 
   .account-settings img.profile-pic {
-      width: 90px; 
-      height: 90px; 
+      width: 100px;
+      height: 100px;
   }
 
   .account-settings h3 {
-      font-size: 22px; 
+      font-size: 24px;
   }
 
   .account-settings .setting-option {
-      font-size: 18px; 
+      font-size: 22px;
   }
 
   .account-settings .setting-option img {
-      width: 22px; 
-      height: 22px; 
+      width: 24px;
+      height: 24px;
   }
 }

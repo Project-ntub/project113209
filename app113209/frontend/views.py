@@ -515,3 +515,13 @@ def get_data(request):
     
     data_list = list(data.values())  # 將數據轉為列表格式
     return JsonResponse(data_list, safe=False)
+# logout
+
+
+def logout_view(request):
+    logout(request)  # 清除 session
+    return JsonResponse({'message': '成功登出'}, status=200)
+
+
+
+

@@ -2,12 +2,13 @@
 from django.urls import path, include
 from . import views as backend_views
 from . import api_views
-from .views import BranchListAPIView, SavePermissionsAPIView
-
+from .views import BranchListAPIView, SavePermissionsAPIView, record_login_history
+from .views import logout_view
 app_name = 'backend'
 
 
 urlpatterns = [
+    path('record-login-history/', backend_views.record_login_history, name='record-login-history'),
     path('send_verification_code/', backend_views.send_verification_code_backend, name='send_verification_code_backend'),
     path('verify_code/', backend_views.validate_verification_code_backend, name='verify_code_backend'),
     path('delete_user/<int:user_id>/', backend_views.delete_user, name='delete_user'),
@@ -20,5 +21,6 @@ urlpatterns = [
     # path('delete_preference/', backend_views.delete_preference, name='delete_preference'),
     path('branches/', BranchListAPIView.as_view(), name='branch-list'),  # 正確的分店路由
     path('save-permissions/', SavePermissionsAPIView.as_view(), name='save-permissions'),
+    path('logout/', logout_view, name='logout'),  # 登出的 URL
 ]
 

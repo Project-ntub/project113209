@@ -36,7 +36,7 @@
         <span class="icon">🕒</span>
         <span class="text">歷史紀錄</span>
       </router-link>
-      <button class="sidebar-link logout-btn" @click="logout">
+      <button class="sidebar-link logout-btn" @click="confirmLogout">
         <span class="icon">🚪</span>
         <span class="text">登出</span>
       </button>
@@ -47,22 +47,21 @@
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
 
 export default {
-  data(){
-    return{
+  data() {
+    return {
       username: '',
-      showUserLinks: false  // State to control the visibility of user-related links
+      showUserLinks: false, // 控制用戶相關鏈接的顯示
     };
   },
   props: {
     isSidebarActive: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   methods: {
     toggleSidebar() {
@@ -71,23 +70,51 @@ export default {
     toggleUserLinks() {
       this.showUserLinks = !this.showUserLinks;
     },
-    logout() {
-      this.$router.push('/backend/login');
-    }, 
+    confirmLogout() {
+      const confirmed = confirm('確定要登出嗎？');
+      if (confirmed) {
+        this.handleLogout();
+      }
+    },
+    async handleLogout() {
+      try {
+        // 發送登出請求到後端
+        await axios.get('/backend/logout/');
+
+        // 清除前端的 localStorage 和 sessionStorage
+        localStorage.removeItem('frontend_token');
+        localStorage.removeItem('backend_token');
+
+        // 防止使用返回按鈕回到已登入頁面
+        history.replaceState(null, null, '/backend/login');
+        window.addEventListener('popstate', () => {
+          history.pushState(null, null, document.URL);
+        });
+
+        // 導向登入頁面
+        this.$router.replace('/backend/login');
+
+        // 強制刷新頁面，清除所有舊的狀態
+        setTimeout(() => {
+          location.reload();
+        }, 100);
+      } catch (error) {
+        console.error('登出失敗', error);
+      }
+    },
     async fetchUserData() {
       try {
-        const response = await axios.get('/api/frontend/profile/'); // 替换为你的用户信息 API 路径
+        const response = await axios.get('/api/backend/profile/'); // 替換為後端的用戶信息 API 路徑
         this.username = response.data.username;
       } catch (error) {
-        console.error('Failed to fetch user data:', error);
+        console.error('無法獲取用戶資料:', error);
       }
-    }
+    },
   },
   mounted() {
-    this.fetchUserData();
-  }
+    this.fetchUserData(); // 進入頁面時加載用戶資料
+  },
 };
 </script>
 
-<style src="@/assets/css/backend/SideBar.css"></style>
-
+<style scoped src="@/assets/css/backend/SideBar.css"></style>

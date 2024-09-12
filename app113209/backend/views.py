@@ -78,6 +78,27 @@ def validate_verification_code_backend(request):
         return JsonResponse({'success': False, 'message': '驗證碼無效'}, status=400)
 
 
+@api_view(['POST'])
+def record_login_history(request):
+    user = request.user
+    if user.is_authenticated:
+        action = request.data.get('action', '登入成功')
+        device_brand = request.data.get('device_brand', '未知')
+        device_type = request.data.get('device_type', '未知')
+        operation_result = 1  # 登入成功
+
+        UserHistory.objects.create(
+            user=user,
+            action=action,
+            timestamp=timezone.now(),
+            device_brand=device_brand,
+            device_type=device_type,
+            operation_result=operation_result
+        )
+        return Response({'message': '歷史紀錄已保存'}, status=status.HTTP_201_CREATED)
+    return Response({'error': '未授權'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_deleted=False)
     serializer_class = UserSerializer
@@ -238,3 +259,9 @@ class SavePermissionsAPIView(APIView):
         # 假設我們將選擇的分店與某個用戶/角色綁定
         # 這裡省略具體的邏輯，只是模擬返回
         return Response({"message": "權限設置已保存"}, status=status.HTTP_200_OK)
+# 登出視圖
+from django.contrib.auth import logout
+
+def logout_view(request):
+    logout(request)  # 清除 session
+    return JsonResponse({'message': '成功登出'}, status=200)

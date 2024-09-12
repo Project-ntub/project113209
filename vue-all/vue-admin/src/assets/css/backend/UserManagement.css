@@ -1,28 +1,23 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  margin: 0;
-  padding: 0;
-  font-size: 16px;
-}
-
 .container {
-  max-width: 1000px; /* 設置固定寬度 */
-  margin: 0 auto; /* 居中對齊 */
+  width: 100%; /* 設置為100%，以確保它能夠擴展到整個視窗寬度 */
+  max-width: none; /* 移除最大寬度限制 */
+  margin: 0 auto; /* 保持居中對齊 */
   background-color: #ffffff;
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   transition: margin-left 0.3s ease, width 0.3s ease;
+  padding-bottom: 40px; /* 增加底部的內間距 */
 }
 
 .table-container {
   max-height: 400px; /* 設置表格容器的最大高度 */
   overflow-y: auto; /* 允許垂直滾動 */
+  margin-bottom: 30px; /* 增加表格容器下方的外間距 */
 }
 
 .user-table {
-  width: 100%;
+  width: 100%; /* 保持表格佔據容器的全寬 */
   border-collapse: collapse;
   margin-top: 10px;
   overflow-x: auto;
@@ -35,7 +30,6 @@ body {
   text-align: left;
 }
 
-/* 改變表格行的背景色，使其看起來像第二張圖 */
 .user-table tr {
   background-color: #f9f9f9; /* 設置每行的背景顏色 */
 }
@@ -44,11 +38,11 @@ body {
   background-color: #f2f2f2; /* 偶數行顏色略深 */
 }
 
-/* 當滑過時變更顏色 */
 .user-table tr:hover {
   background-color: #ddd; /* 鼠標懸停時加深背景顏色 */
 }
 
+/* 按鈕樣式 */
 .edit-btn,
 .delete-btn,
 .assigning-roles-btn {
@@ -85,36 +79,53 @@ body {
   background-color: #1976D2;
 }
 
-/* 加入響應式設計 */
-@media (max-width: 768px) {
-  .header {
-      flex-direction: column;
-      align-items: center; /* 在手機上居中 */
-  }
+.filter-section {
+  display: flex;
+  gap: 20px; /* 調整元素之間的間距 */
+  justify-content: flex-start; /* 保持篩選選項靠左 */
+  align-items: center; /* 保持垂直方向的居中 */
+  margin-bottom: 20px;
+  padding-left: 0;
+  position: relative; /* 為了讓待審核按鈕相對定位 */
+}
 
-  .user-table th,
-  .user-table td {
-      font-size: 12px;
-      padding: 4px;
-  }
+.filter-section label {
+  font-weight: bold;
+}
 
-  .edit-btn,
-  .delete-btn,
-  .assigning-roles-btn {
-      font-size: 12px;
-      padding: 4px 8px;
-      margin: 5px 0;
-  }
+.filter-section select,
+.filter-section input {
+  flex: 1; /* 每個選擇框佔據相等的空間 */
+  max-width: 250px; /* 可選擇設定最大寬度來限制寬度 */
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
 
-  .filter-section label,
-  .filter-section select,
-  .filter-section input {
-      width: 100%;
-      margin-bottom: 5px;
-  }
+.filter-section .verify-btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  max-width: 100px; /* 限制按鈕最大寬度 */
+  flex-shrink: 0; /* 確保按鈕不會被縮小 */
+}
 
-  .container {
-      width: 100%;
-      margin-left: 0;
-  }
+.pending-approval-btn {
+  position: absolute; /* 使用絕對定位將按鈕移動到父容器的右側 */
+  right: 200px; /* 將待審核按鈕推到右側 */
+  padding: 10px 20px;
+  background-color: #6AA7E8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.pending-approval-btn:hover {
+  background-color: #5C96D1;
 }
