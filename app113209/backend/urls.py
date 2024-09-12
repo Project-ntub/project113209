@@ -2,12 +2,13 @@
 from django.urls import path, include
 from . import views as backend_views
 from . import api_views
-from .views import BranchListAPIView, SavePermissionsAPIView
+from .views import BranchListAPIView, SavePermissionsAPIView, record_login_history
 from .views import logout_view
 app_name = 'backend'
 
 
 urlpatterns = [
+    path('record-login-history/', backend_views.record_login_history, name='record-login-history'),
     path('send_verification_code/', backend_views.send_verification_code_backend, name='send_verification_code_backend'),
     path('verify_code/', backend_views.validate_verification_code_backend, name='verify_code_backend'),
     path('delete_user/<int:user_id>/', backend_views.delete_user, name='delete_user'),
