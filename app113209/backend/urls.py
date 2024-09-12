@@ -3,7 +3,7 @@ from django.urls import path, include
 from . import views as backend_views
 from . import api_views
 from .views import BranchListAPIView, SavePermissionsAPIView
-
+from .views import logout_view
 app_name = 'backend'
 
 
@@ -20,5 +20,6 @@ urlpatterns = [
     # path('delete_preference/', backend_views.delete_preference, name='delete_preference'),
     path('branches/', BranchListAPIView.as_view(), name='branch-list'),  # 正確的分店路由
     path('save-permissions/', SavePermissionsAPIView.as_view(), name='save-permissions'),
+    path('logout/', logout_view, name='logout'),  # 登出的 URL
 ]
 

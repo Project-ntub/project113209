@@ -252,3 +252,9 @@ class SavePermissionsAPIView(APIView):
         # 假設我們將選擇的分店與某個用戶/角色綁定
         # 這裡省略具體的邏輯，只是模擬返回
         return Response({"message": "權限設置已保存"}, status=status.HTTP_200_OK)
+# 登出視圖
+from django.contrib.auth import logout
+
+def logout_view(request):
+    logout(request)  # 清除 session
+    return JsonResponse({'message': '成功登出'}, status=200)

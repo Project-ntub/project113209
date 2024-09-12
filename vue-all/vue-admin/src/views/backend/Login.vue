@@ -55,8 +55,8 @@ export default {
           }
         });
         console.log('登入成功', response);
-        localStorage.setItem('token', response.data.access); // 確保令牌被存儲
-        this.$router.push('/backend/management');
+        localStorage.setItem('backend_token', response.data.access); // 儲存後台 token
+        this.$router.push('/backend/management'); // 跳轉至後台管理頁面
       } catch (error) {
         console.error('登入失败', error.response);
         if (error.response && error.response.data) {
