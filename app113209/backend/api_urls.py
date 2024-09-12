@@ -11,7 +11,7 @@ router.register(r'roles', api_views.RoleViewSet)
 router.register(r'role_permissions', api_views.RolePermissionViewSet)
 router.register(r'pending-users', api_views.PendingUserViewSet, basename='pending-user')
 router.register(r'user_preferences', api_views.UserPreferencesViewSet, basename='user_preferences')
-router.register(r'permissions', api_views.RolePermissionViewSet)
+router.register(r'permissions', api_views.UserPermissionViewSet, basename='user-permissions')
 
 
 urlpatterns = [

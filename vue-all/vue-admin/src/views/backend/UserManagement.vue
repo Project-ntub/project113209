@@ -3,9 +3,10 @@
   <div class="container">
     <div class="header">
       <!-- 判斷是否有新增用戶的權限，並顯示"待審核"按鈕 -->
-      <button id="pending-approval-btn" class="pending-approval-btn" v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_add)" @click="navigateToPendingList">
+      <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_add)" @click="navigateToPendingList">
         待審核
       </button>
+
     </div>
     <div class="filter-section">
       <!-- 排序下拉選單 -->
@@ -135,12 +136,12 @@ export default {
   methods: {
     // 獲取當前用戶的權限
     fetchUserPermissions() {
-      axios.get('/api/backend/users/permissions/')
+      axios.get('/api/backend/permissions/')
         .then(response => {
-          this.permissions = response.data.permissions;
+            this.permissions = response.data;  // 使用回應的數據作為權限列表
         })
         .catch(error => {
-          console.error('Error fetching permissions:', error);
+            console.error('Error fetching permissions:', error);
         });
     },
     // 日期格式化

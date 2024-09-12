@@ -37,12 +37,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         data = serializer.data
 
-        # 通過相關角色獲取用戶權限
-        permissions = RolePermission.objects.filter(role__users=instance)
-        data['permissions'] = permissions.values('permission_name', 'can_add', 'can_edit', 'can_delete')
+        # 透過 RoleUser 查詢用戶的角色及其相關的權限
+        permissions = RolePermission.objects.filter(
+            role__roleuser__user=instance,
+            is_deleted=False
+        ).values('permission_name', 'can_add', 'can_edit', 'can_delete', 'can_query', 'can_view')
 
+        data['permissions'] = list(permissions)
         return Response(data)
-
 
     @action(detail=True, methods=['post'])
     def assign_role_and_module(self, request, pk=None):
@@ -144,8 +146,20 @@ class UserProfileView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserPermissionViewSet(viewsets.ModelViewSet):
-    queryset = RolePermission.objects.all()  # 或者正確的QuerySet
+    queryset = RolePermission.objects.all()  # 添加這行
     serializer_class = RolePermissionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        user = request.user
+
+        # 透過 RoleUser 查詢用戶的角色及其相關的權限
+        permissions = RolePermission.objects.filter(
+            role__roleuser__user=user,
+            is_deleted=False
+        ).values('permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete')
+
+        return Response(list(permissions))
 
 
 # 待審核

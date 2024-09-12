@@ -134,12 +134,12 @@ export default {
     },
     // 獲取當前用戶的權限信息
     fetchUserPermissions() {
-      axios.get('/api/backend/users/permissions/')
+      axios.get('/api/backend/permissions/')
         .then(response => {
-          this.permissions = response.data.permissions;
+            this.permissions = response.data;  // 使用回應的數據作為權限列表
         })
         .catch(error => {
-          console.error('Error fetching permissions:', error);
+            console.error('Error fetching permissions:', error);
         });
     },
     // 關閉所有模態框
