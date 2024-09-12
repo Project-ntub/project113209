@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from app113209.models import (User, Module, Role, RolePermission, UserHistory, 
+from app113209.models import (User, Module, Role,RoleUser, RolePermission, UserHistory, 
                              UserPreferences, ChartConfiguration, UserPreferences, 
                              TEST_Inventory, TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
@@ -31,6 +31,18 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_deleted=False, is_active=True)
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        # 通過相關角色獲取用戶權限
+        permissions = RolePermission.objects.filter(role__users=instance)
+        data['permissions'] = permissions.values('permission_name', 'can_add', 'can_edit', 'can_delete')
+
+        return Response(data)
+
 
     @action(detail=True, methods=['post'])
     def assign_role_and_module(self, request, pk=None):
@@ -59,6 +71,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def delete(self, request, *args, **kwargs):
+       # 檢查當前用戶是否有用戶管理的 can_edit 權限
+        permissions = get_user_permissions(request.user.id)
+        user_management_permission = permissions.filter(permission_name='用戶管理').first()
+
+        if not any(perm.can_delete for perm in permissions):
+            return Response({'error': '您沒有權限刪除此用戶'}, status=status.HTTP_403_FORBIDDEN)
+        
         instance = self.get_object()
         instance.is_deleted = True
         instance.save()
@@ -66,9 +85,23 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     def update(self, request, *args, **kwargs):
+        #檢查當前用戶是否有用戶管理的 can_edit 權限
+        permissions = get_user_permissions(request.user.id)
+        user_management_permission = permissions.filter(permission_name='用戶管理').first()
+
+        if not user_management_permission or not user_management_permission.can_edit:
+            return Response({'error': '您沒有權限編輯用戶'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 允許編輯，執行原有邏輯
         logger.debug(f"收到更新使用者 ID 的請求: {kwargs.get('pk')}")
-        return super().update(request, *args, **kwargs)
-    
+        response = super().update(request, *args, **kwargs)
+
+        # 紀錄操作
+        if response.status_code == status.HTTP_200_OK:
+            record_history(request.user, f"管理員{request.user.username} 更新了用戶 {self.get_object().username} 的資料")
+        
+        return response
+
     @action(detail=False, methods=['get'])
     def get_departments(self, request):
         try:
@@ -109,7 +142,12 @@ class UserProfileView(APIView):
 
             return Response({'message': 'Profile updated successfully'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-   
+
+class UserPermissionViewSet(viewsets.ModelViewSet):
+    queryset = RolePermission.objects.all()  # 或者正確的QuerySet
+    serializer_class = RolePermissionSerializer
+
+
 # 待審核
 
 class PendingUserViewSet(viewsets.ViewSet):
@@ -118,6 +156,13 @@ class PendingUserViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def approve_user(self, request, pk=None):
+        # 檢查當前用戶是否有用戶管理的 can_add 權限
+        permissions = get_user_permissions(request.user.id)
+        user_management_permission = permissions.filter(permission_name='用戶管理').first()
+
+        if not user_management_permission or not user_management_permission.can_add:
+            return Response({'error': '您沒有權限開通用戶'}, status=status.HTTP_403_FORBIDDEN)
+        
         try:
             user = User.objects.get(id=pk, is_approved=False)
             user.is_approved = True
@@ -169,6 +214,14 @@ class RoleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+        # 檢查當前用戶是否有角色管理的 can_add 權限
+        permissions = get_user_permissions(request.user.id)
+        role_management_permission = permissions.filter(permission_name='角色管理').first()
+
+        if not role_management_permission or not role_management_permission.can_add:
+            return Response({'error': '您沒有權限新增角色'}, status=status.HTTP_403_FORBIDDEN)
+
+        # 執行原有邏輯進行角色創建
         data = request.data.copy()
         module_id = data.get('module')
         users_ids = data.get('users', [])
@@ -187,12 +240,22 @@ class RoleViewSet(viewsets.ModelViewSet):
             users = User.objects.filter(id__in=users_ids)
             role.users.set(users)
 
+        # 記錄操作歷史
         record_history(request.user, f"管理員 {request.user.username} 創建了角色 {role.name} 並分配給用戶 {', '.join([user.username for user in users])}")
-        
+
+        # 返回創建後的角色信息
         serializer = self.get_serializer(role)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
+        # 檢查當前用戶是否有角色管理的 can_edit 權限
+        permissions = get_user_permissions(request.user.id)
+        role_management_permission = permissions.filter(permission_name='角色管理').first()
+
+        if not role_management_permission or not role_management_permission.can_edit:
+            return Response({'error': '您沒有權限編輯角色'}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 允許編輯角色，執行原有邏輯
         instance = self.get_object()
         data = request.data.copy()
 
@@ -210,8 +273,8 @@ class RoleViewSet(viewsets.ModelViewSet):
         instance.is_active = data.get('is_active', instance.is_active)
 
         # 更新权限
-        permissions = data.get('permissions', [])
-        for perm_data in permissions:
+        permissions_data = data.get('permissions', [])
+        for perm_data in permissions_data:
             permission = get_object_or_404(RolePermission, id=perm_data['id'])
             permission.can_add = perm_data.get('can_add', permission.can_add)
             permission.can_delete = perm_data.get('can_delete', permission.can_delete)
@@ -260,9 +323,16 @@ class RoleViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         return queryset.prefetch_related('users')
     
-    @action(detail=True, methods=['post'])
-    def delete(self, request, pk=None):
-        role = get_object_or_404(Role, pk=pk)
+    def delete(self, request, *args, **kwargs):
+        # 檢查當前用戶是否有角色管理的 can_delete 權限
+        permissions = get_user_permissions(request.user.id)
+        role_management_permission = permissions.filter(permission_name='角色管理').first()
+
+        if not role_management_permission or not role_management_permission.can_delete:
+            return Response({'error': '您沒有權限刪除角色'}, status=status.HTTP_403_FORBIDDEN)
+
+        # 允許刪除角色，執行原有邏輯
+        role = self.get_object()
         role.is_deleted = True
         role.save()
 
@@ -270,6 +340,7 @@ class RoleViewSet(viewsets.ModelViewSet):
         record_history(request.user, f"管理員 {request.user.username} 刪除了角色 {role.name}")
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class RolePermissionViewSet(viewsets.ModelViewSet):
@@ -397,6 +468,17 @@ class RolePermissionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIV
     queryset = RolePermission.objects.all()
     serializer_class = RolePermissionSerializer
 
+def get_user_permissions(user_id):
+    # 根據 user_id 查詢角色
+    role_user = RoleUser.objects.filter(user_id=user_id).first()
+    if not role_user:
+        return None
+    
+    # 查詢該角色的所有權限
+    permissions = RolePermission.objects.filter(role_id=role_user.role_id)
+    return permissions
+
+
 class ModuleListCreateView(generics.ListCreateAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
@@ -465,10 +547,10 @@ def create_chart(chart_type, x_data, y_data):
     elif chart_type == 'bar':
         return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
     elif chart_type == 'pie':
-        return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
-    elif chart_type == 'scatter':
-        return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
+        colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0','#ffb3e6']  # 自訂顏色
+        return go.Figure(data=[go.Pie(labels=x_data, values=y_data, marker=dict(colors=colors), hole=.3)])
     return go.Figure()  # 預設返回空白圖表
+
 
 
 # API：生成互動圖表（返回JSON格式）
@@ -577,7 +659,49 @@ class InventoryDataAPIView(APIView):
         serializer = InventoryDataSerializer(inventory_data, many=True)
         return Response(serializer.data)
 
+# 銷售量趨勢圖 API
+class SalesVolumeChartDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get (self, request):
+        # 從資料庫中獲取數據，進行分析
+        sales_data = TEST_Sales.objects.values('sale_date').annotate(total_quantity=Sum('quantity'))
+        # 這裡根據實際的需求進行篩選和處理
+        # 假設需要返回的數據為日期和銷售量
+        data = list(sales_data)
+        return JsonResponse(data, safe=False)
+
+# 新增這個函數來生成店鋪的分布數據
+# def get_store_distribution():
+#     store_data = TEST_Stores.objects.all()
+
+#     # 定義北部、中部、南部、東部的縣市
+#     north_regions = ['台北市', '新北市', '基隆市', '新竹市', '桃園市', '新竹縣', '宜蘭縣']
+#     center_regions = ['台中市', '苗栗縣', '彰化縣', '南投縣', '雲林縣']
+#     south_regions = ['高雄市', '台南市', '嘉義市', '嘉義縣', '屏東縣', '澎湖縣']
+#     east_regions = ['花蓮縣', '台東縣']
+
+#     # 計算每個區域內的店鋪數量
+#     north = store_data.filter(location__in=north_regions).count()
+#     center = store_data.filter(location__in=center_regions).count()
+#     south = store_data.filter(location__in=south_regions).count()
+#     east = store_data.filter(location__in=east_regions).count()
+
+#     x_data = ['北部', '中部', '南部', '東部']
+#     y_data = [north, center, south, east]
+
+#     return x_data, y_data
+
+# 店鋪收益對比圖 API
+class StoreComparisonChartDataAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 從資料庫中獲取各個店鋪的收益數據
+        revenue_data = TEST_Revenue.objects.values('store__store_name').annotate(total_revenue=Sum('total_revenue'))
+        data = list(revenue_data)
+        return JsonResponse(data, safe=False)
+    
 # @api_view(['POST'])
 # def generate_chart_image(request):
 #     # 從請求中獲取數據

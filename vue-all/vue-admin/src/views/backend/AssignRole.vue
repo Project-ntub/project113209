@@ -70,7 +70,7 @@ export default {
       }).then(response => {
         if (response.data.success) {
           alert('保存成功');
-          this.$router.push({ name: 'userManagement' });
+          this.$router.push({ name: '用戶管理' });
         } else {
           alert('保存失敗');
         }

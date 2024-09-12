@@ -1,4 +1,12 @@
 /* src\assets\css\backend\Dashboard.css */
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 100% 視窗高度 */
+  width: 100%;
+  overflow-y: auto; /* 啟用垂直滾動 */
+}
+
 .dashboard-container {
   display: flex;
   flex-direction: column;
@@ -9,6 +17,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   box-sizing: border-box; /* 確保邊距和填充不會影響寬度 */
+  overflow-y: auto;
 }
 
 .top-left-controls {

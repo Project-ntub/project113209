@@ -1,9 +1,6 @@
 <template>
   <div class="container">
-    <h2>用戶管理</h2>
-    <div class="btn-container"> <!-- 包裹按钮的div -->
-      <button class="btn-approve">待審核</button>
-    </div>
+    <h2>編輯用戶</h2>
     <form @submit.prevent="updateUser">
       <div class="form-group">
         <label for="username">姓名</label>
@@ -53,8 +50,8 @@ export default {
         department_id: '',
         position_id: ''
       },
-      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部'],
-      positions: ['經理', '主管', '員工']
+      departments: ["銷售部", "人力資源部", "資訊部", "業務部", "財務部"],
+      positions: ["經理", "主管", "員工"]
     };
   },
   methods: {
@@ -89,25 +86,3 @@ export default {
 </script>
 
 <style scoped src="@/assets/css/backend/EditUser.css"></style>
-
-<style scoped>
-.btn-container {
-  display: flex;
-  justify-content: center; /* 使按钮居中 */
-  margin-bottom: 20px; /* 增加底部空隙 */
-}
-
-.btn-approve {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 1em;
-}
-
-.btn-approve:hover {
-  background-color: #45a049;
-}
-</style>

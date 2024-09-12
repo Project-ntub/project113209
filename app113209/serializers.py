@@ -77,10 +77,6 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
         model = ChartConfiguration
         fields = ['id', 'name', 'chart_type', 'data_source', 'x_axis_field', 'y_axis_field', 'filter_condtions', 'refresh_interval', 'is_active']
 
-class SalesDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TEST_Sales
-        fields = '__all__'  # 或者指定要序列化的字段
 
 
 class UserPreferencesSerializer(serializers.ModelSerializer):
@@ -96,6 +92,10 @@ class BranchSerializer(serializers.ModelSerializer):
         model = Branch
         fields = ['branch_id', 'branch_name']
 
+class SalesDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TEST_Sales
+        fields = '__all__'  # 或者指定要序列化的字段
 
 class InventoryDataSerializer(serializers.ModelSerializer):
     store_name = serializers.CharField(source='store.store_name', read_only=True)

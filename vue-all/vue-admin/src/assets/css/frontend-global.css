@@ -1,0 +1,135 @@
+/* Reset CSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 基本樣式設置 */
+body:not(.backend) {
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* 全局顏色變量設置 */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #f4f4f4;
+    --text-color: #333;
+}
+
+/* 標題和段落樣式 */
+h1:not(.backend), h2:not(.backend), h3:not(.backend), h4:not(.backend), h5:not(.backend), h6:not(.backend) {
+    margin-bottom: 20px;
+    font-weight: normal;
+    color: var(--secondary-color);
+}
+
+p:not(.backend) {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+/* 連結樣式 */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* 全局容器佈局樣式 */
+.container:not(.backend) {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* 彈性盒佈局 */
+.flex:not(.backend) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* 按鈕樣式 */
+button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: darken(var(--primary-color), 10%);
+}
+
+/* 表單元素樣式 */
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* 響應式設計（RWD） */
+@media (max-width: 1200px) {
+    .container:not(.backend) {
+        max-width: 960px;
+    }
+}
+
+@media (max-width: 992px) {
+    .container:not(.backend) {
+        max-width: 720px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container:not(.backend) {
+        max-width: 540px;
+        padding: 10px;
+    }
+
+    .flex:not(.backend) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    button:not(.backend) {
+        width: 100%; /* 按鈕在小螢幕上佔滿寬度 */
+    }
+}
+
+@media (max-width: 480px) {
+    body:not(.backend) {
+        font-size: 14px;
+    }
+
+    h1:not(.backend) {
+        font-size: 24px;
+    }
+
+    .container:not(.backend) {
+        padding: 5px;
+    }
+}
+
+/* 全局過渡效果 */
+* {
+    transition: all 0.3s ease;
+}

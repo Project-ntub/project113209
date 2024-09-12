@@ -5,23 +5,11 @@
 </template>
 
 <script>
-// import VueResizable from 'vue-resizable';
 import axios from 'axios';
 import Plotly from 'plotly.js-dist';
 
 export default {
   props: ['chartConfig'],
-  // components: {
-  //   VueResizable
-  // },
-  watch: {
-    chartConfig: {
-      deep: true,
-      handler() {
-        this.fetchChartData();
-      }
-    }
-  },
   mounted() {
     this.fetchChartData();
   },
@@ -34,6 +22,10 @@ export default {
         apiUrl = '/api/backend/revenue-chart-data/';
       } else if (this.chartConfig.name === 'InventoryChart') {
         apiUrl = '/api/backend/inventory-chart-data/';
+      } else if (this.chartConfig.name === 'SalesVolumeChart') {
+        apiUrl = '/api/backend/sales-volume-chart-data/';
+      } else if (this.chartConfig.name === 'StoreComparisonChart') {
+        apiUrl = '/api/backend/store-comparison-chart-data/';
       }
 
       axios.get(apiUrl)
@@ -45,15 +37,20 @@ export default {
         })
         .catch(error => {
           console.error('Error fetching chart data:', error);
-          console.error('Error fetching chart data:', error);
         });
     },
     renderChart(xData, yData) {
       const chartEl = this.$refs.chart;
       const layout = {
         title: this.chartConfig.label,
-        xaxis: { title: 'X 軸' },
-        yaxis: { title: 'Y 軸' },
+        xaxis: { 
+          title: this.chartConfig.xAxisLabel || 'X 轴',
+          tickangle: -90,
+          automargin: true
+        },
+        yaxis: { 
+          title: this.chartConfig.yAxisLabel || 'Y 轴'
+        },
         width: this.chartConfig.width || 600,
         height: this.chartConfig.height || 400
       };

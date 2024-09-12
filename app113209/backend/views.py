@@ -150,20 +150,6 @@ def approve_user(request, user_id):
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def assign_role_and_module(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    module_id = request.data.get('module')
-    role_id = request.data.get('role')
-
-    if module_id:
-        user.module_id = module_id
-    if role_id:
-        user.role_id = role_id
-    user.save()
-    record_history(request.user, f"管理員 {request.user.username} 分配模組 {module_id} 和角色 {role_id} 給用戶 {user.username}")
-    return JsonResponse({'success': True})
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

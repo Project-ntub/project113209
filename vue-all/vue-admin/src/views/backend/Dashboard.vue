@@ -38,9 +38,25 @@ export default {
   data() {
     return {
       charts: [
-        { name: 'RevenueChart', label: '營業額', chartId: 1, chartType: 'bar', width: 600, height: 400 },
-        { name: 'InventoryChart', label: '庫存量', chartId: 2, chartType: 'bar', width: 600, height: 400 },
-        { name: 'SalesChart', label: '銷售額', chartId: 3, chartType: 'bar', width: 600, height: 400 }
+        { 
+          name: 'RevenueChart', label: '營業額', chartId: 1, 
+          chartType: 'bar', width: 600, height: 400, 
+          xAxisLabel: '店铺名稱', yAxisLabel: '營業額' 
+        },
+        { 
+          name: 'InventoryChart', label: '庫存量', chartId: 2, 
+          chartType: 'bar', width: 600, height: 400, 
+          xAxisLabel: '商品名稱', yAxisLabel: '數量' 
+        },
+        { 
+          name: 'SalesChart', label: '銷售額', chartId: 3, 
+          chartType: 'line', width: 600, height: 400,
+          xAxisLabel: '日期', yAxisLabel: '銷售額'         
+        },
+        { 
+          name: 'StoreComparisonChart', label: '店鋪收益對比', chartId: 5, 
+          chartType: 'pie', width: 600, height: 400 
+        }  // 新增圖表：店鋪收益對比
       ]
       // 暫時註解掉縮放功能的選項
       // resizeOptions: {
