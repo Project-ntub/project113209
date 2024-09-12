@@ -78,6 +78,27 @@ def validate_verification_code_backend(request):
         return JsonResponse({'success': False, 'message': '驗證碼無效'}, status=400)
 
 
+@api_view(['POST'])
+def record_login_history(request):
+    user = request.user
+    if user.is_authenticated:
+        action = request.data.get('action', '登入成功')
+        device_brand = request.data.get('device_brand', '未知')
+        device_type = request.data.get('device_type', '未知')
+        operation_result = 1  # 登入成功
+
+        UserHistory.objects.create(
+            user=user,
+            action=action,
+            timestamp=timezone.now(),
+            device_brand=device_brand,
+            device_type=device_type,
+            operation_result=operation_result
+        )
+        return Response({'message': '歷史紀錄已保存'}, status=status.HTTP_201_CREATED)
+    return Response({'error': '未授權'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_deleted=False)
     serializer_class = UserSerializer
