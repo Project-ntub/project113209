@@ -124,3 +124,4 @@ export default {
   }
 };
 </script>
+<style scoped src="@/assets/css/backend/HistoricalRecord.css"></style>

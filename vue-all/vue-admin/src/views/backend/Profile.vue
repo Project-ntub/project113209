@@ -66,7 +66,6 @@
         <button v-if="!showModal" @click="openModal">編輯</button>
         <button v-else @click="saveProfile">保存</button>
         <button v-if="showModal" class="cancel-btn" @click="cancelEdit">取消</button>
-        <button class="logout-btn" @click="logout">登出</button>
       </div>
     </div>
   </div>

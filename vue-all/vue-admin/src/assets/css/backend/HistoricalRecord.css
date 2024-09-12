@@ -1,15 +1,14 @@
 .container {
-  margin: 0 auto; /* 自動左右居中 */
+  margin: 0 auto;
   padding: 10px;
-  max-width: 500px; /* 設定最大寬度，防止介面過寬 */
-  width: 100%; /* 設定寬度為100%，適應不同裝置 */
+  max-width: 1200px; /* 增加容器寬度，讓表格內容顯示更多 */
+  width: 100%;
   box-sizing: border-box;
 }
 
 .search-container, .sort-container {
   margin-bottom: 20px;
   width: 100%;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,8 +17,8 @@
 .search-container input, 
 .sort-container select, 
 button {
-  width: 100%; /* 設定輸入框和按鈕寬度為100% */
-  max-width: 300px; /* 設定最大寬度，防止介面過寬 */
+  width: 100%;
+  max-width: 400px; /* 增加最大寬度，提升佈局一致性 */
   margin-bottom: 10px;
   box-sizing: border-box;
 }
@@ -27,57 +26,64 @@ button {
 .history-container {
   max-width: 100%;
   margin-top: 20px;
-  overflow-y: auto;
 }
 
 .table-container {
-  max-height: 400px; /* 表格最大高度 */
-  overflow-y: auto; /* 垂直滾動條 */
+  max-height: 200px; /* 增加表格最大高度，顯示更多數據 */
+  overflow-y: auto;
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px; /* 縮小頂部邊距 */
+  margin-top: 15px;
 }
 
 .history-table th, .history-table td {
   border: 1px solid #ddd;
-  padding: 6px; /* 縮小表格內的填充 */
-  text-align: center; /* 水平居中 */
-  vertical-align: middle; /* 垂直居中 */
-  font-size: 14px; /* 設置字體大小 */
-  box-sizing: border-box;
+  padding: 8px; /* 增加表格內填充，提升閱讀舒適度 */
+  text-align: center;
+  vertical-align: middle;
+  font-size: 14px;
 }
 
 .history-table th {
   background-color: #f2f2f2;
-  font-weight: bold; /* 加粗標題文字 */
+  font-weight: bold;
 }
 
-/* RWD */
+.history-table td {
+  white-space: nowrap; /* 強制內容在一行內不換行 */
+}
+
+.history-table th, .history-table td {
+  padding: 10px 15px; /* 增加填充讓每列顯得更寬鬆 */
+}
+
+/* 響應式調整 */
 @media (max-width: 768px) {
   .container {
     margin: 0 auto;
+    max-width: 90%;
   }
 
   .search-container, .sort-container {
     flex-direction: column;
     margin-bottom: 10px;
-    align-items: center;
   }
 
   .history-table th, .history-table td {
-    padding: 5px;
+    padding: 8px;
   }
 }
 
 @media (max-width: 480px) {
   .container {
     margin: 0 auto;
+    max-width: 100%;
   }
 
   .history-table th, .history-table td {
-    padding: 4px;
+    padding: 6px;
   }
 }

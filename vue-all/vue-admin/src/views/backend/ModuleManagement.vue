@@ -131,8 +131,7 @@ export default {
           this.loadModules();
           alert('刪除成功');
         } else {
-          alert('刪除模組失敗');
-          console.error('Error deleting module:', response.data.message);
+          alert("刪除模組失敗");
         }
       } catch (error) {
         console.error('Error deleting module:', error.response ? error.response.data : error.message);

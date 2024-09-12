@@ -151,3 +151,4 @@ export default {
   }
 };
 </script>
+<style scoped src="@/assets/css/backend/UserManagement.css"></style>
