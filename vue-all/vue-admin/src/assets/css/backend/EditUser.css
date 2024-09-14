@@ -4,42 +4,32 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    justify-content: flex-start;
+    align-items: flex-start;
+    min-height: 150vh; /* 將頁面高度設為視窗高度的 150%，確保下方有足夠的空間 */
+    overflow-y: auto; /* 增加滾動條 */
 }
 
 .container {
-    width: 90%;
-    max-width: 600px; /* 最大寬度 */
-    margin: 20px auto;
+    width: 100%;
+    max-width: 800px;
+    margin: 60px auto;
     background-color: #ffffff;
-    padding: 20px;
+    padding: 40px 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    transition: all 0.3s ease;
-    text-align: center; /* 將內容居中 */
+    min-height: 100vh; /* 確保容器高度足夠 */
+    text-align: left;
+    padding-bottom: 80px; /* 增加底部空白 */
+
 }
 
 h2 {
-    margin-bottom: 10px;
-    font-size: 1.5em;
-}
-
-.btn-approve {
-    margin-top: 20px; /* 增加與上方元素的間距 */
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 1em;
-    display: inline-block; /* 確保按鈕是內聯塊元素 */
-}
-
-.btn-approve:hover {
-    background-color: #45a049;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-size: 1.6em;
+    width: 100%;
+    text-align: center;
 }
 
 .form-group {
@@ -57,8 +47,17 @@ input[type="text"], select {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box;
     width: 100%;
+}
+
+.btn-approve {
+    margin-top: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
 }
 
 .btn-search {
@@ -66,34 +65,35 @@ input[type="text"], select {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
-    cursor: pointer;
     background-color: #007bff;
     color: white;
-    font-size: 1em;
+
+}
+.btn-cancel {
+    margin-top: 10px;
+    margin-left: 70px; /* 調整為您想要的 px 值來移動取消按鈕 */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
 }
 
-.btn-search:hover {
-    background-color: #0056b3;
-}
 
-/* 響應式設計 */
 @media (max-width: 768px) {
     .container {
         width: 95%;
         padding: 15px;
-        max-width: 100%; /* 小屏幕下的最大寬度 */
+        max-width: 100%;
     }
 
     h2 {
-        font-size: 1.2em; /* 標題在小屏幕縮小 */
+        font-size: 1.4em;
     }
 
     input, select, button {
-        font-size: 0.9em; /* 输入框、选择框、按钮字体缩小 */
+        font-size: 0.9em;
         padding: 8px;
-    }
-
-    .btn-approve {
-        width: auto; /* 確保在小屏幕下按鈕寬度自適應 */
     }
 }
