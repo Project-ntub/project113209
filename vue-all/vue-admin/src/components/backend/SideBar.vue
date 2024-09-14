@@ -104,7 +104,7 @@ export default {
     },
     async fetchUserData() {
       try {
-        const response = await axios.get('/api/backend/profile/'); // 替換為後端的用戶信息 API 路徑
+        const response = await axios.get('/api/backend/profile/');
         this.username = response.data.username;
       } catch (error) {
         console.error('無法獲取用戶資料:', error);

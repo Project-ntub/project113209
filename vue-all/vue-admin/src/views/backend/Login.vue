@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div class="container">
     <h2>登入</h2>
     <form @submit.prevent="login">
@@ -44,15 +44,10 @@ export default {
   methods: {
     async login() {
       try {
-        const csrfToken = getCookie('csrftoken');
         const response = await axios.post('/api/token/', {
           email: this.email,
           password: this.password,
           remember_me: this.rememberMe
-        }, {
-          headers: {
-            'X-CSRFToken': csrfToken
-          }
         });
         console.log('登入成功', response);
         localStorage.setItem('backend_token', response.data.access); // 儲存後台 token
@@ -84,21 +79,6 @@ export default {
     }
   }
 };
-
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; cookies[i]; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
 </script>
 
 <style scoped src="@/assets/css/backend/login.css"></style>

@@ -1,3 +1,4 @@
+# app113209\backend\api_urls.py
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -16,6 +17,8 @@ router.register(r'permissions', api_views.UserPermissionViewSet, basename='user-
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('pending-users/', api_views.PendingUserViewSet.as_view({'get': 'list'}), name='pending-users-list'),
+    path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
     path('create_role/', api_views.RoleViewSet.as_view({'post': 'create'}), name='create_role'),
     path('create_module/', api_views.ModuleViewSet.as_view({'post': 'create'}), name='create_module'),
     path('toggle_role_status/<int:pk>/', api_views.RoleViewSet.as_view({'post': 'toggle_status'}), name='toggle_role_status'),
@@ -39,7 +42,7 @@ urlpatterns = [
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
     path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
     path('user_preferences/', api_views.UserPreferencesViewSet.as_view({'get': 'list', 'post': 'create'}), name='user_preferences'),
-    path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
+    # path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
     path('departments/', api_views.UserViewSet.as_view({'get': 'get_departments'}), name='get_departments'),
     path('get_positions_by_department/<str:department_id>/', api_views.UserViewSet.as_view({'get': 'get_positions_by_department'}), name='get_positions_by_department'),
 

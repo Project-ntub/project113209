@@ -1,4 +1,4 @@
-# C:\Users\user\OneDrive\桌面\project113209\app113209\backend\views.py
+# app113209\backend\views.py
 import logging
 import uuid
 import json
@@ -162,7 +162,7 @@ def approve_user(request, user_id):
         send_mail(
             '您的帳號已啟用',
             '恭喜！您的帳號已經被管理員審核並啟用。',
-            'leewesley527@gmail.com',
+            'leewesley527@gmail.com',a
             [user.email],
             fail_silently=False,
         )
@@ -235,6 +235,7 @@ def delete_module(request, module_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Module.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
 # 圖表權限設置
 # backend/views.py
 from rest_framework.views import APIView
@@ -259,6 +260,7 @@ class SavePermissionsAPIView(APIView):
         # 假設我們將選擇的分店與某個用戶/角色綁定
         # 這裡省略具體的邏輯，只是模擬返回
         return Response({"message": "權限設置已保存"}, status=status.HTTP_200_OK)
+
 # 登出視圖
 from django.contrib.auth import logout
 

@@ -45,7 +45,8 @@ export default {
   },
   data() {
     return {
-      pendingUsers: []
+      pendingUsers: [],
+      isLoading: false // 添加一個加載狀態
     };
   },
   methods: {
@@ -58,6 +59,8 @@ export default {
       }
     },
     async approveUser(userId) {
+      if (this.isLoading) return; // 防止重複點擊
+      this.isLoading = true;
       try {
         const response = await axios.post(`/api/backend/approve-user/${userId}/`);
         if (response.data.success) {
@@ -67,8 +70,10 @@ export default {
           alert('開通失敗，請稍後再試');
         }
       } catch (error) {
-        console.error('Error approving user:', error);
+        console.error('審批用戶時出錯：', error);
         alert('開通失敗，請稍後再試');
+      } finally {
+        this.isLoading = false; // 操作完成後取消加載狀態
       }
     }
   },

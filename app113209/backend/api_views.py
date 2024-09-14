@@ -1,4 +1,4 @@
-# C:\Users\user\OneDrive\桌面\project113209\app113209\backend\api_views.py
+# app113209\backend\api_views.py
 import os
 import uuid
 import json
@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.http import JsonResponse
 from django.db.models import F, Sum  # 添加这行
+from django.contrib.auth import authenticate, login
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
@@ -26,6 +27,14 @@ from plotly.graph_objs import Bar, Scatter, Pie
 
 
 logger = logging.getLogger(__name__)
+
+def login_view(request):
+    user = authenticate(username=request.POST['username'], password=request.POST['password'])
+    if user is not None:
+        login(request, user)
+        return JsonResponse({'message': 'Login successful'})
+    return JsonResponse({'error': 'Invalid credentials'}, status=400)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_deleted=False, is_active=True)
@@ -167,6 +176,12 @@ class UserPermissionViewSet(viewsets.ModelViewSet):
 class PendingUserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
+
+    def list(self, request):
+        # 這裡是列出待審核用戶的邏輯
+        users = User.objects.filter(is_active=False, is_approved=False)
+        serializer = self.serializer_class(users, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def approve_user(self, request, pk=None):
@@ -577,12 +592,15 @@ class ChartDataAPIView(APIView):
         x_data = chart_config.get('x_data')
         y_data = chart_config.get('y_data')
 
+        # 記錄生成圖表的操作
+        record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
+
         fig = create_chart(chart_type, x_data, y_data)
         chart_json = fig.to_json()
         return JsonResponse(chart_json, safe=False)
 
-
 # API：生成圖表並保存為圖片
+
 @api_view(['POST'])
 def generate_chart_image(request):
     chart_type = request.data.get('chart_type')
@@ -732,4 +750,5 @@ class StoreComparisonChartDataAPIView(APIView):
 
 #     # 返回生成的圖片路徑
 #     return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
+
 
