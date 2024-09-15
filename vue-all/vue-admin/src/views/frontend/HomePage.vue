@@ -2,7 +2,7 @@
   <div :class="['home-page', { 'sidebar-open': isSidebarOpen }]">
     <!-- 頂部導航欄 -->
     <TopNavbar @trigger-export="exportChart" ref="topNavbar" />
-    
+
     <!-- 分店下拉選單（經理） -->
     <div v-if="userPosition === '經理'" class="branch-selection">
       <label for="branch-select">選擇分店:</label>
@@ -18,21 +18,23 @@
       <p>當前分店: {{ branches[0]?.branch_name }}</p>
     </div>
 
-    <!-- 按鈕控制區域 -->
+    <!-- 按鈕控制區域，根據權限顯示按鈕 -->
     <div class="chart-controls">
+      <button v-if ="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" @click="setCurrentChart('RevenueChart')">營業額</button>
+      <button v-if ="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" @click="setCurrentChart('SalesChart')">銷售額</button>
+      <button v-if ="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" @click="setCurrentChart('InventoryChart')">庫存量</button>
       <button @click="setCurrentChart('all')">顯示所有圖表</button>
-      <button @click="setCurrentChart('RevenueChart')">營業額</button>
-      <button @click="setCurrentChart('SalesChart')">銷售額</button>
-      <button @click="setCurrentChart('InventoryChart')">庫存量</button>
     </div>
 
     <!-- 圖表區域 -->
     <div class="chart-container">
       <!-- 顯示所有圖表 -->
       <template v-if="currentChart === 'all'">
-        <PlotlyChart :chartConfig="getChartConfig('RevenueChart')" />
-        <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
-        <PlotlyChart :chartConfig="getChartConfig('InventoryChart')" />
+        <div class="chart-grid">
+          <PlotlyChart v-if ="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" :chartConfig="getChartConfig('RevenueChart')" />
+          <PlotlyChart v-if ="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" :chartConfig="getChartConfig('SalesChart')" />
+          <PlotlyChart v-if ="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" :chartConfig="getChartConfig('InventoryChart')" />
+        </div>
       </template>
       <!-- 顯示選定的單個圖表 -->
       <template v-else>
@@ -42,13 +44,9 @@
   </div>
 </template>
 
-
 <script>
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
-import SalesChart from '@/Charts/SalesChart.vue';
-import RevenueChart from '@/Charts/RevenueChart.vue';
-import InventoryChart from '@/Charts/InventoryChart.vue';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -59,17 +57,15 @@ export default {
   components: {
     TopNavbar,
     PlotlyChart,
-    SalesChart,
-    RevenueChart,
-    InventoryChart,
   },
   data() {
     return {
       isSidebarOpen: false,
-      currentChart: 'SalesChart',
+      currentChart: 'all',
       branches: [],
       selectedBranch: null,
       userPosition: null,
+      permissions: [], // 用戶權限列表
     };
   },
   methods: {
@@ -82,6 +78,7 @@ export default {
         this.userPosition = response.data.position_id;
         this.selectedBranch = response.data.branch_id;
         await this.fetchBranches();
+        await this.fetchPermissions();
       } catch (error) {
         console.error('Error fetching user position:', error);
       }
@@ -98,6 +95,18 @@ export default {
       } catch (error) {
         console.error('Error fetching branches:', error);
       }
+    },
+    async fetchPermissions() {
+      try {
+        const response = await axios.get('/api/backend/permissions/');
+        this.permissions = response.data; // 獲取用戶的權限
+      } catch (error) {
+        console.error('Error fetching permissions:', error);
+      }
+    },
+    hasPermission(chartName) {
+      // 根據權限判斷用戶是否可以查看指定圖表
+      return this.permissions.some(permission => permission.permission_name === chartName && permission.can_view);
     },
     setCurrentChart(chart) {
       this.currentChart = chart;
@@ -143,33 +152,33 @@ export default {
     },
     getChartConfig(chartName) {
       const chartConfigs = {
-        RevenueChart: { 
-          name: 'RevenueChart', 
-          label: '營業額', 
-          chartType: 'bar', 
-          width: 600, 
-          height: 400, 
-          xAxisLabel: '店铺名稱', 
-          yAxisLabel: '營業額' 
+        RevenueChart: {
+          name: 'RevenueChart',
+          label: '營業額',
+          chartType: 'bar',
+          width: 300,
+          height: 250,
+          xAxisLabel: '店铺名稱',
+          yAxisLabel: '營業額',
         },
-        InventoryChart: { 
-          name: 'InventoryChart', 
-          label: '庫存量', 
-          chartType: 'bar', 
-          width: 600, 
-          height: 400, 
-          xAxisLabel: '商品名稱', 
-          yAxisLabel: '數量' 
+        InventoryChart: {
+          name: 'InventoryChart',
+          label: '庫存量',
+          chartType: 'bar',
+          width: 300,
+          height: 250,
+          xAxisLabel: '商品名稱',
+          yAxisLabel: '數量',
         },
-        SalesChart: { 
-          name: 'SalesChart', 
-          label: '銷售額', 
-          chartType: 'line', 
-          width: 600, 
-          height: 400,
-          xAxisLabel: '日期', 
-          yAxisLabel: '銷售額' 
-        }
+        SalesChart: {
+          name: 'SalesChart',
+          label: '銷售額',
+          chartType: 'line',
+          width: 300,
+          height: 250,
+          xAxisLabel: '日期',
+          yAxisLabel: '銷售額',
+        },
       };
       return chartConfigs[chartName] || chartConfigs['SalesChart'];
     },
