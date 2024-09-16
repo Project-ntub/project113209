@@ -2,8 +2,9 @@
   <div>
     <div :class="['sidebar', { open: isSidebarOpen }]">
       <div class="sidebar-header">
-        <font-awesome-icon icon="user" class="icon" />
-        <span v-if="isSidebarOpen">{{ username }}</span> <!-- 只在展开时显示 -->
+        <!-- 替換圖標，這裡使用 "home" 圖標 -->
+        <font-awesome-icon icon="home" class="icon" />
+        <span v-if="isSidebarOpen">{{ username }}</span> <!-- 只在展開時顯示 -->
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
       <router-link to="/frontend/home" class="sidebar-link">
@@ -37,7 +38,7 @@ export default {
   data() {
     return {
       isSidebarOpen: false,
-      username: '' // 用来存储用户名
+      username: '' // 用來存儲用戶名
     };
   },
   methods: {
@@ -56,7 +57,7 @@ export default {
     },
     async fetchUserData() {
       try {
-        const response = await axios.get('/api/frontend/profile/'); // 替换为你的用户信息 API 路径
+        const response = await axios.get('/api/frontend/profile/'); // 替换为您的用户信息 API 路径
         this.username = response.data.username;
       } catch (error) {
         console.error('Failed to fetch user data:', error);

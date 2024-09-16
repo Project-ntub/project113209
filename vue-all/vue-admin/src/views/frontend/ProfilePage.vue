@@ -3,8 +3,8 @@
     <div class="profile-container">
       <div class="profile-card">
         <div class="profile-image">
-          <!-- 圓形的圖片容器 -->
-          <img src="https://via.placeholder.com/150" alt="Profile Image" />
+          <!-- 圓形的圖片容器，如果沒有圖片則顯示佔位圖片 -->
+          <img :src="imageSrc || 'https://via.placeholder.com/150'" alt="Profile Image" />
         </div>
         <div class="profile-info">
           <h2>{{ userData.username || 'N/A' }}</h2>
@@ -24,6 +24,7 @@
           <p>職位：<input type="text" v-model="editData.position_id" disabled /></p>
           <p>電話：<input type="text" v-model="editData.phone" /></p>
           <p>電子郵件：<input type="email" v-model="editData.email" /></p>
+          <p>上傳新照片：<input type="file" @change="onFileChange" /></p>
           <div class="button-container">
             <button @click="saveProfile" class="save">保存</button>
             <button @click="cancelEdit" class="cancel">取消</button>
@@ -46,17 +47,25 @@ export default {
         phone: '',
         department_id: '',
         position_id: '',
+        profile_image: null  // 用戶的個人照片
       },
       editData: {},
-      isEditing: false
+      isEditing: false,
+      imageSrc: null,  // 用於顯示的圖片源
     };
   },
   methods: {
     // 獲取用戶資料
     async fetchUserProfile() {
       try {
-        const response = await axios.get('/api/frontend/profile/');
+        const token = localStorage.getItem('frontend_token');  // 獲取 token
+        const response = await axios.get('/api/frontend/profile/', {
+          headers: {
+            'Authorization': `Bearer ${token}`  // 添加 Authorization 標頭
+          }
+        });
         this.userData = response.data;
+        this.imageSrc = this.userData.profile_image || null;  // 如果有圖片，顯示圖片
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
@@ -66,37 +75,50 @@ export default {
       this.editData = { ...this.userData };
       this.isEditing = true;
     },
+    // 上傳新圖片時，更新顯示的圖片
+    onFileChange(e) {
+      const file = e.target.files[0];
+      if (file) {
+        this.editData.profile_image = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.imageSrc = e.target.result;  // 即時顯示上傳的圖片
+        };
+        reader.readAsDataURL(file);
+      }
+    },
     // 取消編輯
     cancelEdit() {
       this.isEditing = false;
+      this.imageSrc = this.userData.profile_image || null;  // 還原圖片
     },
-    // 保存用戶資料並紀錄歷史
+    // 保存用戶資料並上傳新照片
     async saveProfile() {
       try {
-        // 更新個人資訊
-        await axios.put('/api/frontend/profile/', this.editData);
-        this.userData = { ...this.editData };
-        this.isEditing = false;
-        alert('個人信息已更新');
+        const token = localStorage.getItem('frontend_token');  // 獲取 token
 
-        // 發送成功的歷史紀錄
-        await this.recordHistory({
-          action: '更新個人資訊',
-          operation_result: 1  // 操作成功
+        const formData = new FormData();
+        formData.append('username', this.editData.username);
+        formData.append('email', this.editData.email);
+        formData.append('phone', this.editData.phone);
+        if (this.editData.profile_image) {
+          formData.append('profile_image', this.editData.profile_image);  // 將照片附加到 FormData
+        }
+
+        // 更新個人資訊
+        await axios.put('/api/frontend/profile/', formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,  // 添加 Authorization 標頭
+            'Content-Type': 'multipart/form-data'  // 設置適當的內容類型
+          }
         });
 
+        this.userData = { ...this.editData };
+        this.isEditing = false;
+        alert('個人資訊已更新');
       } catch (error) {
-        console.error('Error saving profile:', error);
+        console.error('Error saving profile:', error.response);
         alert('保存失敗');
-      }
-    },
-    // 發送歷史紀錄
-    async recordHistory(historyData) {
-      try {
-        await axios.post('/api/frontend/history/', historyData);
-        console.log('歷史紀錄成功');
-      } catch (error) {
-        console.error('歷史紀錄失敗:', error);
       }
     }
   },
@@ -106,4 +128,60 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/frontend/ProfilePage.css"></style>
+<style scoped>
+/* 這裡是你的樣式代碼 */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;  /* 讓內容靠近頂部 */
+  height: 80vh;  
+  padding-top: 0px;  /* 如果這裡有內邊距，可以將其減少或移除 */
+}
+
+
+.profile-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 10px;
+  width: 300px;
+  height: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-top: 0;  /* 移除與上方的外邊距 */
+}
+
+.profile-image img {
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 80vh;  /* 限制彈窗的最大高度 */
+  overflow-y: auto;  /* 當內容超過最大高度時，彈窗內容可以滾動 */
+}
+
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+button.save {
+  background-color: #4caf50;
+  color: white;
+}
+
+button.cancel {
+  background-color: #f44336;
+  color: white;
+}
+</style>
