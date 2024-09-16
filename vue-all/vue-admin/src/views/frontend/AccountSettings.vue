@@ -3,8 +3,6 @@
     <div class="main-panel">
       <div class="container">
         <div class="account-settings">
-          <!-- 用户头像 -->
-          <img class="profile-pic" src="https://via.placeholder.com/100" alt="Profile Picture">
           <!-- 用户名 -->
           <h3></h3>
           <!-- 修改密码链接 -->

@@ -55,7 +55,6 @@ export default {
     };
   },
   methods: {
-    // 獲取用戶資料
     async fetchUserProfile() {
       try {
         const token = localStorage.getItem('frontend_token');  // 獲取 token
@@ -70,7 +69,6 @@ export default {
         console.error('Error fetching user profile:', error);
       }
     },
-    // 編輯用戶資料
     editProfile() {
       this.editData = { ...this.userData };
       this.isEditing = true;
@@ -123,7 +121,7 @@ export default {
     }
   },
   mounted() {
-    this.fetchUserProfile(); // 在組件加載時獲取用戶信息
+    this.fetchUserProfile();
   }
 };
 </script>

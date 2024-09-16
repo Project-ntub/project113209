@@ -54,7 +54,7 @@ export default {
           xAxisLabel: '日期', yAxisLabel: '銷售額'         
         },
         { 
-          name: 'StoreComparisonChart', label: '店鋪收益對比', chartId: 5, 
+          name: 'ProductSalesPieChart', label: '產品銷售佔比', chartId: 1, 
           chartType: 'pie', width: 600, height: 400 
         }  // 新增圖表：店鋪收益對比
       ]

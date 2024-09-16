@@ -702,6 +702,21 @@ class SalesVolumeChartDataAPIView(APIView):
         # 假設需要返回的數據為日期和銷售量
         data = list(sales_data)
         return JsonResponse(data, safe=False)
+    
+class ProductSalesPieChartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 使用 product__category 來取得相關聯的 product 資訊
+        product_sales = TEST_Sales.objects.values('product__category').annotate(total_sales=Sum('quantity'))
+
+        # 準備圓餅圖所需的數據
+        data = {
+            'categories': [item['product__category'] for item in product_sales],
+            'sales': [item['total_sales'] for item in product_sales]
+        }
+
+        return JsonResponse(data, safe=False)
 
 # 新增這個函數來生成店鋪的分布數據
 # def get_store_distribution():
