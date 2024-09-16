@@ -60,7 +60,8 @@ urlpatterns = [
     path('inventory-chart-data/', api_views.InventoryDataAPIView.as_view(), name='inventory-chart-data'),
     path('sales-volume-chart-data/', api_views.SalesVolumeChartDataAPIView.as_view(), name='sales-volume-chart-data'),
     path('store-comparison-chart-data/', api_views.StoreComparisonChartDataAPIView.as_view(), name='store-comparison-chart-data'),
-   
+    path('product-sales-pie-chart-data/', api_views.ProductSalesPieChartAPIView.as_view(), name='store-comparison-chart-data'),
+
 
     # 數據端點
     path('inventory/', api_views.InventoryDataAPIView.as_view(), name='inventory-data'),
