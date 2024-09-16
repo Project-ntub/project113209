@@ -2,10 +2,6 @@
   <div>
     <div class="profile-container">
       <div class="profile-card">
-        <div class="profile-image">
-          <!-- 圓形的圖片容器 -->
-          <img src="https://via.placeholder.com/150" alt="Profile Image" />
-        </div>
         <div class="profile-info">
           <h2>{{ userData.username || 'N/A' }}</h2>
           <p>{{ userData.position_id || 'N/A' }}</p>
@@ -52,7 +48,6 @@ export default {
     };
   },
   methods: {
-    // 獲取用戶資料
     async fetchUserProfile() {
       try {
         const response = await axios.get('/api/frontend/profile/');
@@ -61,36 +56,28 @@ export default {
         console.error('Error fetching user profile:', error);
       }
     },
-    // 編輯用戶資料
     editProfile() {
       this.editData = { ...this.userData };
       this.isEditing = true;
     },
-    // 取消編輯
     cancelEdit() {
       this.isEditing = false;
     },
-    // 保存用戶資料並紀錄歷史
     async saveProfile() {
       try {
-        // 更新個人資訊
         await axios.put('/api/frontend/profile/', this.editData);
         this.userData = { ...this.editData };
         this.isEditing = false;
         alert('個人信息已更新');
-
-        // 發送成功的歷史紀錄
         await this.recordHistory({
           action: '更新個人資訊',
-          operation_result: 1  // 操作成功
+          operation_result: 1  
         });
-
       } catch (error) {
         console.error('Error saving profile:', error);
         alert('保存失敗');
       }
     },
-    // 發送歷史紀錄
     async recordHistory(historyData) {
       try {
         await axios.post('/api/frontend/history/', historyData);
@@ -101,7 +88,7 @@ export default {
     }
   },
   mounted() {
-    this.fetchUserProfile(); // 在組件加載時獲取用戶信息
+    this.fetchUserProfile();
   }
 };
 </script>
