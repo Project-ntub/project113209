@@ -136,10 +136,10 @@ export default {
     fetchUserPermissions() {
       axios.get('/api/backend/permissions/')
         .then(response => {
-            this.permissions = response.data;  // 使用回應的數據作為權限列表
+          this.permissions = response.data;  // 使用回應的數據作為權限列表
         })
         .catch(error => {
-            console.error('Error fetching permissions:', error);
+          console.error('Error fetching permissions:', error);
         });
     },
     // 關閉所有模態框
@@ -209,6 +209,4 @@ export default {
   }
 };
 </script>
-
-<!-- 引入外部的 CSS 文件 -->
 <style scoped src="@/assets/css/backend/RoleManagement.css"></style>
