@@ -20,7 +20,9 @@ app.use(VueCookies); // 註冊 vue-cookies 插件
 
 // 設置 Axios 攔截器來攜帶 token 和 CSRF token
 axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('backend_token'); // 從 localStorage 獲取 token
+  const token = window.location.pathname.startsWith('/backend') ? 
+                localStorage.getItem('backend_token') : 
+                localStorage.getItem('frontend_token');  
   const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
 
   if (token) {

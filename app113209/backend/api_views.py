@@ -1,22 +1,26 @@
 # app113209\backend\api_views.py
 import os
+import io
+import csv
 import uuid
 import json
 import logging
+from openpyxl import Workbook
 import plotly.graph_objects as go
-from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import F, Sum  # 添加这行
-from django.contrib.auth import authenticate, login
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate, login, logout
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from app113209.models import (User, Module, Role,RoleUser, RolePermission, UserHistory, 
-                             UserPreferences, ChartConfiguration, UserPreferences, 
-                             TEST_Inventory, TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
+                             UserPreferences, ChartConfiguration, TEST_Inventory, 
+                             TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer,
                                    ChartConfigurationSerializer, SalesDataSerializer,
@@ -31,9 +35,17 @@ logger = logging.getLogger(__name__)
 def login_view(request):
     user = authenticate(username=request.POST['username'], password=request.POST['password'])
     if user is not None:
+        # 用戶成功登入，更新last_login
+        user.last_login = timezone.now()
+        user.save()
+
         login(request, user)
         return JsonResponse({'message': 'Login successful'})
     return JsonResponse({'error': 'Invalid credentials'}, status=400)
+
+def logout_view(request):
+    logout(request)
+    return JsonResponse({'message': '成功登出'}, status=200)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -595,10 +607,18 @@ class ChartDataAPIView(APIView):
         # 記錄生成圖表的操作
         record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
 
-        fig = create_chart(chart_type, x_data, y_data)
-        chart_json = fig.to_json()
-        return JsonResponse(chart_json, safe=False)
+        # 對數據進行分析處理，例如計算總和或百分比
+        if chart_type == 'pie':
+            total = sum(y_data)
+            percentages = [(value / total) * 100 for value in y_data]
+            analyzed_data = {'categories': x_data, 'percentages': percentages}
+        else:
+            # 對於其他圖表，可能只是返回原始數據或簡單的總和
+            analyzed_data = {'x_data': x_data, 'y_data': y_data}
 
+        # 返回分析後的數據
+        return JsonResponse(analyzed_data, safe=False)
+    
 # API：生成圖表並保存為圖片
 
 @api_view(['POST'])
@@ -634,9 +654,13 @@ def save_chart_configuration(request):
 # API：根據圖表配置獲取數據
 @api_view(['GET'])
 def get_chart_data(request, chart_id):
-    config = get_object_or_404(ChartConfiguration, id=chart_id)
-    data = fetch_data_from_source(config.data_source, config.filter_conditions)
-    return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
+    try:
+        config = get_object_or_404(ChartConfiguration, id=chart_id)
+        data = fetch_data_from_source(config.data_source, config.filter_conditions)
+        return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
+    except Exception as e:
+        logger.error(f"Error fetching chart data: {e}")
+        return JsonResponse({'error': 'Failed to fetch chart data'}, status=500)
 
 # API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
@@ -766,4 +790,61 @@ class StoreComparisonChartDataAPIView(APIView):
 #     # 返回生成的圖片路徑
 #     return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
 
+# API: 匯出數據為 CSV
+@api_view(['POST'])
+def export_data_csv(request):
+    # 生成 CSV 數據
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    
+    writer = csv.writer(response)
+    # 添加數據行（這些數據將來自你的圖表數據）
+    writer.writerow(['X 軸', 'Y 軸'])
+    for row in request.data['data']:  # 假設你從前端發送數據
+        writer.writerow([row['x'], row['y']])
+    
+    return response
 
+@api_view(['POST'])
+def export_data_excel(request):
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet()
+    
+    # 將數據寫入 Excel
+    worksheet.write('A1', 'X 軸')
+    worksheet.write('B1', 'Y 軸')
+    
+    for idx, row in enumerate(request.data['data'], start=1):
+        worksheet.write(idx, 0, row['x'])
+        worksheet.write(idx, 1, row['y'])
+    
+    workbook.close()
+    output.seek(0)
+    
+    response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="data.xlsx"'
+    
+    return response
+
+@api_view(['POST'])
+def export_data_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="data.pdf"'
+    
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    
+    # 將數據寫入 PDF
+    p.drawString(100, 750, "X 軸  |  Y 軸")
+    
+    y_position = 730
+    for row in request.data['data']:
+        p.drawString(100, y_position, f"{row['x']}  |  {row['y']}")
+        y_position -= 20
+    
+    p.showPage()
+    p.save()
+    
+    buffer.seek(0)
+    return HttpResponse(buffer.read(), content_type='application/pdf')

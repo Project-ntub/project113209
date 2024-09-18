@@ -64,7 +64,7 @@ usermanagement.vue
                 刪除
               </button>
               <!-- 分配角色按鈕 -->
-              <button class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">
+              <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_edit)" class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">
                 分配角色
               </button>
             </td>

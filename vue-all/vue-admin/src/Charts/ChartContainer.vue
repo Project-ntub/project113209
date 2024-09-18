@@ -22,14 +22,11 @@
 </template>
 
 <script>
-import Plotly from 'plotly.js-dist';
-// import VueResizable from 'vue-resizable';
 import PermissionModal from '@/components/backend/PermissionModal.vue';
 import ChartModal from '@/components/backend/ChartModal.vue';
 
 export default {
   components: {
-    // VueResizable,
     PermissionModal,
     ChartModal
   },
@@ -37,15 +34,10 @@ export default {
     return {
       showMenu: false,
       isPermissionModalVisible: false,
-      isChartModalVisible: false,
-      chartInstance: null,
+      isChartModalVisible: false
     };
   },
   methods: {
-    renderChart(){
-      // 在这里定义 renderChart 的逻辑
-      console.log('Rendering chart...');
-    },
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },
@@ -62,16 +54,8 @@ export default {
       this.showMenu = false;
     },
     onResize() {
-      if (this.chartInstance) {
-        Plotly.Plots.resize(this.$refs.chart);
-      }
+      // 如果有 chart 实例，可以调用相关函数调整大小
     }
-  },
-  mounted() {
-    this.$nextTick(() => {
-      // this.renderChart() removed since it was causing errors.
-      // Assuming the chart will be handled inside <PlotlyChart> and resized correctly.
-    });
   }
 };
 </script>
@@ -92,10 +76,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
+  z-index: 10; /* 确保菜单按钮显示在最上层 */
 }
 
 .menu-button {
   position: relative;
+  z-index: 11; /* 确保按钮的点击优先 */
 }
 
 .menu-icon {
@@ -105,6 +91,7 @@ export default {
   font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
+  z-index: 11; /* 确保图标在前景 */
 }
 
 .menu {
@@ -115,6 +102,7 @@ export default {
   border: 1px solid #2980b9;
   border-radius: 5px;
   width: 150px;
+  z-index: 12; /* 确保菜单在最上层 */
 }
 
 .menu button {

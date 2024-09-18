@@ -1,6 +1,7 @@
 <template>
   <vue-resizable @resize="onResize">
     <div ref="chart" class="plotly-chart"></div>
+    <div class="last-updated">最後更新時間:{{ lastUpdated }}</div>
   </vue-resizable>
 </template>
 
@@ -10,6 +11,11 @@ import Plotly from 'plotly.js-dist';
 
 export default {
   props: ['chartConfig'],
+  data() {
+    return{
+      lastUpdated: ''
+    };
+  },
   mounted() {
     this.fetchChartData();
   },
@@ -47,9 +53,11 @@ export default {
           }
 
           this.renderChart(xData, yData);
+          this.lastUpdated = new Date().toLocaleString();  // 更新最後的更新時間
         })
         .catch(error => {
           console.error('Error fetching chart data:', error);
+          alert('無法獲取圖表數據，請稍後再試。');
         });
     },
     renderChart(xData, yData) {
@@ -92,6 +100,29 @@ export default {
       if (this.$refs.chart) {
         Plotly.Plots.resize(this.$refs.chart);
       }
+    },
+    exportData(format) {
+      let apiUrl = '';
+      if (format === 'csv') {
+        apiUrl = '/api/backend/export-data-csv/';
+      } else if (format === 'excel') {
+        apiUrl = '/api/backend/export-data-excel/';
+      } else if (format === 'pdf') {
+        apiUrl = '/api/backend/export-data-pdf/';
+      }
+
+      axios.post(apiUrl, this.chartConfig)
+        .then(response => {
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', format === 'csv' ? 'data.csv' : format === 'excel' ? 'data.xlsx' : 'data.pdf');
+          document.body.appendChild(link);
+          link.click();
+        })
+        .catch(error => {
+          console.error('Error exporting data:', error);
+        });
     }
   }
 };
@@ -102,4 +133,10 @@ export default {
   width: 100%;
   height: 100%;
 }
+.last-updated {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #555;
+}
 </style>
+
