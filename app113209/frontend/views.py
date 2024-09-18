@@ -254,6 +254,8 @@ class FrontendRegisterView(View):
         return response
 
 # 登录视图
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 class FrontendLoginView(View):
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
@@ -474,7 +476,10 @@ class ResetPasswordView(View):
     
 #     except Exception as e:
 #         return JsonResponse({'message': f'其他錯誤: {str(e)}'}, status=500)
+
 @api_view(['GET', 'PUT'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def user_profile(request):
     if request.method == 'GET':
         user = request.user

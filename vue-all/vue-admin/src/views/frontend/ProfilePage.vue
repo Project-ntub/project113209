@@ -41,49 +41,61 @@ export default {
         email: '',
         phone: '',
         department_id: '',
-        position_id: '',
+        position_id: ''
       },
       editData: {},
-      isEditing: false
+      isEditing: false,
     };
   },
   methods: {
     async fetchUserProfile() {
       try {
-        const response = await axios.get('/api/frontend/profile/');
+        const token = localStorage.getItem('frontend_token');  // 獲取 token
+        const response = await axios.get('/api/frontend/profile/', {
+          headers: {
+            'Authorization': `Bearer ${token}`  // 添加 Authorization 標頭
+          }
+        });
         this.userData = response.data;
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
     },
+
     editProfile() {
       this.editData = { ...this.userData };
       this.isEditing = true;
     },
+
+    // 取消編輯
     cancelEdit() {
       this.isEditing = false;
     },
+
+    // 保存用戶資料
     async saveProfile() {
       try {
-        await axios.put('/api/frontend/profile/', this.editData);
+        const token = localStorage.getItem('frontend_token');  // 獲取 token
+
+        const formData = new FormData();
+        formData.append('username', this.editData.username);
+        formData.append('email', this.editData.email);
+        formData.append('phone', this.editData.phone);
+
+        // 更新個人資訊
+        await axios.put('/api/frontend/profile/', formData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,  // 添加 Authorization 標頭
+            'Content-Type': 'multipart/form-data'  // 設置適當的內容類型
+          }
+        });
+
         this.userData = { ...this.editData };
         this.isEditing = false;
-        alert('個人信息已更新');
-        await this.recordHistory({
-          action: '更新個人資訊',
-          operation_result: 1  
-        });
+        alert('個人資訊已更新');
       } catch (error) {
-        console.error('Error saving profile:', error);
+        console.error('Error saving profile:', error.response);
         alert('保存失敗');
-      }
-    },
-    async recordHistory(historyData) {
-      try {
-        await axios.post('/api/frontend/history/', historyData);
-        console.log('歷史紀錄成功');
-      } catch (error) {
-        console.error('歷史紀錄失敗:', error);
       }
     }
   },
@@ -93,4 +105,54 @@ export default {
 };
 </script>
 
-<style src="@/assets/css/frontend/ProfilePage.css"></style>
+<style scoped>
+/* 這裡是你的樣式代碼 */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 80vh;  
+  padding-top: 0px;
+  z-index: 1;  /* 保證容器不被其他元素擋住 */
+}
+
+.profile-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 10px;
+  width: 300px;
+  height: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-top: 50px;  /* 調整 margin，避免被頂部的 navbar 遮擋 */
+}
+
+.edit-modal {
+  position: fixed;
+  top: 60%; /* 確保模態框在頁面中間顯示，不被navbar擋住 */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000; /* 增加 z-index 確保模態框在最前面顯示 */
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+button.save {
+  background-color: #4caf50;
+  color: white;
+}
+
+button.cancel {
+  background-color: #f44336;
+  color: white;
+}
+</style>

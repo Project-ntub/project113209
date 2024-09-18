@@ -1,23 +1,29 @@
 .container {
-  width: 100%; /* 設置為100%，以確保它能夠擴展到整個視窗寬度 */
-  max-width: none; /* 移除最大寬度限制 */
-  margin: 0 auto; /* 保持居中對齊 */
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
   background-color: #ffffff;
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   transition: margin-left 0.3s ease, width 0.3s ease;
-  padding-bottom: 40px; /* 增加底部的內間距 */
+  padding-bottom: 40px;
+  min-height: 100vh; /* 設置最小高度，讓容器占滿整個視窗 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .table-container {
-  max-height: 400px; /* 設置表格容器的最大高度 */
-  overflow-y: auto; /* 允許垂直滾動 */
-  margin-bottom: 30px; /* 增加表格容器下方的外間距 */
+  max-height: 600px; /* 調整最大高度，使表格範圍更廣 */
+  overflow-y: auto;
+  margin-bottom: 30px;
+  background-color: #fff; /* 背景色為白色，確保表格在白色區域顯示 */
+  padding: 10px; /* 表格的內部間距 */
 }
 
 .user-table {
-  width: 100%; /* 保持表格佔據容器的全寬 */
+  width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
   overflow-x: auto;
@@ -31,18 +37,23 @@
 }
 
 .user-table tr {
-  background-color: #f9f9f9; /* 設置每行的背景顏色 */
+  background-color: #f9f9f9;
 }
 
 .user-table tr:nth-child(even) {
-  background-color: #f2f2f2; /* 偶數行顏色略深 */
+  background-color: #f2f2f2;
 }
 
 .user-table tr:hover {
-  background-color: #ddd; /* 鼠標懸停時加深背景顏色 */
+  background-color: #ddd;
 }
 
-/* 按鈕樣式 */
+/* 增加表格下方白色範圍 */
+.extra-space {
+  height: 100px;
+  background-color: #ffffff;
+}
+
 .edit-btn,
 .delete-btn,
 .assigning-roles-btn {
@@ -81,12 +92,10 @@
 
 .filter-section {
   display: flex;
-  gap: 20px; /* 調整元素之間的間距 */
-  justify-content: flex-start; /* 保持篩選選項靠左 */
-  align-items: center; /* 保持垂直方向的居中 */
+  gap: 20px;
+  justify-content: flex-start;
+  align-items: center;
   margin-bottom: 20px;
-  padding-left: 0;
-  position: relative; /* 為了讓待審核按鈕相對定位 */
 }
 
 .filter-section label {
@@ -95,8 +104,8 @@
 
 .filter-section select,
 .filter-section input {
-  flex: 1; /* 每個選擇框佔據相等的空間 */
-  max-width: 250px; /* 可選擇設定最大寬度來限制寬度 */
+  flex: 1;
+  max-width: 250px;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -109,13 +118,11 @@
   color: white;
   border: none;
   cursor: pointer;
-  max-width: 100px; /* 限制按鈕最大寬度 */
-  flex-shrink: 0; /* 確保按鈕不會被縮小 */
+  max-width: 100px;
+  flex-shrink: 0;
 }
 
 .pending-approval-btn {
-  position: absolute; /* 使用絕對定位將按鈕移動到父容器的右側 */
-  right: 200px; /* 將待審核按鈕推到右側 */
   padding: 10px 20px;
   background-color: #6AA7E8;
   color: white;

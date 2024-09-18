@@ -19,4 +19,14 @@
   } */
   
 
-  
+  .export-btn {
+    position: fixed;  /* 固定按鈕的位置 */
+    top: 20px;  /* 距離頂部 20px */
+    right: 20px;  /* 距離右側 20px */
+    background-color: #6200EE;  /* 按鈕背景色 */
+    color: white;  /* 按鈕字體顏色 */
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    z-index: 1000;  /* 確保按鈕位於其他元素之上 */
+}

@@ -546,9 +546,26 @@ class UserHistoryListView(APIView):
         return Response({"message": "Record added successfully", "record_id": new_record.id}, status=status.HTTP_201_CREATED)
 
 
-class UserPreferencesViewSet(viewsets.ModelViewSet):
-    queryset = UserPreferences.objects.all()
-    serializer_class = UserPreferencesSerializer
+# 查詢當前登入用戶的偏好
+@api_view(['GET'])
+def get_user_preferences(request):
+    if request.user.is_authenticated:  # 確保用戶已登入
+        preferences = UserPreferences.objects.filter(user=request.user)
+        serializer = UserPreferencesSerializer(preferences, many=True)
+        return Response(serializer.data)
+    else:
+        return Response({"error": "用戶未登入"}, status=status.HTTP_401_UNAUTHORIZED)
+
+# 更新用戶偏好
+@api_view(['PUT'])
+def update_user_preference(request, id):
+    preference = get_object_or_404(UserPreferences, id=id)
+    serializer = UserPreferencesSerializer(preference, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # 圖表
 # 返回可用的資料表列表

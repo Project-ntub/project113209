@@ -1,14 +1,6 @@
-usermanagement.vue
 <template>
   <TopNavbar title="用戶管理" />
   <div class="container">
-    <div class="header">
-      <!-- 判斷是否有新增用戶的權限，並顯示"待審核"按鈕 -->
-      <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_add)" @click="navigateToPendingList">
-        待審核
-      </button>
-
-    </div>
     <div class="filter-section">
       <!-- 排序下拉選單 -->
       <label for="sort-select">排序:</label>
@@ -29,7 +21,13 @@ usermanagement.vue
       <!-- 搜尋框 -->
       <input type="text" id="search-box" placeholder="搜尋..." v-model="query" @keydown.enter="applyFilters">
       <button @click="applyFilters" class="search-btn">搜尋</button>
+
+      <!-- 待審核按鈕，與搜尋欄一體化 -->
+      <button class="pending-approval-btn" v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_add)" @click="navigateToPendingList">
+        待審核
+      </button>
     </div>
+
     <!-- 用戶表格 -->
     <div class="table-container">
       <table class="user-table">
@@ -55,11 +53,11 @@ usermanagement.vue
             <td>{{ formatDate(user.date_joined) }}</td>
             <td>{{ formatDate(user.last_login) }}</td>
             <td>
-              <!-- 編輯按鈕顯示與權限檢查 -->
+              <!-- 編輯按鈕 -->
               <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_edit)" @click="navigateToEditUser(user.id)" class="edit-btn">
                 編輯
               </button>
-              <!-- 刪除按鈕顯示與權限檢查 -->
+              <!-- 刪除按鈕 -->
               <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_delete)" @click="deleteUser(user.id)" class="delete-btn">
                 刪除
               </button>
@@ -77,7 +75,6 @@ usermanagement.vue
 
 <script>
 import axios from '@/axios';
-import '@/assets/css/backend/UserManagement.css'; // 引用外部的 CSS 文件
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 
 export default {
@@ -87,35 +84,31 @@ export default {
   },
   data() {
     return {
-      permissions: [], // 用於存放當前用戶的權限
-      sortBy: 'name', // 預設按姓名排序
-      departmentFilter: 'all', // 預設顯示所有部門
-      query: '', // 搜尋框的值
-      users: [], // 儲存從後端取得的用戶數據
-      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部'] // 靜態部門清單
+      permissions: [], // 當前用戶的權限
+      sortBy: 'name', // 預設排序方式
+      departmentFilter: 'all', // 部門過濾
+      query: '', // 搜尋框內容
+      users: [], // 用戶資料
+      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部'], // 靜態部門清單
     };
   },
   computed: {
-    // 根據篩選條件計算過濾後的用戶清單
     filteredUsers() {
       let filtered = this.users;
 
-      // 部門篩選
       if (this.departmentFilter !== 'all') {
         filtered = filtered.filter(user => user.department_id === this.departmentFilter);
       }
 
-      // 關鍵字搜尋
       if (this.query) {
         const queryLowerCase = this.query.toLowerCase();
-        filtered = filtered.filter(user => 
+        filtered = filtered.filter(user =>
           user.username.toLowerCase().includes(queryLowerCase) ||
           user.email.toLowerCase().includes(queryLowerCase) ||
           user.phone.toLowerCase().includes(queryLowerCase)
         );
       }
 
-      // 排序
       return filtered.sort((a, b) => {
         if (this.sortBy === 'name') {
           return a.username.localeCompare(b.username);
@@ -135,37 +128,30 @@ export default {
     },
   },
   methods: {
-    // 獲取當前用戶的權限
     fetchUserPermissions() {
       axios.get('/api/backend/permissions/')
         .then(response => {
-            this.permissions = response.data;  // 使用回應的數據作為權限列表
+          this.permissions = response.data;
         })
         .catch(error => {
-            console.error('Error fetching permissions:', error);
+          console.error('Error fetching permissions:', error);
         });
     },
-    // 日期格式化
     formatDate(date) {
       return new Date(date).toLocaleString();
     },
-    // 過濾應用（可添加具體過濾邏輯）
     applyFilters() {
       console.log('Filters applied');
     },
-    // 導航至待審核用戶列表
     navigateToPendingList() {
       this.$router.push('/backend/pending_list');
     },
-    // 導航至編輯用戶頁面
     navigateToEditUser(userId) {
       this.$router.push(`/backend/edit_user/${userId}`);
     },
-    // 導航至角色分配頁面
     navigateToAssignRole(userId) {
       this.$router.push(`/backend/assign_role/${userId}`);
     },
-    // 獲取所有用戶
     fetchUsers() {
       axios.get('/api/backend/users/')
         .then(response => {
@@ -175,12 +161,11 @@ export default {
           console.error('Error fetching users:', error);
         });
     },
-    // 刪除用戶
     deleteUser(userId) {
       if (confirm('確定要刪除此用戶嗎？')) {
         axios.delete(`/api/backend/delete_user/${userId}/`)
           .then(() => {
-            this.fetchUsers(); // 刪除後重新獲取用戶列表
+            this.fetchUsers();
           })
           .catch(error => {
             console.error('Error deleting user:', error);
@@ -188,12 +173,10 @@ export default {
       }
     }
   },
-  // 當元件載入時初始化
   mounted() {
-    this.fetchUsers(); // 獲取用戶資料
-    this.fetchUserPermissions(); // 獲取用戶權限資料
+    this.fetchUsers();
+    this.fetchUserPermissions();
   }
 };
 </script>
-
 <style scoped src="@/assets/css/backend/UserManagement.css"></style>

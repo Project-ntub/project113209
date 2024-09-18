@@ -4,6 +4,7 @@
   max-width: 1200px; /* 增加容器寬度，讓表格內容顯示更多 */
   width: 100%;
   box-sizing: border-box;
+  padding-bottom: 50px; /* 增加底部空白 */
 }
 
 .search-container, .sort-container {

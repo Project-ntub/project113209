@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 # import two_factor.urls
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
+from django.conf import settings
 
 
 urlpatterns = [
@@ -19,5 +20,7 @@ urlpatterns = [
     
     # Vue.js will handle all paths starting from here
     path('', TemplateView.as_view(template_name='index.html'), name='frontend'),
+   
 ]
-                                      
+
+
