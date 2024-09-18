@@ -116,11 +116,11 @@ td .checkbox-container {
     padding: 1px;
   }
 
-  .btn {
-    padding: 3px 6px; /* 減少內邊距以縮小按鈕 */
-    font-size: 10px; /* 減小字體大小以匹配按鈕大小 */
-  }
-  
+.btn {
+  padding: 3px 6px; /* 減少內邊距以縮小按鈕 */
+  font-size: 10px; /* 減小字體大小以匹配按鈕大小 */
+}
+
   .member-item {
     flex-direction: column;
     align-items: flex-start;
