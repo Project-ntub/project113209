@@ -74,7 +74,7 @@ export default {
     // 保存偏好設置
     savePreference(preference) {
       axios.put(`/api/backend/user_preferences/update/${preference.id}/`, preference)
-        .then(response => {
+        .then(() => {
           alert('偏好設置已保存'); // 保存成功後提示用戶
         })
         .catch(error => {
