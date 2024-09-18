@@ -27,9 +27,6 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.contrib.auth import logout
-# 個人資訊照片
-from django.core.files.storage import default_storage
-import os
 
 # 日誌設定
 logger = logging.getLogger(__name__)
@@ -257,6 +254,8 @@ class FrontendRegisterView(View):
         return response
 
 # 登录视图
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 class FrontendLoginView(View):
     @method_decorator(csrf_exempt)
     def post(self, request, *args, **kwargs):
@@ -478,8 +477,9 @@ class ResetPasswordView(View):
 #     except Exception as e:
 #         return JsonResponse({'message': f'其他錯誤: {str(e)}'}, status=500)
 
-
 @api_view(['GET', 'PUT'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 def user_profile(request):
     if request.method == 'GET':
         user = request.user
@@ -488,36 +488,19 @@ def user_profile(request):
             "email": user.email,
             "phone": user.phone,
             "department_name": user.department_id,
-            "position_name": user.position_id,
-            "profile_image": user.profile_image.url if user.profile_image else None  # 返回圖片的 URL
+            "position_name": user.position_id
         }
         return JsonResponse(data, safe=False)
 
     if request.method == "PUT":
         user = request.user
-        data = request.data
-
-        # 更新基本信息
+        data = json.loads(request.body)
         user.email = data.get("email", user.email)
         user.phone = data.get("phone", user.phone)
         user.department_id = data.get("department_id", user.department_id)
         user.position_id = data.get("position_id", user.position_id)
-
-        # 处理圖片上傳
-        if 'profile_image' in request.FILES:
-            # 删除舊圖片（可選）
-            if user.profile_image:
-                old_image_path = user.profile_image.path
-                if os.path.exists(old_image_path):
-                    os.remove(old_image_path)
-            
-            # 保存新圖片
-            user.profile_image = request.FILES['profile_image']
-
         user.save()
-
         return JsonResponse({'success': True, 'message': '資料更新成功'}, status=200)
-
 
 # 過濾數據
 from django.contrib.auth.decorators import login_required

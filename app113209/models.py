@@ -1,9 +1,9 @@
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth import get_user_model
 from django.db import models
 import pyotp
-from django.conf import settings
-import os
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -51,9 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     failed_attempts = models.IntegerField(default=0)  # 密碼錯誤嘗試次數
     is_locked = models.BooleanField(default=False)  # 帳戶是否被鎖定
     last_failed_attempt = models.DateTimeField(null=True, blank=True)  # 記錄最後一次失敗的嘗試時間
-    #個人資訊頭像
-    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)  # 上传的图片将保存到 profile_images 文件夹
-   
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
