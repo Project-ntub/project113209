@@ -4,23 +4,31 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  overflow: hidden; /* 禁止整體滾動 */
 }
 
 .container {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 150px auto 50px; /* 調整上下的空白區域，上150px，下50px */
   background-color: #ffffff;
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
-.form-group {
-  margin-bottom: 10px;
-  text-align: left;
+/* 固定「角色名稱」和「角色成員」在頂部 */
+.header-fixed {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 1;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
 }
 
-.checkbox-container {
-  text-align: center;
+.scroll-container {
+  max-height: 400px; /* 限制內容區域的最大高度 */
+  overflow-y: auto; /* 允許內容滾動 */
 }
 
 table {
@@ -205,9 +213,4 @@ td .checkbox-container {
     margin-left: 0;
     margin-top: 3px;
   }
-}
-
-/* 去掉遮罩層的樣式 */
-.background-layer {
-  display: none; /* 隱藏背景遮罩層 */
 }
