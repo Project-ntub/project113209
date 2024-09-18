@@ -2,11 +2,11 @@
   <nav class="navbar">
     <div class="navbar-title">{{ currentRouteName }}</div>
     <div v-if="isHomePage" class="export-container">
-      <button class="export-button" @click="toggleExportMenu">匯出</button>
+      <!-- <button class="export-button" @click="toggleExportMenu">匯出</button>
       <div v-if="showExportMenu" class="export-menu">
         <button @click="triggerExport('pdf')">匯出PDF</button>
         <button @click="triggerExport('excel')">匯出Excel</button>
-      </div>
+      </div> -->
     </div>
   </nav>
 </template>

@@ -63,12 +63,15 @@ export default {
             'Authorization': `Bearer ${token}`  // 添加 Authorization 標頭
           }
         });
+        console.log(response.data);  // 檢查後端返回的數據
         this.userData = response.data;
-        this.imageSrc = this.userData.profile_image || null;  // 如果有圖片，顯示圖片
+        console.log('Profile Image URL:', this.userData.profile_image); 
+        this.imageSrc = `${this.userData.profile_image}?${new Date().getTime()}` || 'https://via.placeholder.com/150';  // 確保圖片不使用快取
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
     },
+
     editProfile() {
       this.editData = { ...this.userData };
       this.isEditing = true;
@@ -81,6 +84,7 @@ export default {
         const reader = new FileReader();
         reader.onload = (e) => {
           this.imageSrc = e.target.result;  // 即時顯示上傳的圖片
+          console.log('Profile Image URL:', this.imageSrc);
         };
         reader.readAsDataURL(file);
       }
@@ -88,7 +92,7 @@ export default {
     // 取消編輯
     cancelEdit() {
       this.isEditing = false;
-      this.imageSrc = this.userData.profile_image || null;  // 還原圖片
+      this.imageSrc = `${this.userData.profile_image}?${new Date().getTime()}` || 'https://via.placeholder.com/150';  // 還原圖片
     },
     // 保存用戶資料並上傳新照片
     async saveProfile() {
@@ -113,6 +117,11 @@ export default {
 
         this.userData = { ...this.editData };
         this.isEditing = false;
+
+        // 確保保存後的圖片正確顯示
+        this.imageSrc = `${this.userData.profile_image}?${new Date().getTime()}` || 'https://via.placeholder.com/150';
+        console.log('Saved Profile Image URL:', this.imageSrc);
+
         alert('個人資訊已更新');
       } catch (error) {
         console.error('Error saving profile:', error.response);
@@ -131,11 +140,10 @@ export default {
 .profile-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start;  /* 讓內容靠近頂部 */
+  align-items: flex-start;
   height: 80vh;  
-  padding-top: 0px;  /* 如果這裡有內邊距，可以將其減少或移除 */
+  padding-top: 0px;
 }
-
 
 .profile-card {
   background-color: white;
@@ -145,7 +153,7 @@ export default {
   height: 400px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
-  margin-top: 0;  /* 移除與上方的外邊距 */
+  margin-top: 0;
 }
 
 .profile-image img {
@@ -163,10 +171,9 @@ export default {
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-height: 80vh;  /* 限制彈窗的最大高度 */
-  overflow-y: auto;  /* 當內容超過最大高度時，彈窗內容可以滾動 */
+  max-height: 80vh;
+  overflow-y: auto;
 }
-
 
 .button-container {
   display: flex;
