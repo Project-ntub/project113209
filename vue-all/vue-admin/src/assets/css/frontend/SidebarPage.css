@@ -1,22 +1,21 @@
 .sidebar {
-  height: 100vh; /* 使整个侧边栏使用视口高度 */
-  width: 80px; /* 初始宽度设置为80px，而不是60px */
+  height: 100vh;
+  width: 60px; /* 未展開時的寬度 */
   position: fixed;
   top: 0;
   left: 0;
   background-color: #636262;
   overflow-x: hidden;
-  transition: width 0.4s, margin-left 0.4s; /* 统一的过渡时间 */
-  padding-top: 0;
+  transition: width 0.3s ease;
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box; /* 确保 padding 不影响宽度 */
-  justify-content: flex-start; /* 从顶部对齐内容 */
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .sidebar.open {
-  width: 200px; /* 侧边栏展开时的宽度 */
+  width: 200px; /* 展開時的寬度 */
 }
 
 .sidebar-header {
@@ -25,9 +24,10 @@
   color: white;
   display: flex;
   align-items: center;
-  justify-content: start; /* 修改为 start，使图标和文本靠近 */
-  gap: 10px; /* 增加一个小的间距 */
-  margin-top: 60px; /* 确保顶部有空间，避免与按钮重叠 */
+  justify-content: start;
+  gap: 10px;
+  margin-top: 60px;
+  background-color: #636262; /* 保持側邊欄頂部背景為黑色 */
 }
 
 .sidebar a {
@@ -38,6 +38,7 @@
   align-items: center;
   padding: 10px 15px;
   position: relative;
+  background-color: transparent; /* 圖示背景透明 */
 }
 
 .sidebar a:hover {
@@ -52,12 +53,24 @@
   font-size: 33px;
 }
 
+.sidebar.open a .icon {
+  background-color: #636262; /* 展開時恢復圖示背景顏色 */
+}
+
 .sidebar.open a .text {
-  display: inline-block; /* 展开时显示文字 */
+  display: inline-block;
 }
 
 .sidebar a .text {
-  display: none; /* 收起时隐藏文字 */
+  display: none; /* 收起時隱藏文字 */
+}
+
+.sidebar.open ~ .content {
+  margin-left: 200px; /* 展開時的內容偏移 */
+}
+
+.sidebar ~ .content {
+  margin-left: 60px; /* 未展開時的內容偏移 */
 }
 
 .sidebar .toggle-btn {
@@ -70,54 +83,49 @@
 }
 
 .logout {
-  margin-top: auto; /* 将登出按钮推到底部 */
+  margin-top: auto;
   padding-bottom: 20px;
+  background-color: transparent; /* 縮小時隱藏底部黑色背景 */
+}
+
+.sidebar.open .logout {
+  background-color: #636262; /* 展開時顯示底部背景 */
 }
 
 .content {
-  margin-left: 80px; /* 与侧边栏的默认宽度一致 */
   padding: 20px;
-  transition: margin-left 0.4s ease; /* 统一的过渡时间 */
-}
-
-/* 当侧边栏展开时，内容区域右移 */
-.sidebar.open ~ .content {
-  margin-left: 200px; /* 与侧边栏展开的宽度一致 */
+  transition: margin-left 0.3s;
 }
 
 /* 響應式設計 */
 @media (max-width: 768px) {
   .sidebar {
-    width: 70px; /* 在中等屏幕下缩小侧边栏 */
+    width: 50px; /* 小螢幕時未展開寬度 */
   }
 
   .sidebar.open {
-    width: 150px; /* 展开时的宽度 */
+    width: 150px; /* 小螢幕展開時的寬度 */
+    background-color: #636262; /* 強制展開時不透明背景 */
   }
 
-  .content {
-    margin-left: 70px; /* 内容区域移动距离 */
+  .sidebar a {
+    display: none; /* 小螢幕未展開時隱藏所有選單項目 */
+  }
+
+  .sidebar.open a {
+    display: flex; /* 展開時顯示所有選單項目 */
+  }
+
+  .sidebar ~ .content {
+    margin-left: 50px;
   }
 
   .sidebar.open ~ .content {
     margin-left: 150px;
   }
-}
 
-@media (max-width: 480px) {
+  /* 設置側邊欄的底部部分透明，並且保留頂部部分背景 */
   .sidebar {
-    width: 60px; /* 在小屏幕下缩小侧边栏，但不太窄 */
-  }
-
-  .sidebar.open {
-    width: 120px; /* 展开时的宽度 */
-  }
-
-  .content {
-    margin-left: 60px; /* 内容区域移动距离 */
-  }
-
-  .sidebar.open ~ .content {
-    margin-left: 120px;
+    background: linear-gradient(to bottom, #636262 20%, transparent 20%);
   }
 }
