@@ -3,7 +3,11 @@
     <div :class="['sidebar', { open: isSidebarOpen, smallScreen: isSmallScreen }]">
       <!-- 顯示一個圖示，點擊後展開側邊欄 -->
       <div class="sidebar-header">
-        <font-awesome-icon icon="user" class="user-icon" />
+        <font-awesome-icon
+          icon="user"
+          class="icon user-icon"
+          v-if="!isSmallScreen || isSidebarOpen" 
+        />
         <span v-if="isSidebarOpen">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
@@ -18,7 +22,7 @@
 
         <!-- 個人資訊 -->
         <router-link to="/frontend/profile" class="sidebar-link">
-          <font-awesome-icon icon="user" class="icon" />
+          <font-awesome-icon icon="user" class="icon second-icon" />
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">個人資訊</span>
         </router-link>
 
