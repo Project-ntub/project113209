@@ -1,8 +1,6 @@
 <template>
-  <vue-resizable @resize="onResize">
-    <div ref="chart" class="plotly-chart"></div>
-    <div class="last-updated">最後更新時間:{{ lastUpdated }}</div>
-  </vue-resizable>
+  <div ref="chart" class="plotly-chart"></div>
+  <div class="last-updated">最後更新時間:{{ lastUpdated }}</div>
 </template>
 
 <script>
@@ -12,8 +10,9 @@ import Plotly from 'plotly.js-dist';
 export default {
   props: ['chartConfig'],
   data() {
-    return{
-      lastUpdated: ''
+    return {
+      lastUpdated: '',
+      localChartConfig: { ...this.chartConfig }  // 複製 chartConfig 到本地數據
     };
   },
   mounted() {
@@ -22,29 +21,31 @@ export default {
   methods: {
     fetchChartData() {
       let apiUrl = '';
-      if (this.chartConfig.name === 'SalesChart') {
-        apiUrl = '/api/backend/sales-chart-data/';
-      } else if (this.chartConfig.name === 'RevenueChart') {
-        apiUrl = '/api/backend/revenue-chart-data/';
-      } else if (this.chartConfig.name === 'InventoryChart') {
-        apiUrl = '/api/backend/inventory-chart-data/';
-      } else if (this.chartConfig.name === 'SalesVolumeChart') {
-        apiUrl = '/api/backend/sales-volume-chart-data/';
-      } else if (this.chartConfig.name === 'StoreComparisonChart') {
-        apiUrl = '/api/backend/store-comparison-chart-data/';
-      } else if (this.chartConfig.name === 'ProductSalesPieChart') {
-        apiUrl = '/api/backend/product-sales-pie-chart-data/';
+
+      switch (this.localChartConfig.name) {
+        case 'SalesChart':
+          apiUrl = '/api/backend/sales-chart-data/';
+          break;
+        case 'RevenueChart':
+          apiUrl = '/api/backend/revenue-chart-data/';
+          break;
+        case 'InventoryChart':
+          apiUrl = '/api/backend/inventory-chart-data/';
+          break;
+        case 'ProductSalesPieChart':
+          apiUrl = '/api/backend/product-sales-pie-chart-data/';
+          break;
+        default:
+          console.error('Unknown chart type');
       }
 
-      console.log('Fetching data from:', apiUrl); // 新增這行，確認 API 是否正確
       axios.get(apiUrl)
         .then(response => {
           const data = response.data;
-          console.log('Data received:', data); // 新增這行，查看數據是否返回
+          console.log("Fetched data from API: ", data);  // 打印從 API 獲取的數據
 
           let xData, yData;
-
-          if (this.chartConfig.name === 'ProductSalesPieChart') {
+          if (this.localChartConfig.name === 'ProductSalesPieChart') {
             xData = data.categories;
             yData = data.sales;
           } else {
@@ -53,7 +54,16 @@ export default {
           }
 
           this.renderChart(xData, yData);
-          this.lastUpdated = new Date().toLocaleString();  // 更新最後的更新時間
+
+          // 將加載的數據保存到 localChartConfig.data 中
+          this.localChartConfig.data = xData.map((x, i) => ({
+            x,
+            y: yData[i]
+          }));
+
+          console.log("localChartConfig after data load: ", this.localChartConfig);  // 打印 localChartConfig 看它是否包含數據
+
+          this.lastUpdated = new Date().toLocaleString();
         })
         .catch(error => {
           console.error('Error fetching chart data:', error);
@@ -62,11 +72,9 @@ export default {
     },
     renderChart(xData, yData) {
       const chartEl = this.$refs.chart;
-      console.log('Rendering chart with data:', xData, yData); // 新增這行
 
       let trace;
-
-      if (this.chartConfig.name === 'ProductSalesPieChart') {
+      if (this.localChartConfig.name === 'ProductSalesPieChart') {
         trace = {
           labels: xData,
           values: yData,
@@ -76,53 +84,39 @@ export default {
         trace = {
           x: xData,
           y: yData,
-          type: this.chartConfig.chartType || 'bar'
+          type: this.localChartConfig.chartType || 'bar'
         };
       }
 
       const layout = {
-        title: this.chartConfig.label || '圖表',
+        title: this.localChartConfig.label || '圖表',
         xaxis: { 
-          title: this.chartConfig.xAxisLabel || 'X 轴',
+          title: this.localChartConfig.xAxisLabel || 'X 轴',
           tickangle: -90,
           automargin: true
         },
         yaxis: { 
-          title: this.chartConfig.yAxisLabel || 'Y 轴'
+          title: this.localChartConfig.yAxisLabel || 'Y 轴'
         },
-        width: this.chartConfig.width || 600,
-        height: this.chartConfig.height || 400
+        width: this.localChartConfig.width || 600,
+        height: this.localChartConfig.height || 400
       };
 
-      Plotly.newPlot(chartEl, [trace], layout);
+      const config = {
+        displaylogo: false, // 隱藏Plotly的logo
+        modeBarButtonsToRemove: [
+          'select2d',     // 隱藏 box select
+          'lasso2d',      // 隱藏 lasso select
+          'autoScale2d',  // 隱藏 autoscale
+        ]
+      }
+
+      Plotly.newPlot(chartEl, [trace], layout, config);
     },
     onResize() {
       if (this.$refs.chart) {
         Plotly.Plots.resize(this.$refs.chart);
       }
-    },
-    exportData(format) {
-      let apiUrl = '';
-      if (format === 'csv') {
-        apiUrl = '/api/backend/export-data-csv/';
-      } else if (format === 'excel') {
-        apiUrl = '/api/backend/export-data-excel/';
-      } else if (format === 'pdf') {
-        apiUrl = '/api/backend/export-data-pdf/';
-      }
-
-      axios.post(apiUrl, this.chartConfig)
-        .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', format === 'csv' ? 'data.csv' : format === 'excel' ? 'data.xlsx' : 'data.pdf');
-          document.body.appendChild(link);
-          link.click();
-        })
-        .catch(error => {
-          console.error('Error exporting data:', error);
-        });
     }
   }
 };
@@ -139,4 +133,3 @@ export default {
   color: #555;
 }
 </style>
-

@@ -1,12 +1,15 @@
 # app113209\backend\api_views.py
 import os
-import io
 import csv
 import uuid
 import json
 import logging
+import xlsxwriter
+from io import BytesIO
 from openpyxl import Workbook
 import plotly.graph_objects as go
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from django.utils import timezone
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
@@ -810,58 +813,80 @@ class StoreComparisonChartDataAPIView(APIView):
 # API: 匯出數據為 CSV
 @api_view(['POST'])
 def export_data_csv(request):
-    # 生成 CSV 數據
+    data = request.data.get('chartConfig', {}).get('data', [])
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="data.csv"'
-    
+
     writer = csv.writer(response)
-    # 添加數據行（這些數據將來自你的圖表數據）
-    writer.writerow(['X 軸', 'Y 軸'])
-    for row in request.data['data']:  # 假設你從前端發送數據
-        writer.writerow([row['x'], row['y']])
-    
+    writer.writerow(['X 軸', 'Y 軸'])  # Header row
+
+    for row in data:
+        # 確認每一行是否有正確的 x 和 y 值
+        x_value = row.get('x')
+        y_value = row.get('y')
+        if x_value is not None and y_value is not None:
+            writer.writerow([x_value, y_value])
+        else:
+            return JsonResponse({"error": "Invalid data format"}, status=400)
+
     return response
 
 @api_view(['POST'])
 def export_data_excel(request):
+    data = request.data.get('chartConfig', {}).get('data', [])
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
-    
-    # 將數據寫入 Excel
+
     worksheet.write('A1', 'X 軸')
     worksheet.write('B1', 'Y 軸')
-    
-    for idx, row in enumerate(request.data['data'], start=1):
-        worksheet.write(idx, 0, row['x'])
-        worksheet.write(idx, 1, row['y'])
-    
+
+    for idx, row in enumerate(data, start=1):
+        x_value = row.get('x')
+        y_value = row.get('y')
+        if x_value is not None and y_value is not None:
+            worksheet.write(idx, 0, x_value)
+            worksheet.write(idx, 1, y_value)
+        else:
+            return JsonResponse({"error": "Invalid data format"}, status=400)
+
     workbook.close()
     output.seek(0)
-    
+
     response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="data.xlsx"'
-    
+
     return response
+
 
 @api_view(['POST'])
 def export_data_pdf(request):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="data.pdf"'
-    
+    data = request.data.get('chartConfig', {}).get('data', [])
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
-    
-    # 將數據寫入 PDF
+
     p.drawString(100, 750, "X 軸  |  Y 軸")
-    
     y_position = 730
-    for row in request.data['data']:
-        p.drawString(100, y_position, f"{row['x']}  |  {row['y']}")
-        y_position -= 20
-    
+    for row in data:
+        x_value = row.get('x')
+        y_value = row.get('y')
+        if x_value is not None and y_value is not None:
+            p.drawString(100, y_position, f"{x_value}  |  {y_value}")
+            y_position -= 20
+        else:
+            return JsonResponse({"error": "Invalid data format"}, status=400)
+
     p.showPage()
     p.save()
-    
-    buffer.seek(0)
+
+    buffer.seek(0)   
     return HttpResponse(buffer.read(), content_type='application/pdf')

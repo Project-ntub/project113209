@@ -89,7 +89,7 @@ export default {
     this.checkScreenSize(); // 初始檢查螢幕大小
     window.addEventListener('resize', this.checkScreenSize); // 監聽螢幕大小變化
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('resize', this.checkScreenSize);
   }
 };

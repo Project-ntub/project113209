@@ -9,30 +9,31 @@
 
       <div class="top-left-controls">
         <button @click="showDashboard('all')">所有圖表</button>
-        <button @click="showDashboard('sales')">銷售額儀表板</button>
-        <button @click="showDashboard('revenue')">營業額儀表板</button>
-        <button @click="showDashboard('inventory')">庫存量儀表板</button>
+        <button @click="showDashboard('sales')">銷售額</button>
+        <button @click="showDashboard('revenue')">營業額</button>
+        <button @click="showDashboard('inventory')">庫存量</button>
       </div>
 
       <div class="dashboard">
-        <div v-for="chart in charts" :key="chart.chartId" class="chart-wrapper">
+        <div v-for="chart in filteredCharts" :key="chart.chartId" class="chart-wrapper">
           <!-- 將每個圖表包裝在 ChartContainer 中 -->
-          <ChartContainer>
+          <ChartContainer :chartConfig="chart">
             <PlotlyChart :chartConfig="chart" />
           </ChartContainer>
         </div>
       </div>
     </div>
-    <!-- Add Chart Modal -->
-    <!-- <Modal 
+
+    <!-- 新增圖表窗口  -->
+    <Modal 
       v-if="showChartModal" 
       :isEditing="isEditing" 
       :chartId="selectedChartId" 
       @close="closeChartModal" 
-      @chart-saved="fetchCharts" 
     />
-    角色介面預覽模態窗口
-    <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" /> -->
+
+    <!-- 角色介面預覽模態窗口 -->
+    <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" />
   </div>
 </template>
 
@@ -40,9 +41,8 @@
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
-// import Modal from '@/components/backend/ChartModal.vue';
-// import draggable from 'vuedraggable';  // 暫時註解掉拖曳組件
-// import VueResizable from 'vue-resizable';  // 暫時註解掉縮放組件
+import Modal from '@/components/backend/ChartModal.vue';
+import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; // 預覽角色介面視窗
 
 export default {
   name: 'DashboardManager',
@@ -50,9 +50,8 @@ export default {
     TopNavbar,
     PlotlyChart,
     ChartContainer,
-    // Modal,
-    // draggable,  // 暫時註解掉拖曳功能
-    // VueResizable  // 暫時註解掉縮放功能
+    Modal,
+    UserInterfacePreviewModal,
   },
   data() {
     return {
@@ -73,53 +72,57 @@ export default {
           xAxisLabel: '日期', yAxisLabel: '銷售額'         
         },
         { 
-          name: 'ProductSalesPieChart', label: '產品銷售佔比', chartId: 1, 
+          name: 'ProductSalesPieChart', label: '產品銷售佔比', chartId: 4, 
           chartType: 'pie', width: 600, height: 400 
-        }  // 新增圖表：店鋪收益對比
+        }
       ],
+      filteredCharts: [], // 用來存放篩選後的圖表
       showChartModal: false,
-      // 暫時註解掉縮放功能的選項
-      // resizeOptions: {
-      //   minWidth: 300,
-      //   minHeight: 200
-      // }
+      showPreviewModal: false
     };
   },
+  mounted() {
+    // 預設顯示所有圖表
+    console.log(this.chartConfig);
+    this.filteredCharts = this.charts;
+  },
   methods: {
-    openChartModal(isNew) {
-      // 處理打開圖表模態框
-      console.log("打開圖表模態框: ", isNew);
+    openChartModal(editing, chartId = null) {
+      this.isEditing = editing;
+      this.selectedChartId = chartId;
+      this.showChartModal = true;
+    },
+    closeChartModal() {
+      this.showChartModal = false;
+      // 如果不需要刷新圖表，可以移除此行
+      // this.fetchCharts();
+    },
+    fetchCharts() {
+      // 確保 fetchCharts 是定義的並正確工作
+      console.log('Fetching charts from backend');
+      // 可以根據需求從後端重新獲取圖表數據
+      // axios.get('/api/charts').then(response => {
+      //   this.charts = response.data;
+      //   this.filteredCharts = this.charts;
+      // });
     },
     openPreviewModal() {
-      // 處理預覽模態框
-      console.log("預覽模態框已打開");
+      this.showPreviewModal = true;
     },
-    // openChartModal(editing = false, chartId = null) {
-    //   this.isEditing = editing;
-    //   this.selectedChartId = chartId;
-    //   if (editing && chartId) {
-    //     this.fetchChartData(chartId);
-    //   }
-    //   this.showChartModal = true;
-    // },
-    // closeChartModal() {
-    //   this.showChartModal = false;
-    //   this.fetchCharts(); // 確保更新圖表列表
-    // },
-    // openPreviewModal() {
-    //   this.showPreviewModal = true;
-    //   console.log("預覽模態框已打開");
-    // },
-    // closePreviewModal() {
-    //   this.showPreviewModal = false;
-    // }
-    // 暫時註解掉縮放和拖曳方法
-    // onResize(element) {
-    //   console.log('Resizing:', element);
-    // },
-    // onDragEnd() {
-    //   console.log('Charts reordered:', this.charts);
-    // }
+    closePreviewModal() {
+      this.showPreviewModal = false;
+    }, 
+    showDashboard(type) {
+      if (type === 'all') {
+        this.filteredCharts = this.charts;
+      } else if (type === 'sales') {
+        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Sales'));
+      } else if (type === 'revenue') {
+        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Revenue'));
+      } else if (type === 'inventory') {
+        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Inventory'));
+      }
+    }
   }
 };
 </script>

@@ -70,4 +70,12 @@ urlpatterns = [
 
     # 圖片生成
     # path('generate-chart-image/', api_views.generate_chart_image, name='generate-chart-image')
+
+    # 匯出數據 API
+    path('export-data-csv/', api_views.export_data_csv, name='export-data-csv'),
+    path('export-data-excel/', api_views.export_data_excel, name='export-data-excel'),
+    path('export-data-pdf/', api_views.export_data_pdf, name='export-data-pdf'),
+
+    # 其他路徑...
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
