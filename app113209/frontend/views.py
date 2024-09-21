@@ -83,40 +83,33 @@ def changepassword(request):
 
 
 @login_required
-@csrf_exempt  # 如果您使用的是 Session 認證，這是必須的
-def user_preferences(request):
-    user = request.user  # 獲取當前登入的用戶
+def user_preferences_view(request):
+    user = request.user
 
-    # 處理 GET 請求，返回用戶的偏好設置
+    # 確保為新用戶創建偏好
+    preferences, created = UserPreferences.objects.get_or_create(user=user)
+
     if request.method == 'GET':
-        try:
-            user_preferences = UserPreferences.objects.get(user_id=user.id)
-            data = {
-                'user_id': user.id,
-                'fontsize': user_preferences.fontsize,
-                'notificationSettings': user_preferences.notificationSettings,
-                'autoLogin': user_preferences.autoLogin,
-                'authentication': user_preferences.authentication,
-            }
-            return JsonResponse(data)
-        except UserPreferences.DoesNotExist:
-            return JsonResponse({'error': '偏好設置不存在'}, status=404)
+        data = {
+            'fontsize': preferences.fontsize,
+            'notificationSettings': preferences.notificationSettings,
+            'authentication': preferences.authentication
+        }
+        return JsonResponse(data)
 
-    # 處理 POST 請求，更新用戶的偏好設置
-    elif request.method == 'POST':
-        data = json.loads(request.body)
-        try:
-            user_preferences = UserPreferences.objects.get(user_id=user.id)
-            user_preferences.fontsize = data['fontsize']
-            user_preferences.notificationSettings = data['notificationSettings']
-            user_preferences.autoLogin = data['autoLogin']
-            user_preferences.authentication = data['authentication']
-            user_preferences.save()
-            return JsonResponse({'status': 'success'})
-        except UserPreferences.DoesNotExist:
-            return JsonResponse({'error': '偏好設置不存在'}, status=404)
+    if request.method == 'POST':
+        fontsize = request.POST.get('fontsize', 'medium')
+        notificationSettings = request.POST.get('notificationSettings', '0') == '1'
+        authentication = request.POST.get('authentication', '0') == '1'
 
-    return JsonResponse({'error': '無效的請求'}, status=400)
+        preferences.fontsize = fontsize
+        preferences.notificationSettings = notificationSettings
+        preferences.authentication = authentication
+        preferences.save()
+
+        return JsonResponse({'status': 'success'})
+
+    
 
 
 
