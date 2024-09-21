@@ -1,51 +1,78 @@
 .container {
   margin: 0 auto;
-  padding: 10px;
-  max-width: 1200px; /* 增加容器寬度，讓表格內容顯示更多 */
+  padding: 20px 30px; /* 調大內邊距 */
+  max-width: 1200px;
   width: 100%;
   box-sizing: border-box;
-  padding-bottom: 50px; /* 增加底部空白 */
 }
 
-.search-container, .sort-container {
-  margin-bottom: 20px;
-  width: 100%;
+.search-sort-container {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* 增加元素之間的間距 */
+  margin-bottom: 20px; /* 增加下方間距 */
+  flex-wrap: nowrap; /* 禁止換行，確保所有元素在同一行 */
+  width: 100%;
+  justify-content: flex-start; /* 元素向左對齊 */
+}
+
+.search-container {
+  display: flex;
   align-items: center;
 }
 
-.search-container input, 
+.search-container input {
+  width: 400px; /* 調大輸入框的寬度 */
+  font-size: 18px; /* 調大字體 */
+  padding: 12px; /* 調大內邊距 */
+  margin-right: 15px;
+  box-sizing: border-box;
+}
+
+.search-container button {
+  font-size: 18px; /* 調大按鈕字體 */
+  padding: 10px 20px; /* 調大按鈕內邊距 */
+  margin-right: 10px;
+  box-sizing: border-box;
+}
+
+.sort-container {
+  display: flex;
+  align-items: center;
+  margin-left: 15px; /* 增加左邊距 */
+}
+
 .sort-container select, 
-button {
-  width: 100%;
-  max-width: 400px; /* 增加最大寬度，提升佈局一致性 */
-  margin-bottom: 10px;
+.sort-container button {
+  width: auto;
+  font-size: 18px; /* 調大字體 */
+  padding: 10px 15px; /* 調大內邊距 */
+  margin-right: 10px;
   box-sizing: border-box;
 }
 
 .history-container {
   max-width: 100%;
-  margin-top: 20px;
+  margin-top: 20px; /* 增加表格與上方的間距 */
 }
 
 .table-container {
-  max-height: 200px; /* 增加表格最大高度，顯示更多數據 */
+  max-height: 400px; /* 調整表格的最大高度 */
   overflow-y: auto;
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  margin-top: 10px; /* 增加表格上方的間距 */
 }
 
 .history-table th, .history-table td {
   border: 1px solid #ddd;
-  padding: 8px; /* 增加表格內填充，提升閱讀舒適度 */
+  padding: 15px; /* 增加單元格的內邊距 */
   text-align: center;
   vertical-align: middle;
-  font-size: 14px;
+  font-size: 16px; /* 調大表格字體 */
 }
 
 .history-table th {
@@ -54,37 +81,22 @@ button {
 }
 
 .history-table td {
-  white-space: nowrap; /* 強制內容在一行內不換行 */
+  white-space: nowrap;
 }
 
-.history-table th, .history-table td {
-  padding: 10px 15px; /* 增加填充讓每列顯得更寬鬆 */
-}
-
-/* 響應式調整 */
 @media (max-width: 768px) {
   .container {
-    margin: 0 auto;
-    max-width: 90%;
+    max-width: 95%;
   }
 
-  .search-container, .sort-container {
+  .search-sort-container {
     flex-direction: column;
-    margin-bottom: 10px;
   }
 
-  .history-table th, .history-table td {
-    padding: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    margin: 0 auto;
+  .search-container input, 
+  .sort-container select, 
+  button {
     max-width: 100%;
-  }
-
-  .history-table th, .history-table td {
-    padding: 6px;
+    margin-bottom: 15px;
   }
 }
