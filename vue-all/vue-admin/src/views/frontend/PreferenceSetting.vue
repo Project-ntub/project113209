@@ -19,13 +19,6 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="auto-login">自動登入:</label>
-          <select v-model="preferences.autoLogin" id="auto-login" class="form-control">
-            <option :value="1">啟用</option>
-            <option :value="0">不啟用</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label for="authentication">是否驗證:</label>
           <select v-model="preferences.authentication" id="authentication" class="form-control">
             <option :value="1">已驗證</option>
@@ -34,10 +27,9 @@
         </div>
         <div class="btn-container">
           <button type="submit" class="btn btn-save">保存更改</button>
-          <button type="button" class="btn btn-cancel" @click="resetPreferences">取消更改</button>
         </div>
       </form>
-  
+
       <div v-if="successMessage" class="success-message">保存成功！</div>
     </div>
   </div>
@@ -51,11 +43,9 @@ export default {
   data() {
     return {
       preferences: {
-        user_id: null,
-        fontsize: '',
-        notificationSettings: 0,
-        autoLogin: 0,
-        authentication: 0
+        fontsize: 'medium',
+        notificationSettings: false,
+        authentication: false
       },
       successMessage: false,
       isSidebarActive: false
@@ -68,27 +58,24 @@ export default {
     loadPreferences() {
       axios.get('/frontend/user_preferences/')
         .then(response => {
-            this.preferences = response.data;
+          this.preferences = { ...this.preferences, ...response.data };
         })
         .catch(error => {
-            console.error('載入偏好時出錯:', error);
+          console.error('載入偏好時出錯:', error);
         });
     },
     updatePreferences() {
-      axios.post('/frontend/user_preferences/', this.preferences)
+      axios.put('/frontend/user_preferences/', this.preferences)
         .then(response => {
-            if (response.status === 200) {
-                this.showSuccessMessage();
-            } else {
-                alert('保存失敗');
-            }
+          if (response.data) {
+            this.showSuccessMessage();
+          } else {
+            alert('保存失敗');
+          }
         })
         .catch(error => {
-            console.error('更新偏好時出錯:', error);
+          console.error('更新偏好時出錯:', error);
         });
-    },
-    resetPreferences() {
-      this.loadPreferences();
     },
     showSuccessMessage() {
       this.successMessage = true;
@@ -99,3 +86,7 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* Add custom styles here */
+</style>
