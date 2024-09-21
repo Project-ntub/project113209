@@ -21,7 +21,7 @@ urlpatterns = [
     path('history/', frontend_views.history_records, name='history_records'),
     path('history/<int:id>/', frontend_views.history_detail, name='history_detail'),
     path('changepassword/', frontend_views.changepassword, name='changepassword'),
-    path('user_preferences/', frontend_views.user_preferences, name='user_preferences'),
+    path('user_preferences/', frontend_views.user_preferences_view, name='user_preferences'),
     path('logout/', logout_view, name='logout'),  # 登出的 URL
 
 ]
