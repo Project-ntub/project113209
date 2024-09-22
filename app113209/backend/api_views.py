@@ -16,6 +16,8 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import F, Sum  # 添加这行
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
@@ -608,10 +610,9 @@ def create_chart(chart_type, x_data, y_data):
     elif chart_type == 'bar':
         return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
     elif chart_type == 'pie':
-        colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0','#ffb3e6']  # 自訂顏色
-        return go.Figure(data=[go.Pie(labels=x_data, values=y_data, marker=dict(colors=colors), hole=.3)])
-    return go.Figure()  # 預設返回空白圖表
-
+        return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+    else:
+        return go.Figure()  # 預設返回空白圖表
 
 
 # API：生成互動圖表（返回JSON格式）
@@ -627,17 +628,16 @@ class ChartDataAPIView(APIView):
         # 記錄生成圖表的操作
         record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
 
-        # 對數據進行分析處理，例如計算總和或百分比
-        if chart_type == 'pie':
-            total = sum(y_data)
-            percentages = [(value / total) * 100 for value in y_data]
-            analyzed_data = {'categories': x_data, 'percentages': percentages}
-        else:
-            # 對於其他圖表，可能只是返回原始數據或簡單的總和
-            analyzed_data = {'x_data': x_data, 'y_data': y_data}
+        # 檢查 x_data 和 y_data 是否有正確的值
+        print(f"x_data: {x_data}, y_data: {y_data}")
+
+        fig = create_chart(chart_type, x_data, y_data)
+
+        # 確保生成圖表正確並轉換為 JSON
+        chart_json = fig.to_json()
 
         # 返回分析後的數據
-        return JsonResponse(analyzed_data, safe=False)
+        return JsonResponse(chart_json, safe=False)
     
 # API：生成圖表並保存為圖片
 
@@ -815,25 +815,21 @@ class StoreComparisonChartDataAPIView(APIView):
 def export_data_csv(request):
     data = request.data.get('chartConfig', {}).get('data', [])
     if not data:
+        logger.error("No data provided in chartConfig")
         return JsonResponse({"error": "No data provided"}, status=400)
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="data.csv"'
+    response['Content-Disposition'] = 'attachment; filename="chart-export.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['X 軸', 'Y 軸'])  # Header row
+    writer.writerow(['X', 'Y'])  # Header
 
     for row in data:
-        # 確認每一行是否有正確的 x 和 y 值
-        x_value = row.get('x')
-        y_value = row.get('y')
-        if x_value is not None and y_value is not None:
-            writer.writerow([x_value, y_value])
-        else:
-            return JsonResponse({"error": "Invalid data format"}, status=400)
+        writer.writerow([row['x'], row['y']])
 
     return response
 
+# 匯出 Excel
 @api_view(['POST'])
 def export_data_excel(request):
     data = request.data.get('chartConfig', {}).get('data', [])
@@ -844,27 +840,23 @@ def export_data_excel(request):
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
 
-    worksheet.write('A1', 'X 軸')
-    worksheet.write('B1', 'Y 軸')
+    worksheet.write('A1', 'X')
+    worksheet.write('B1', 'Y')
 
-    for idx, row in enumerate(data, start=1):
-        x_value = row.get('x')
-        y_value = row.get('y')
-        if x_value is not None and y_value is not None:
-            worksheet.write(idx, 0, x_value)
-            worksheet.write(idx, 1, y_value)
-        else:
-            return JsonResponse({"error": "Invalid data format"}, status=400)
+    for index, row in enumerate(data, start=1):
+        worksheet.write(index, 0, row['x'])
+        worksheet.write(index, 1, row['y'])
 
     workbook.close()
     output.seek(0)
 
     response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="data.xlsx"'
+    response['Content-Disposition'] = 'attachment; filename="chart-export.xlsx"'
 
     return response
 
 
+# 匯出 PDF
 @api_view(['POST'])
 def export_data_pdf(request):
     data = request.data.get('chartConfig', {}).get('data', [])
@@ -874,19 +866,15 @@ def export_data_pdf(request):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
 
-    p.drawString(100, 750, "X 軸  |  Y 軸")
+    p.drawString(100, 750, "X | Y")
     y_position = 730
+
     for row in data:
-        x_value = row.get('x')
-        y_value = row.get('y')
-        if x_value is not None and y_value is not None:
-            p.drawString(100, y_position, f"{x_value}  |  {y_value}")
-            y_position -= 20
-        else:
-            return JsonResponse({"error": "Invalid data format"}, status=400)
+        p.drawString(100, y_position, f"{row['x']} | {row['y']}")
+        y_position -= 20
 
     p.showPage()
     p.save()
 
-    buffer.seek(0)   
+    buffer.seek(0)
     return HttpResponse(buffer.read(), content_type='application/pdf')

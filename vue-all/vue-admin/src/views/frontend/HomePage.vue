@@ -20,7 +20,7 @@
     <!-- 按鈕控制區域，根據權限顯示按鈕 -->
     <div v-if="permissions.length > 0" class="chart-controls">
       <button v-if="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" @click="setCurrentChart('RevenueChart')">營業額</button>
-      <button v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" @click="setCurrentChart('SalesChart')">銷售額</button>
+      <button v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" @click="setCurrentChart('SalesCharts')">銷售額</button>
       <button v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" @click="setCurrentChart('InventoryChart')">庫存量</button>
       <button @click="setCurrentChart('all')">顯示所有圖表</button>
     </div>
@@ -34,11 +34,20 @@
         <ChartContainer v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
           <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
         </ChartContainer>
+        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '產品銷售佔比' && perm.can_view)" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
+          <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
+        </ChartContainer>
         <ChartContainer v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" :chartConfig="getChartConfig('InventoryChart')" :is-Frontend="true">
           <PlotlyChart :chartConfig="getChartConfig('InventoryChart')" />
         </ChartContainer>
       </div>
       <div v-else>
+        <ChartContainer v-if="currentChart === 'SalesCharts'" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
+          <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
+        </ChartContainer>
+        <ChartContainer v-if="currentChart === 'SalesCharts'" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
+          <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
+        </ChartContainer>
         <ChartContainer :chartConfig="getChartConfig(currentChart)">
           <PlotlyChart :chartConfig="getChartConfig(currentChart)" />
         </ChartContainer>
@@ -139,6 +148,13 @@ export default {
           xAxisLabel: '日期',
           yAxisLabel: '銷售額',
         },
+        ProductSalesPieChart: {
+          name: 'ProductSalesPieChart',
+          label: '產品銷售佔比',
+          chartType: 'pie',
+          width: 300,
+          height: 250,
+        },
       };
       return chartConfigs[chartName] || chartConfigs['SalesChart'];
     },
@@ -148,6 +164,5 @@ export default {
   },
 };
 </script>
-
 
 <style scoped src="@/assets/css/frontend/HomePage.css"></style>

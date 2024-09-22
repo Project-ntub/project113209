@@ -1,49 +1,41 @@
+<!-- src/Charts/ChartContainer.vue -->
 <template>
-    <div>
-      <div class="chart-container">
-        <div class="chart-header">
-          <div class="menu-button">
-            <button class="menu-icon" @click="toggleMenu">⋮</button>
-            <div v-if="showMenu" class="menu">
-              <!-- 如果不是前台模式，則顯示編輯功能 -->
-              <template v-if="!isFrontend">
-                <button @click="editChart">編輯圖表</button>
-                <button @click="openPermissionModal">編輯權限</button>
-              </template>
-              <!-- 匯出功能無論前台還是後台都顯示 -->
-              <button @click="exportChart('csv')">匯出為 CSV</button>
-              <button @click="exportChart('excel')">匯出為 Excel</button>
-              <button @click="exportChart('pdf')">匯出為 PDF</button>
-            </div>
+  <div>
+    <div class="chart-container">
+      <div class="chart-header">
+        <div class="menu-button">
+          <button class="menu-icon" @click="toggleMenu">⋮</button>
+          <div v-if="showMenu" class="menu">
+            <template v-if="!isFrontend">
+              <button @click="editChart">編輯圖表</button>
+            </template>
+            <button @click="exportChart('csv')">匯出為 CSV</button>
+            <button @click="exportChart('excel')">匯出為 Excel</button>
+            <button @click="exportChart('pdf')">匯出為 PDF</button>
           </div>
         </div>
-        <slot></slot>
       </div>
-
-      <!-- 只有後台才顯示編輯模態窗口 -->
-      <PermissionModal v-if="!isFrontend && isPermissionModalVisible" @close="isPermissionModalVisible = false" />
-      <ChartModal v-if="!isFrontend && isChartModalVisible" :isEditing="true" @close="isChartModalVisible = false" />
+      <slot></slot>
     </div>
+    <ChartModal v-if="!isFrontend && isChartModalVisible" :isEditing="true" @close="isChartModalVisible = false" />
+  </div>
 </template>
 
 <script>
 import axios from 'axios';
-import PermissionModal from '@/components/backend/PermissionModal.vue';
 import ChartModal from '@/components/backend/ChartModal.vue';
 
 export default {
   components: {
-    PermissionModal,
     ChartModal
   },
   props: {
     chartConfig: Object,
-    isFrontend: Boolean // 接收從外部傳入的是否為前台的判斷
+    isFrontend: Boolean
   },
   data() {
     return {
       showMenu: false,
-      isPermissionModalVisible: false,
       isChartModalVisible: false
     };
   },
@@ -55,23 +47,8 @@ export default {
       this.isChartModalVisible = true;
       this.showMenu = false;
     },
-    openPermissionModal() {
-      this.isPermissionModalVisible = true;
-      this.showMenu = false;
-    },
     async exportChart(format) {
-      let apiUrl = '';
-      if (format === 'csv') {
-        apiUrl = '/api/backend/export-data-csv/';
-      } else if (format === 'excel') {
-        apiUrl = '/api/backend/export-data-excel/';
-      } else if (format === 'pdf') {
-        apiUrl = '/api/backend/export-data-pdf/';
-      }
-
-      // 確保 chartConfig 包含所需數據
-      console.log("chartConfig in ChartContainer.vue: ", this.chartConfig);
-       // 打印 chartConfig 以確認其內容
+      const apiUrl = `/api/backend/export-data-${format}/`;
 
       if (!this.chartConfig || !this.chartConfig.data || this.chartConfig.data.length === 0) {
         alert("圖表配置無效，無法導出！");
@@ -79,21 +56,17 @@ export default {
       }
 
       try {
-        console.log("API URL: ", apiUrl);
-        console.log("Data being sent: ", this.chartConfig);  // 確認即將發送的數據
-
-        const response = await axios.post(apiUrl, { chartConfig: this.chartConfig }, {
-          responseType: 'blob'
-        });
-
-        console.log("Response received: ", response);
+        const response = await axios.post(apiUrl, { chartConfig: this.chartConfig }, { responseType: 'blob' });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `exported-file.${format}`);
+        document.body.appendChild(link);
+        link.click();
       } catch (error) {
-        console.error('Error exporting data:', error);
+        console.error('匯出數據時出錯:', error);
         alert('匯出失敗，請檢查數據並重試。');
       }
-    },
-    onResize() {
-      // 處理圖表大小調整
     }
   }
 };
@@ -107,7 +80,6 @@ export default {
   background-color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-
 .chart-header {
   position: absolute;
   top: 10px;
@@ -117,12 +89,10 @@ export default {
   gap: 10px;
   z-index: 10;
 }
-
 .menu-button {
   position: relative;
   z-index: 11;
 }
-
 .menu-icon {
   background: rgba(255, 255, 255, 0.8);
   border: none;
@@ -132,7 +102,6 @@ export default {
   cursor: pointer;
   border-radius: 50%;
 }
-
 .menu {
   position: absolute;
   top: 100%;
@@ -144,7 +113,6 @@ export default {
   z-index: 12;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
-
 .menu button {
   display: block;
   width: 100%;
@@ -155,7 +123,6 @@ export default {
   cursor: pointer;
   color: white;
 }
-
 .menu button:hover {
   background-color: #2980b9;
 }

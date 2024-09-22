@@ -1,6 +1,7 @@
+<!-- PlotlyChart.vue -->
 <template>
   <div ref="chart" class="plotly-chart"></div>
-  <div class="last-updated">最後更新時間:{{ lastUpdated }}</div>
+  <div class="last-updated">最後更新時間: {{ lastUpdated }}</div>
 </template>
 
 <script>
@@ -12,14 +13,14 @@ export default {
   data() {
     return {
       lastUpdated: '',
-      localChartConfig: { ...this.chartConfig }  // 複製 chartConfig 到本地數據
+      localChartConfig: { ...this.chartConfig } // 複製 chartConfig 到本地數據
     };
   },
   mounted() {
     this.fetchChartData();
   },
   methods: {
-    fetchChartData() {
+    async fetchChartData() {
       let apiUrl = '';
 
       switch (this.localChartConfig.name) {
@@ -37,38 +38,41 @@ export default {
           break;
         default:
           console.error('Unknown chart type');
+          return;
       }
 
-      axios.get(apiUrl)
-        .then(response => {
-          const data = response.data;
-          console.log("Fetched data from API: ", data);  // 打印從 API 獲取的數據
+      try {
+        const response = await axios.get(apiUrl);
+        const data = response.data;
+        console.log("Fetched data from API: ", data);
 
-          let xData, yData;
-          if (this.localChartConfig.name === 'ProductSalesPieChart') {
-            xData = data.categories;
-            yData = data.sales;
-          } else {
-            xData = data.map(item => item.product_name || item.store_name || item.sale_date);
-            yData = data.map(item => item.total_amount || item.total_revenue || item.stock_quantity || item.total_sales);
-          }
+        let xData, yData;
+        if (this.localChartConfig.name === 'ProductSalesPieChart') {
+          xData = data.categories;
+          yData = data.sales;
+        } else {
+          xData = data.map(item => item.product_name || item.store_name || item.sale_date);
+          yData = data.map(item => item.total_amount || item.total_revenue || item.stock_quantity || item.total_sales);
+        }
 
-          this.renderChart(xData, yData);
+        this.renderChart(xData, yData);
 
-          // 將加載的數據保存到 localChartConfig.data 中
-          this.localChartConfig.data = xData.map((x, i) => ({
+        // 更新 localChartConfig 中的數據
+        this.localChartConfig.data = xData.map((x, i) => ({
             x,
             y: yData[i]
-          }));
+        }));
 
-          console.log("localChartConfig after data load: ", this.localChartConfig);  // 打印 localChartConfig 看它是否包含數據
+        console.log("localChartConfig after data load: ", this.localChartConfig);
 
-          this.lastUpdated = new Date().toLocaleString();
-        })
-        .catch(error => {
-          console.error('Error fetching chart data:', error);
-          alert('無法獲取圖表數據，請稍後再試。');
-        });
+        // 將更新後的 localChartConfig 傳遞回父組件
+        this.$emit('update-chart-config', this.localChartConfig);
+
+        this.lastUpdated = new Date().toLocaleString();
+      } catch (error) {
+        console.error('Error fetching chart data:', error);
+        alert('無法獲取圖表數據，請稍後再試。');
+      }
     },
     renderChart(xData, yData) {
       const chartEl = this.$refs.chart;
@@ -78,7 +82,7 @@ export default {
         trace = {
           labels: xData,
           values: yData,
-          type: 'pie'
+          type: 'pie',
         };
       } else {
         trace = {
@@ -91,32 +95,27 @@ export default {
       const layout = {
         title: this.localChartConfig.label || '圖表',
         xaxis: { 
-          title: this.localChartConfig.xAxisLabel || 'X 轴',
+          title: this.localChartConfig.xAxisLabel || 'X 軸',
           tickangle: -90,
           automargin: true
         },
         yaxis: { 
-          title: this.localChartConfig.yAxisLabel || 'Y 轴'
+          title: this.localChartConfig.yAxisLabel || 'Y 軸'
         },
         width: this.localChartConfig.width || 600,
         height: this.localChartConfig.height || 400
       };
 
       const config = {
-        displaylogo: false, // 隱藏Plotly的logo
+        displaylogo: false, 
         modeBarButtonsToRemove: [
-          'select2d',     // 隱藏 box select
-          'lasso2d',      // 隱藏 lasso select
-          'autoScale2d',  // 隱藏 autoscale
+          'select2d',     
+          'lasso2d',      
+          'autoScale2d',  
         ]
-      }
+      };
 
       Plotly.newPlot(chartEl, [trace], layout, config);
-    },
-    onResize() {
-      if (this.$refs.chart) {
-        Plotly.Plots.resize(this.$refs.chart);
-      }
     }
   }
 };
@@ -133,3 +132,4 @@ export default {
   color: #555;
 }
 </style>
+

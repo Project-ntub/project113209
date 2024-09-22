@@ -146,11 +146,16 @@ export default {
       };
 
       const apiUrl = this.isEditing ? `/api/backend/update-chart/${this.chartId}/` : '/api/create-chart/';
+      
       axios.post(apiUrl, chartConfig)
         .then(response => {
           const chartJSON = response.data;
-          Plotly.newPlot('chart-container', JSON.parse(chartJSON).data, JSON.parse(chartJSON).layout);
-          this.$emit('chart-saved', response.data); // 發送 'chart-saved' 事件通知父組件
+          const chartData = JSON.parse(chartJSON);
+          
+          // 確保這裡的 chartData.data 和 chartData.layout 存在
+          Plotly.newPlot('chart-container', chartData.data, chartData.layout);
+          
+          this.$emit('chart-saved', response.data); 
           this.closeModal();
         })
         .catch(error => {
