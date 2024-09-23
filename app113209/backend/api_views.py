@@ -677,15 +677,15 @@ def save_chart_configuration(request):
     return Response({"message": "圖表配置已儲存"}, status=201)
 
 # API：根據圖表配置獲取數據
-@api_view(['GET'])
-def get_chart_data(request, chart_id):
-    try:
-        config = get_object_or_404(ChartConfiguration, id=chart_id)
-        data = fetch_data_from_source(config.data_source, config.filter_conditions)
-        return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
-    except Exception as e:
-        logger.error(f"Error fetching chart data: {e}")
-        return JsonResponse({'error': 'Failed to fetch chart data'}, status=500)
+# @api_view(['GET'])
+# def get_chart_data(request, chart_id):
+#     try:
+#         config = get_object_or_404(ChartConfiguration, id=chart_id)
+#         data = fetch_data_from_source(config.data_source, config.filter_conditions)
+#         return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
+#     except Exception as e:
+#         logger.error(f"Error fetching chart data: {e}")
+#         return JsonResponse({'error': 'Failed to fetch chart data'}, status=500)
 
 # API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
@@ -907,4 +907,87 @@ def export_data_pdf(request):
     response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.pdf"'
 
     return response
+
+    return HttpResponse(buffer.read(), content_type='application/pdf')
+# 另一個資料庫的測試資料
+
+from  app113209.models import SalesData, StockData  # 確保已經定義這些模型
+
+def dashboard_data(request):
+    # 獲取營業額數據
+    sales_data = SalesData.objects.all().order_by('sale_date')
+    sales_overview = [
+        {"date": sale.sale_date, "sales": sale.total_sales} for sale in sales_data
+    ]
+
+    # 獲取庫存數據
+    stock_data = StockData.objects.all()
+    stock_summary = [
+        {"product_name": stock.product_name, "stock_quantity": stock.stock_quantity} for stock in stock_data
+    ]
+
+    # 返回 JSON 數據
+    data = {
+        "today_money": sum(sale.total_sales for sale in sales_data),  # 簡單計算總銷售額
+        "today_users": 2300,  # 假設這是靜態數據
+        "new_clients": 3462,  # 假設這是靜態數據
+        "sales": sum(sale.total_sales for sale in sales_data),  # 計算銷售總額
+        "sales_overview": sales_overview,
+        "stock_summary": stock_summary
+    }
+    return JsonResponse(data)
+from django.http import JsonResponse
+from django.db import connection
+
+# 營業額 API
+def get_revenue_data(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                DATE(copbf003) AS sale_date,
+                resab.resab002 AS branch_name,
+                SUM(copbf028) AS total_sales
+            FROM 消費帳單資料主檔 AS copbf
+            LEFT JOIN 分店設定檔 AS resab 
+                ON copbf.copbf980 COLLATE utf8mb4_general_ci = resab.resab001 COLLATE utf8mb4_general_ci
+            GROUP BY sale_date, branch_name
+            ORDER BY sale_date ASC
+        """)
+        rows = cursor.fetchall()
+    data = [{"sale_date": row[0], "branch_name": row[1], "total_sales": row[2]} for row in rows]
+    return JsonResponse(data, safe=False)
+
+# 銷售額 API
+def get_sales_data(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT
+                bomaa.bomaa004 AS product_name,
+                bomab.bomab003 AS category_name,
+                SUM(copbg016) AS total_sales
+            FROM 消費帳單明細檔 AS copbg
+            LEFT JOIN 料品基本資料主檔 AS bomaa ON copbg.copbg004 = bomaa.bomaa002
+            LEFT JOIN 商品分類設定檔 AS bomab ON bomaa.bomaa003 = bomab.bomab002
+            GROUP BY product_name, category_name
+            ORDER BY total_sales DESC
+        """)
+        rows = cursor.fetchall()
+    data = [{"product_name": row[0], "category_name": row[1], "total_sales": row[2]} for row in rows]
+    return JsonResponse(data, safe=False)
+
+# 庫存量 API
+def get_stock_data(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT
+                bomaa.bomaa004 AS product_name,
+                bomab.bomab003 AS category_name,
+                bomaa.bomaa013 AS stock_quantity
+            FROM 料品基本資料主檔 AS bomaa
+            LEFT JOIN 商品分類設定檔 AS bomab ON bomaa.bomaa003 = bomab.bomab002
+            ORDER BY stock_quantity DESC
+        """)
+        rows = cursor.fetchall()
+    data = [{"product_name": row[0], "category_name": row[1], "stock_quantity": row[2]} for row in rows]
+    return JsonResponse(data, safe=False)
 
