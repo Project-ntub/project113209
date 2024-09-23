@@ -28,29 +28,49 @@
     <!-- 圖表區域 -->
     <div class="chart-container">
       <div v-if="currentChart === 'all'" class="chart-grid">
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" :chartConfig="getChartConfig('RevenueChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('RevenueChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '產品銷售佔比' && perm.can_view)" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" :chartConfig="getChartConfig('InventoryChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('InventoryChart')" />
-        </ChartContainer>
+        <ChartContainer
+          v-if="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)"
+          :chartConfig="getChartConfig('RevenueChart')"
+          :canExport="permissions.find(perm => perm.permission_name === '營業額' && perm.can_export)"
+          @export-chart="handleExport"
+        />
+        <ChartContainer
+          v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)"
+          :chartConfig="getChartConfig('SalesChart')"
+          :canExport="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_export)"
+          @export-chart="handleExport"
+        />
+        <ChartContainer
+          v-if="permissions.find(perm => perm.permission_name === '產品銷售佔比' && perm.can_view)"
+          :chartConfig="getChartConfig('ProductSalesPieChart')"
+          :canExport="permissions.find(perm => perm.permission_name === '產品銷售佔比' && perm.can_export)"
+          @export-chart="handleExport"
+        />
+        <ChartContainer
+          v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)"
+          :chartConfig="getChartConfig('InventoryChart')"
+          :canExport="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_export)"
+          @export-chart="handleExport"
+        />
       </div>
       <div v-else>
-        <ChartContainer v-if="currentChart === 'SalesCharts'" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="currentChart === 'SalesCharts'" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
-        </ChartContainer>
-        <ChartContainer :chartConfig="getChartConfig(currentChart)">
-          <PlotlyChart :chartConfig="getChartConfig(currentChart)" />
-        </ChartContainer>
+        <ChartContainer
+          v-if="currentChart === 'SalesCharts'"
+          :chartConfig="getChartConfig('SalesChart')"
+          :canExport="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_export)"
+          @export-chart="handleExport"
+        />
+        <ChartContainer
+          v-if="currentChart === 'SalesCharts'"
+          :chartConfig="getChartConfig('ProductSalesPieChart')"
+          :canExport="permissions.find(perm => perm.permission_name === '產品銷售佔比' && perm.can_export)"
+          @export-chart="handleExport"
+        />
+        <ChartContainer
+          :chartConfig="getChartConfig(currentChart)"
+          :canExport="permissions.find(perm => perm.permission_name === currentChart && perm.can_export)"
+          @export-chart="handleExport"
+        />
       </div>
     </div>
   </div>
@@ -58,7 +78,7 @@
 
 <script>
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
-import PlotlyChart from '@/components/backend/PlotlyChart.vue';
+// import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import axios from 'axios';
 
@@ -66,7 +86,7 @@ export default {
   name: 'HomePage',
   components: {
     TopNavbar,
-    PlotlyChart,
+    // PlotlyChart,
     ChartContainer,
   },
   data() {
@@ -118,6 +138,10 @@ export default {
     },
     setCurrentChart(chart) {
       this.currentChart = chart;
+    },
+    handleExport(format) {
+      // 匯出邏輯
+      console.log(`匯出格式: ${format}`);
     },
     getChartConfig(chartName) {
       const chartConfigs = {

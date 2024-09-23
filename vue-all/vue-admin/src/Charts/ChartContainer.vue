@@ -8,9 +8,11 @@
             <template v-if="!isFrontend">
               <button @click="editChart">編輯圖表</button>
             </template>
-            <button @click="exportChart('csv')">匯出為 CSV</button>
-            <button @click="exportChart('excel')">匯出為 Excel</button>
-            <button @click="exportChart('pdf')">匯出為 PDF</button>
+            <div v-if="canExport" class="export-button">
+              <button @click="exportChart('csv')">匯出為 CSV</button>
+              <button @click="exportChart('excel')">匯出為 Excel</button>
+              <button @click="exportChart('pdf')">匯出為 PDF</button>
+            </div>  
           </div>
         </div>
       </div>
@@ -32,7 +34,8 @@ export default {
   },
   props: {
     chartConfig: Object,
-    isFrontend: Boolean
+    isFrontend: Boolean,
+    canExport: Boolean
   },
   data() {
     return {
@@ -86,8 +89,8 @@ export default {
 .chart-container {
   position: relative;
   padding: 10px;
-  border-radius: 10px;
   background-color: white;
+  border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 .chart-header {
@@ -135,5 +138,8 @@ export default {
 }
 .menu button:hover {
   background-color: #2980b9;
+}
+.export-button {
+  margin-top: 10px;
 }
 </style>

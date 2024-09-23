@@ -215,6 +215,10 @@ class PendingUserViewSet(viewsets.ViewSet):
             user.is_active = True  # 啟用用戶
             user.save()
 
+            # 檢查是否已經有偏好設定，沒有澤創建預設設定
+            if not UserPreferences.objects.filter(user=user).exists():
+                UserPreferences.objects.create(user=user, fontsize='medium', notificationSettings=1, authentication=1)
+
             # 記錄開通用戶的操作
             record_history(request.user, f"管理員 {request.user.username} 開通了用戶 {user.username}")
 
@@ -869,24 +873,28 @@ def export_data_excel(request):
     return response
 
 
+# 指定字體的路徑
+font_path = os.path.join(settings.BASE_DIR, 'static/fonts/NotoSansTC-Regular.ttf')
+pdfmetrics.registerFont(TTFont('NotoSansTC', font_path))
+
+
 # 匯出 PDF
 @api_view(['POST'])
 def export_data_pdf(request):
     data = request.data.get('chartConfig', {}).get('data', [])
-    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')  # 獲取圖表名稱
+    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')
     x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
     y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
+
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
 
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
 
-    # 設置字體路徑，將其指向你的字體文件目錄
-    font_path = os.path.join(settings.BASE_DIR, 'static/fonts/NotoSansTC-Regular.ttf')
-    pdfmetrics.registerFont(TTFont('NotoSansTC', font_path))
+    # 使用指定字體
+    p.setFont("NotoSansTC", 12)
 
-    # 使用具體的標籤名稱
     p.drawString(100, 750, f"{x_axis_label} | {y_axis_label}")
     y_position = 730
 
@@ -896,7 +904,7 @@ def export_data_pdf(request):
 
         if y_position < 100:
             p.showPage()
-            p.setFont("NotoSansCJK", 12)
+            p.setFont("NotoSansTC", 12)
             y_position = 750
 
     p.showPage()
@@ -907,4 +915,3 @@ def export_data_pdf(request):
     response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.pdf"'
 
     return response
-
