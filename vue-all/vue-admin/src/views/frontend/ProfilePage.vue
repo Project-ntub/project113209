@@ -1,30 +1,93 @@
 <template>
-  <div>
-    <div class="profile-container">
-      <div class="profile-card">
-        <div class="profile-info">
-          <h2>{{ userData.username || 'N/A' }}</h2>
-          <p>{{ userData.position_id || 'N/A' }}</p>
-          <p>{{ userData.department_id || 'N/A' }}</p>
-          <p>{{ userData.email || 'N/A' }}</p>
-          <p>{{ userData.phone || 'N/A' }}</p>
-          <button class="edit-button" @click="editProfile">編輯</button>
-        </div>
-      </div>
-
-      <div v-if="isEditing" class="edit-modal">
-        <div class="edit-form">
-          <h3>編輯個人信息</h3>
-          <p>用戶名：<input type="text" v-model="editData.username" /></p>
-          <p>部門：<input type="text" v-model="editData.department_id" disabled /></p>
-          <p>職位：<input type="text" v-model="editData.position_id" disabled /></p>
-          <p>電話：<input type="text" v-model="editData.phone" /></p>
-          <p>電子郵件：<input type="email" v-model="editData.email" /></p>
-          <div class="button-container">
-            <button @click="saveProfile" class="save">保存</button>
-            <button @click="cancelEdit" class="cancel">取消</button>
+  <div class="profile-container">
+    <div class="profile-card">
+      <div v-if="!isEditing" class="profile-info">
+        <h3>個人資料</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>用戶名稱：</label>
+            <p>{{ userData.username || 'N/A' }}</p>
+          </div>
+          <div class="form-group">
+            <label>部門：</label>
+            <p>{{ userData.department_id || 'N/A' }}</p>
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>職位：</label>
+            <p>{{ userData.position_id || 'N/A' }}</p>
+          </div>
+          <div class="form-group">
+            <label>電話：</label>
+            <p>{{ userData.phone || 'N/A' }}</p>
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label>電子郵件：</label>
+          <p>{{ userData.email || 'N/A' }}</p>
+        </div>
+        <button class="edit-button" @click="editProfile">編輯</button>
+      </div>
+
+      <div v-if="isEditing" class="edit-form">
+        <h3>編輯個人資料</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="username">用戶名稱：</label>
+            <input type="text" v-model="editData.username" />
+          </div>
+          <div class="form-group">
+            <label for="department">部門：</label>
+            <input type="text" v-model="editData.department_id" disabled />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="position">職位：</label>
+            <input type="text" v-model="editData.position_id" disabled />
+          </div>
+          <div class="form-group">
+            <label for="phone">電話：</label>
+            <input type="text" v-model="editData.phone" />
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label for="email">電子郵件：</label>
+          <input type="email" v-model="editData.email" />
+        </div>
+
+        <!-- 密碼修改欄位 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="currentPassword">當前密碼：</label>
+            <input type="password" v-model="editData.currentPassword" />
+          </div>
+          <div class="form-group">
+            <label for="newPassword">新密碼：</label>
+            <input type="password" v-model="editData.newPassword" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label for="confirmPassword">確認新密碼：</label>
+            <input type="password" v-model="editData.confirmPassword" />
+          </div>
+          <div class="form-group small-button">
+            <button type="button" class="submit-button" @click="handleSubmit">修改密碼</button>
+          </div>
+        </div>
+        <p class="password-requirements">
+          密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。
+        </p>
+
+        <div class="button-container">
+          <button @click="saveProfile" class="save">保存</button>
+          <button @click="cancelEdit" class="cancel">取消</button>
+        </div>
+
+        <!-- 錯誤提示 -->
+        <p v-if="errorMessage" class="feedback">{{ errorMessage }}</p>
       </div>
     </div>
   </div>
@@ -32,6 +95,7 @@
 
 <script>
 import axios from 'axios';
+import router from '@/router';
 
 export default {
   data() {
@@ -43,17 +107,23 @@ export default {
         department_id: '',
         position_id: ''
       },
-      editData: {},
+      editData: {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      },
       isEditing: false,
+      errorMessage: ''
     };
   },
   methods: {
+    // 獲取用戶資料
     async fetchUserProfile() {
       try {
-        const token = localStorage.getItem('frontend_token');  // 獲取 token
+        const token = localStorage.getItem('frontend_token');
         const response = await axios.get('/api/frontend/profile/', {
           headers: {
-            'Authorization': `Bearer ${token}`  // 添加 Authorization 標頭
+            'Authorization': `Bearer ${token}`
           }
         });
         this.userData = response.data;
@@ -62,6 +132,7 @@ export default {
       }
     },
 
+    // 切換到編輯模式
     editProfile() {
       this.editData = { ...this.userData };
       this.isEditing = true;
@@ -72,31 +143,95 @@ export default {
       this.isEditing = false;
     },
 
-    // 保存用戶資料
+    // 保存個人信息和密碼
     async saveProfile() {
-      try {
-        const token = localStorage.getItem('frontend_token');  // 獲取 token
+      // 密碼驗證：僅當輸入新密碼時
+      if (this.editData.newPassword || this.editData.confirmPassword) {
+        if (this.editData.newPassword !== this.editData.confirmPassword) {
+          this.errorMessage = '新密碼與確認密碼不匹配';
+          return;
+        }
 
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(this.editData.newPassword)) {
+          this.errorMessage = '新密碼不符合要求。';
+          return;
+        }
+      }
+
+      try {
+        const token = localStorage.getItem('frontend_token');
         const formData = new FormData();
         formData.append('username', this.editData.username);
         formData.append('email', this.editData.email);
         formData.append('phone', this.editData.phone);
 
-        // 更新個人資訊
+        // 只有在用戶輸入新密碼時提交密碼相關字段
+        if (this.editData.newPassword) {
+          formData.append('current_password', this.editData.currentPassword);
+          formData.append('new_password', this.editData.newPassword);
+          formData.append('confirm_password', this.editData.confirmPassword);
+        }
+
         await axios.put('/api/frontend/profile/', formData, {
           headers: {
-            'Authorization': `Bearer ${token}`,  // 添加 Authorization 標頭
-            'Content-Type': 'multipart/form-data'  // 設置適當的內容類型
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
           }
         });
 
-        this.userData = { ...this.editData };
-        this.isEditing = false;
-        alert('個人資訊已更新');
+        // 密碼更新成功後登出並重新登入
+        if (this.editData.newPassword) {
+          alert('密碼修改成功，請重新登入');
+          router.push('/frontend/login');
+        } else {
+          this.userData = { ...this.editData };
+          this.isEditing = false;
+          alert('個人資訊已更新');
+        }
       } catch (error) {
-        console.error('Error saving profile:', error.response);
-        alert('保存失敗');
+        if (error.response && error.response.data) {
+          this.errorMessage = error.response.data.message || '保存失敗';
+        } else {
+          this.errorMessage = '保存失敗';
+        }
+        console.error('Error saving profile:', error);
       }
+    },
+
+    // 密碼修改提交功能
+    async handleSubmit() {
+      if (this.editData.newPassword !== this.editData.confirmPassword) {
+        this.errorMessage = '新密碼與確認密碼不匹配';
+        return;
+      }
+
+      if (!this.validatePassword(this.editData.newPassword)) {
+        this.errorMessage = '新密碼不符合要求。';
+        return;
+      }
+
+      try {
+        const response = await axios.post('/frontend/changepassword/', {
+          current_password: this.editData.currentPassword,
+          new_password: this.editData.newPassword
+        });
+
+        alert(response.data.message);
+        router.push('/frontend/login');
+      } catch (error) {
+        if (error.response && error.response.data) {
+          this.errorMessage = error.response.data.message || '密碼修改失敗，請稍後再試';
+        } else {
+          this.errorMessage = '密碼修改失敗，請稍後再試';
+        }
+      }
+    },
+
+    // 驗證密碼的正則表達式
+    validatePassword(password) {
+      const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return re.test(password);
     }
   },
   mounted() {
@@ -106,39 +241,64 @@ export default {
 </script>
 
 <style scoped>
-/* 這裡是你的樣式代碼 */
 .profile-container {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  height: 80vh;  
-  padding-top: 0px;
-  z-index: 1;  /* 保證容器不被其他元素擋住 */
+  height: 100vh;
+  background-color: #f4f4f4;
+  overflow-y: auto; /* 只讓外部容器滾動 */
+  padding: 20px;
 }
 
 .profile-card {
   background-color: white;
-  border-radius: 10px;
-  padding: 10px;
-  width: 300px;
-  height: 300px;
+  padding: 20px;
+  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  margin-top: 50px;  /* 調整 margin，避免被頂部的 navbar 遮擋 */
+  width: 800px;
+  max-height: none; /* 避免內部元素也滾動 */
+  overflow: visible; /* 禁止內部滾動行為 */
+  margin-bottom: 50px;
 }
 
-.edit-modal {
-  position: fixed;
-  top: 60%; /* 確保模態框在頁面中間顯示，不被navbar擋住 */
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-height: 80vh;
-  overflow-y: auto;
-  z-index: 1000; /* 增加 z-index 確保模態框在最前面顯示 */
+.form-group {
+  margin-bottom: 15px; /* 為每個表單組件之間添加空白 */
+}
+
+.half-width {
+  width: 48%; /* 確認新密碼的輸入框縮小一半 */
+}
+
+.small-button {
+  width: 30%; /* 修改密碼按鈕縮小，將寬度改為30% */
+  text-align: center;
+  padding: 8px;
+  margin-top: 25px; /* 調整按鈕向下的距離 */
+}
+
+.profile-info h3, .edit-form h3 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.form-group:last-child {
+  margin-right: 0;
+}
+
+.full-width {
+  width: 100%;
 }
 
 .button-container {
@@ -146,13 +306,55 @@ export default {
   justify-content: space-between;
 }
 
-button.save {
+.save {
   background-color: #4caf50;
   color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
-button.cancel {
+.submit-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px; /* 修改按鈕的內填充 */
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px; /* 調整字體大小 */
+}
+
+.cancel {
   background-color: #f44336;
   color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.edit-button {
+  display: block;
+  margin: 0 auto;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.password-requirements {
+  font-size: 12px;
+  color: gray;
+  margin-top: -10px;
+  text-align: left; /* 左對齊文字 */
+}
+
+.feedback {
+  color: red;
+  text-align: center;
+  margin-top: 15px;
 }
 </style>
