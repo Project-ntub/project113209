@@ -73,10 +73,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project113209.wsgi.application'
 
 # Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': '113-ntub113209',
+#         'USER': 'ntub113209',
+#         'PASSWORD': 'Sw@23110565',
+#         'HOST': '140.131.114.242',
+#         'PORT': '3306',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '113-ntub113209',
+        'NAME': '113-ntub113209-1',
         'USER': 'ntub113209',
         'PASSWORD': 'Sw@23110565',
         'HOST': '140.131.114.242',
@@ -84,7 +94,6 @@ DATABASES = {
         'CONN_MAX_AGE': 300,  # 連接保持5分鐘，設為0則表示每次查詢後關閉連接
     }
 }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
