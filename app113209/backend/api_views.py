@@ -5,19 +5,19 @@ import uuid
 import json
 import logging
 import xlsxwriter
+import plotly.graph_objects as go
 from io import BytesIO
 from openpyxl import Workbook
-import plotly.graph_objects as go
-from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from django.utils import timezone
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
 from django.db.models import F, Sum  # 添加这行
 from django.shortcuts import get_object_or_404
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
@@ -606,13 +606,17 @@ def get_table_fields(request, table_name):
 # 動態生成圖表
 def create_chart(chart_type, x_data, y_data):
     if chart_type == 'line':
-        return go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
+        fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
     elif chart_type == 'bar':
-        return go.Figure(data=[go.Bar(x=x_data, y=y_data)])
+        fig = go.Figure(data=[go.Bar(x=x_data, y=y_data)])
     elif chart_type == 'pie':
-        return go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+        fig = go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+    elif chart_type == 'scatter':
+        fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
     else:
-        return go.Figure()  # 預設返回空白圖表
+        fig = go.Figure()  # 返回空白圖表，避免崩潰
+
+    return fig
 
 
 # API：生成互動圖表（返回JSON格式）
@@ -625,17 +629,18 @@ class ChartDataAPIView(APIView):
         x_data = chart_config.get('x_data')
         y_data = chart_config.get('y_data')
 
-        # 記錄生成圖表的操作
-        record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
-
-        # 檢查 x_data 和 y_data 是否有正確的值
-        print(f"x_data: {x_data}, y_data: {y_data}")
+        # 確保 x_data 和 y_data 不為空
+        if not x_data or not y_data:
+            return JsonResponse({'error': 'x_data 和 y_data 不能為空'}, status=400)
 
         fig = create_chart(chart_type, x_data, y_data)
 
         # 確保生成圖表正確並轉換為 JSON
         chart_json = fig.to_json()
 
+        # 記錄生成圖表的操作
+        record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
+        
         # 返回分析後的數據
         return JsonResponse(chart_json, safe=False)
     
@@ -694,6 +699,7 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        logger.error(f"Chart creation failed: {serializer.errors}")  # 記錄錯誤
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
@@ -703,6 +709,7 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        logger.error(f"Chart update failed: {serializer.errors}")  # 記錄錯誤        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 銷售數據 API
@@ -810,29 +817,35 @@ class StoreComparisonChartDataAPIView(APIView):
 #     # 返回生成的圖片路徑
 #     return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
 
-# API: 匯出數據為 CSV
+# 匯出 CSV
 @api_view(['POST'])
 def export_data_csv(request):
     data = request.data.get('chartConfig', {}).get('data', [])
+    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')  # 獲取圖表名稱
+    x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
+    y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
     if not data:
-        logger.error("No data provided in chartConfig")
         return JsonResponse({"error": "No data provided"}, status=400)
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="chart-export.csv"'
+    response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['X', 'Y'])  # Header
+    writer.writerow([x_axis_label, y_axis_label])  # 使用具體的標籤名稱
 
     for row in data:
         writer.writerow([row['x'], row['y']])
 
     return response
 
+
 # 匯出 Excel
 @api_view(['POST'])
 def export_data_excel(request):
     data = request.data.get('chartConfig', {}).get('data', [])
+    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')  # 獲取圖表名稱
+    x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
+    y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
 
@@ -840,8 +853,8 @@ def export_data_excel(request):
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
 
-    worksheet.write('A1', 'X')
-    worksheet.write('B1', 'Y')
+    worksheet.write('A1', x_axis_label)  # 使用具體的標籤名稱
+    worksheet.write('B1', y_axis_label)
 
     for index, row in enumerate(data, start=1):
         worksheet.write(index, 0, row['x'])
@@ -851,7 +864,7 @@ def export_data_excel(request):
     output.seek(0)
 
     response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="chart-export.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.xlsx"'
 
     return response
 
@@ -860,21 +873,38 @@ def export_data_excel(request):
 @api_view(['POST'])
 def export_data_pdf(request):
     data = request.data.get('chartConfig', {}).get('data', [])
+    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')  # 獲取圖表名稱
+    x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
+    y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
 
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
 
-    p.drawString(100, 750, "X | Y")
+    # 設置字體路徑，將其指向你的字體文件目錄
+    font_path = os.path.join(settings.BASE_DIR, 'static/fonts/NotoSansTC-Regular.ttf')
+    pdfmetrics.registerFont(TTFont('NotoSansTC', font_path))
+
+    # 使用具體的標籤名稱
+    p.drawString(100, 750, f"{x_axis_label} | {y_axis_label}")
     y_position = 730
 
     for row in data:
         p.drawString(100, y_position, f"{row['x']} | {row['y']}")
         y_position -= 20
 
+        if y_position < 100:
+            p.showPage()
+            p.setFont("NotoSansCJK", 12)
+            y_position = 750
+
     p.showPage()
     p.save()
 
     buffer.seek(0)
-    return HttpResponse(buffer.read(), content_type='application/pdf')
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.pdf"'
+
+    return response
+

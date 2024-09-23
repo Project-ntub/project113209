@@ -89,7 +89,8 @@ export default {
         x_data: [],
         y_data: []
       },
-      dataSource: []  // 用於存儲從後端獲取的資料來源選項
+      dataSource: [],  // 用於存儲從後端獲取的資料來源選項
+      tableFields: [] // 確保初始化tableFields為空數組
     };
   },
   methods: {
@@ -134,32 +135,34 @@ export default {
       }
     },
     saveChart() {
+      // 檢查 x_data 和 y_data 是否為空
+      if (!this.chartData.x_data.length || !this.chartData.y_data.length) {
+        alert('x_data 和 y_data 不能為空，請輸入有效數據');
+        return;
+      }
+
       const chartConfig = {
         chart_type: this.chartData.style,
         name: this.chartData.name,
-        dataSource: this.chartData.dataSource,
-        xAxisField: this.chartData.xAxisField,
-        yAxisField: this.chartData.yAxisField,
-        filterConditions: JSON.parse(this.chartData.filterConditions),
+        data_source: this.chartData.dataSource,
+        x_axis_field: this.chartData.xAxisField,
+        y_axis_field: this.chartData.yAxisField,
+        filterConditions: JSON.parse(this.chartData.filterConditions || '{}'),
         x_data: this.chartData.x_data,
         y_data: this.chartData.y_data
       };
 
-      const apiUrl = this.isEditing ? `/api/backend/update-chart/${this.chartId}/` : '/api/create-chart/';
-      
-      axios.post(apiUrl, chartConfig)
+      axios.post('/api/backend/create-chart/', chartConfig)
         .then(response => {
-          const chartJSON = response.data;
-          const chartData = JSON.parse(chartJSON);
+          const chartData = response.data;
+          const parsedChartData = JSON.parse(chartData);
           
-          // 確保這裡的 chartData.data 和 chartData.layout 存在
-          Plotly.newPlot('chart-container', chartData.data, chartData.layout);
-          
+          Plotly.newPlot('chart-container', parsedChartData.data, parsedChartData.layout);
           this.$emit('chart-saved', response.data); 
           this.closeModal();
         })
         .catch(error => {
-          console.error('創建或更新圖表時出錯', error);
+          console.error('創建圖表時出錯', error.response.data);
         });
     },
     closeModal() {
@@ -210,10 +213,22 @@ export default {
   display: flex;
   gap: 20px;
 }
-.chart-settings,
-.chart-preview {
+.chart-settings {
   flex: 1;
 }
+
+.chart-preview {
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 10px;
+  height: 400px;
+}
+
+#chart-container {
+  width: 100%;
+  height: 100%; /* 確保圖表填滿容器 */
+}
+
 .setting {
   margin-bottom: 15px;
 }

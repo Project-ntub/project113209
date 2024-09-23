@@ -1,4 +1,3 @@
-<!-- PlotlyChart.vue -->
 <template>
   <div ref="chart" class="plotly-chart"></div>
   <div class="last-updated">最後更新時間: {{ lastUpdated }}</div>
@@ -22,7 +21,6 @@ export default {
   methods: {
     async fetchChartData() {
       let apiUrl = '';
-
       switch (this.localChartConfig.name) {
         case 'SalesChart':
           apiUrl = '/api/backend/sales-chart-data/';
@@ -57,15 +55,15 @@ export default {
 
         this.renderChart(xData, yData);
 
-        // 更新 localChartConfig 中的數據
+        // 將 data 設置到 chartConfig 中
         this.localChartConfig.data = xData.map((x, i) => ({
-            x,
-            y: yData[i]
+          x,
+          y: yData[i]
         }));
 
         console.log("localChartConfig after data load: ", this.localChartConfig);
 
-        // 將更新後的 localChartConfig 傳遞回父組件
+        // 通知父組件 chartConfig 已更新
         this.$emit('update-chart-config', this.localChartConfig);
 
         this.lastUpdated = new Date().toLocaleString();
@@ -132,4 +130,3 @@ export default {
   color: #555;
 }
 </style>
-

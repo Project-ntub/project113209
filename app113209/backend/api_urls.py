@@ -51,7 +51,7 @@ urlpatterns = [
     path('table-fields/<str:table_name>/', api_views.get_table_fields, name='get_table_fields'),
     path('charts/', api_views.ChartConfigurationViewSet.as_view({'get': 'list'}), name='charts-list'),
     path('chart-data/', api_views.ChartDataAPIView.as_view(), name='chart-data'),
-    path('create-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'create_chart'}), name='create_chart'),
+    path('create-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'create_chart_action'}), name='create_chart'),
     path('update-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'update_chart'}), name='update_chart'),
     
     # 圖表數據（更正名稱以避免衝突）

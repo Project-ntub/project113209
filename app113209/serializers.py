@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch
-from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, TEST_Inventory, TEST_Revenue
+from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue
 
 
 class RolePermissionSerializer(serializers.ModelSerializer):
@@ -78,6 +77,25 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'chart_type', 'data_source', 'x_axis_field', 'y_axis_field', 'filter_condtions', 'refresh_interval', 'is_active']
 
 
+    def validate(self, data):
+        # 檢查必填欄位
+        if not data.get('name'):
+            raise serializers.ValidationError({'name': 'This field may not be blank.'})
+        if not data.get('data_source'):
+            raise serializers.ValidationError({'data_source': 'This field is required.'})
+        if not data.get('x_axis_field'):
+            raise serializers.ValidationError({'x_axis_field': 'This field is required.'})
+        if not data.get('y_axis_field'):
+            raise serializers.ValidationError({'y_axis_field': 'This field is required.'})
+        
+        # 確保過濾條件是字典而不是字符串
+        if isinstance(data.get('filterConditions'), str):
+            try:
+                data['filterConditions'] = json.loads(data['filterConditions'])
+            except ValueError:
+                raise serializers.ValidationError({'filterConditions': 'Invalid JSON format'})
+        
+        return data
 
 class UserPreferencesSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,4 +1,3 @@
-<!-- src/Charts/ChartContainer.vue -->
 <template>
   <div>
     <div class="chart-container">
@@ -15,7 +14,7 @@
           </div>
         </div>
       </div>
-      <slot></slot>
+      <PlotlyChart :chartConfig="localChartConfig" @update-chart-config="updateChartConfig"></PlotlyChart>
     </div>
     <ChartModal v-if="!isFrontend && isChartModalVisible" :isEditing="true" @close="isChartModalVisible = false" />
   </div>
@@ -23,10 +22,12 @@
 
 <script>
 import axios from 'axios';
+import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartModal from '@/components/backend/ChartModal.vue';
 
 export default {
   components: {
+    PlotlyChart,
     ChartModal
   },
   props: {
@@ -36,7 +37,8 @@ export default {
   data() {
     return {
       showMenu: false,
-      isChartModalVisible: false
+      isChartModalVisible: false,
+      localChartConfig: { ...this.chartConfig }  // 使用本地副本
     };
   },
   methods: {
@@ -47,20 +49,28 @@ export default {
       this.isChartModalVisible = true;
       this.showMenu = false;
     },
+    updateChartConfig(updatedConfig) {
+      this.localChartConfig = updatedConfig;  // 更新本地變量
+      console.log('Updated chartConfig:', this.localChartConfig);
+    },
     async exportChart(format) {
       const apiUrl = `/api/backend/export-data-${format}/`;
 
-      if (!this.chartConfig || !this.chartConfig.data || this.chartConfig.data.length === 0) {
+      // 確認 localChartConfig.data 是否存在並包含數據
+      if (!this.localChartConfig || !this.localChartConfig.data || this.localChartConfig.data.length === 0) {
         alert("圖表配置無效，無法導出！");
         return;
       }
 
       try {
-        const response = await axios.post(apiUrl, { chartConfig: this.chartConfig }, { responseType: 'blob' });
+        const response = await axios.post(apiUrl, { chartConfig: this.localChartConfig }, { responseType: 'blob' });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
+
+        // 以圖表名稱為基礎生成檔案名
+        const fileName = `${this.localChartConfig.label || 'exported-file'}.${format}`;
         link.href = url;
-        link.setAttribute('download', `exported-file.${format}`);
+        link.setAttribute('download', fileName);  // 使用圖表名稱生成檔案名
         document.body.appendChild(link);
         link.click();
       } catch (error) {
