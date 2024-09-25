@@ -26,32 +26,19 @@
     </div>
 
     <!-- 圖表區域 -->
-    <div class="chart-container">
-      <div v-if="currentChart === 'all'" class="chart-grid">
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" :chartConfig="getChartConfig('RevenueChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('RevenueChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '產品銷售佔比' && perm.can_view)" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" :chartConfig="getChartConfig('InventoryChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('InventoryChart')" />
-        </ChartContainer>
-      </div>
-      <div v-else>
-        <ChartContainer v-if="currentChart === 'SalesCharts'" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
-        </ChartContainer>
-        <ChartContainer v-if="currentChart === 'SalesCharts'" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
-          <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
-        </ChartContainer>
-        <ChartContainer :chartConfig="getChartConfig(currentChart)">
-          <PlotlyChart :chartConfig="getChartConfig(currentChart)" />
-        </ChartContainer>
-      </div>
+    <div class="chart-grid">
+      <ChartContainer v-if="currentChart === 'all' || currentChart === 'RevenueChart'" :chartConfig="getChartConfig('RevenueChart')" :is-Frontend="true">
+        <PlotlyChart :chartConfig="getChartConfig('RevenueChart')" />
+      </ChartContainer>
+      <ChartContainer v-if="currentChart === 'all' || currentChart === 'SalesCharts'" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
+        <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
+      </ChartContainer>
+      <ChartContainer v-if="currentChart === 'all' || currentChart === 'ProductSalesPieChart'" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
+        <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
+      </ChartContainer>
+      <ChartContainer v-if="currentChart === 'all' || currentChart === 'InventoryChart'" :chartConfig="getChartConfig('InventoryChart')" :is-Frontend="true">
+        <PlotlyChart :chartConfig="getChartConfig('InventoryChart')" />
+      </ChartContainer>
     </div>
   </div>
 </template>
@@ -80,10 +67,6 @@ export default {
     };
   },
   methods: {
-    toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen;
-      localStorage.setItem('sidebarOpen', this.isSidebarOpen);
-    },
     async fetchUserPosition() {
       try {
         const response = await axios.get('/api/frontend/profile/');
@@ -99,11 +82,6 @@ export default {
       try {
         const response = await axios.get('/api/frontend/branches/');
         this.branches = response.data;
-        if (this.userPosition === '店長') {
-          this.selectedBranch = this.branches.find(branch => branch.branch_id === this.selectedBranch)?.branch_id;
-        } else {
-          this.selectedBranch = this.branches.length > 0 ? this.branches[0].branch_id : null;
-        }
       } catch (error) {
         console.error('Error fetching branches:', error);
       }

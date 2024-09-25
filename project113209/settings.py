@@ -1,4 +1,3 @@
-# C:\Users\user\OneDrive\桌面\project113209\project113209\settings.pyimport logging
 import logging
 import os
 from pathlib import Path
@@ -7,22 +6,16 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 固定 IP 地址，确保与路由器中设置的静态 IP 地址相同
-fixed_ip = '192.168.1.100'
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-y&%10_w2a%0v)(jqe46d2)mevjv0f^ro8!#+pu#67d%md8k8vr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.109']
+# 允許本機和局域網 IP 訪問
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', '192.168.166.146']  # 替換為你的實際 IP
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -91,7 +84,7 @@ DATABASES = {
         'PASSWORD': 'Sw@23110565',
         'HOST': '140.131.114.242',
         'PORT': '3306',
-        'CONN_MAX_AGE': 300,  # 連接保持5分鐘，設為0則表示每次查詢後關閉連接
+        'CONN_MAX_AGE': 300,
     }
 }
 # Password validation
@@ -199,20 +192,17 @@ SIMPLE_JWT = {
 # CORS configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
-    f"http://{fixed_ip}:8080",  # 固定的 IP 地址
-    "http://192.168.168.109:8080",  # 手機的內部 IP 地址
-
+    "http://127.0.0.1:8080",
+    "http://192.168.166.146:8080",  # 替換為你的實際 IP
 ]
-
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
-    f"http://{fixed_ip}:8080",  # 固定的 IP 地址
-    "http://192.168.168.109:8080",  # 手機的內部 IP 地址
+    "http://127.0.0.1:8080",
+    "http://192.168.166.146:8080",  # 替換為你的實際 IP
 ]
-
 
 LOGGING = {
     'version': 1,
@@ -236,7 +226,7 @@ CSRF_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_NAME = 'sessionid'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False  # 改為 False，使用 CORS_ALLOWED_ORIGINS 進行控制
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
