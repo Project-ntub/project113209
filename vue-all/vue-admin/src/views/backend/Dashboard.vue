@@ -38,7 +38,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
@@ -56,17 +55,36 @@ export default {
   },
   data() {
     return {
-      charts: [],
+      charts: [
+        { 
+          name: 'RevenueChart', label: '營業額', chartId: 1, 
+          chartType: 'bar', width: 600, height: 400, 
+          xAxisLabel: '店铺名稱', yAxisLabel: '營業額' 
+        },
+        { 
+          name: 'InventoryChart', label: '庫存量', chartId: 2, 
+          chartType: 'bar', width: 600, height: 400, 
+          xAxisLabel: '商品名稱', yAxisLabel: '數量' 
+        },
+        { 
+          name: 'SalesChart', label: '銷售額', chartId: 3, 
+          chartType: 'line', width: 600, height: 400,
+          xAxisLabel: '日期', yAxisLabel: '銷售額'         
+        },
+        { 
+          name: 'ProductSalesPieChart', label: '產品銷售佔比', chartId: 4, 
+          chartType: 'pie', width: 600, height: 400 
+        }
+      ],
       filteredCharts: [], // 用來存放篩選後的圖表
       showChartModal: false,
-      showPreviewModal: false,
-      isEditing: false,
-      selectedChartId: null,
+      showPreviewModal: false
     };
   },
   mounted() {
-    // 預設加載圖表資料
-    this.fetchCharts();
+    // 預設顯示所有圖表
+    console.log(this.chartConfig);
+    this.filteredCharts = this.charts;
   },
   methods: {
     openChartModal(editing, chartId = null) {
@@ -76,75 +94,24 @@ export default {
     },
     closeChartModal() {
       this.showChartModal = false;
+      // 如果不需要刷新圖表，可以移除此行
+      // this.fetchCharts();
     },
     fetchCharts() {
-      // 根據不同 API 端點抓取數據
-      axios.get('/backend/dashboard/revenue/')
-        .then(response => {
-          const revenueData = response.data;
-          this.charts.push({
-            name: 'RevenueChart',
-            label: '營業額',
-            chartId: 1,
-            chartType: 'bar',
-            width: 600,
-            height: 400,
-            xAxisLabel: '店鋪名稱',
-            yAxisLabel: '營業額',
-            data: revenueData
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching revenue data:', error);
-        });
-
-      axios.get('/backend/dashboard/sales/')
-        .then(response => {
-          const salesData = response.data;
-          this.charts.push({
-            name: 'SalesChart',
-            label: '銷售額',
-            chartId: 2,
-            chartType: 'line',
-            width: 600,
-            height: 400,
-            xAxisLabel: '日期',
-            yAxisLabel: '銷售額',
-            data: salesData
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching sales data:', error);
-        });
-
-      axios.get('/backend/dashboard/stock/')
-        .then(response => {
-          const stockData = response.data;
-          this.charts.push({
-            name: 'InventoryChart',
-            label: '庫存量',
-            chartId: 3,
-            chartType: 'bar',
-            width: 600,
-            height: 400,
-            xAxisLabel: '商品名稱',
-            yAxisLabel: '數量',
-            data: stockData
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching stock data:', error);
-        });
-
-      // 預設顯示所有圖表
-      this.filteredCharts = this.charts;
+      // 確保 fetchCharts 是定義的並正確工作
+      console.log('Fetching charts from backend');
+      // 可以根據需求從後端重新獲取圖表數據
+      // axios.get('/api/charts').then(response => {
+      //   this.charts = response.data;
+      //   this.filteredCharts = this.charts;
+      // });
     },
     openPreviewModal() {
       this.showPreviewModal = true;
     },
     closePreviewModal() {
       this.showPreviewModal = false;
-    },
+    }, 
     showDashboard(type) {
       if (type === 'all') {
         this.filteredCharts = this.charts;

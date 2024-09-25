@@ -121,6 +121,10 @@ export default {
     async fetchUserProfile() {
       try {
         const token = localStorage.getItem('frontend_token');
+        if (!token) {
+          alert('無效的token，請重新登入');
+          router.push('/frontend/login');
+        }
         const response = await axios.get('/api/frontend/profile/', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -235,7 +239,9 @@ export default {
     }
   },
   mounted() {
-    this.fetchUserProfile();
+    if (!this.isBackend) {
+      this.fetchUserProfile();
+    }
   }
 };
 </script>
