@@ -100,10 +100,6 @@ export default {
     };
   },
   methods: {
-    toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen;
-      localStorage.setItem('sidebarOpen', this.isSidebarOpen);
-    },
     async fetchUserPosition() {
       try {
         const response = await axios.get('/api/frontend/profile/');
@@ -119,11 +115,6 @@ export default {
       try {
         const response = await axios.get('/api/frontend/branches/');
         this.branches = response.data;
-        if (this.userPosition === '店長') {
-          this.selectedBranch = this.branches.find(branch => branch.branch_id === this.selectedBranch)?.branch_id;
-        } else {
-          this.selectedBranch = this.branches.length > 0 ? this.branches[0].branch_id : null;
-        }
       } catch (error) {
         console.error('Error fetching branches:', error);
       }
