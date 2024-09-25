@@ -1,4 +1,3 @@
-# C:\Users\user\OneDrive\桌面\project113209\project113209\settings.pyimport logging
 import logging
 import os
 from pathlib import Path
@@ -8,7 +7,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 固定 IP 地址，确保与路由器中设置的静态 IP 地址相同
-fixed_ip = '192.168.1.100'
+fixed_ip = '192.168.1.100'  # 可以根據實際情況更新這個 IP 地址
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -19,10 +18,10 @@ SECRET_KEY = 'django-insecure-y&%10_w2a%0v)(jqe46d2)mevjv0f^ro8!#+pu#67d%md8k8vr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.109']
+# 設定允許的主機，包括本機和 Bluestacks 的 IP 地址
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.87', '192.168.168.109']
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -111,18 +110,20 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# login
+# Login and Redirect URLs
 LOGIN_URL = '/frontend/login/'
 LOGIN_REDIRECT_URL = '/frontend/home/'
 LOGOUT_REDIRECT_URL = '/frontend/login/'
 
-# 对于后台
+# 對於後台
 BACKEND_LOGIN_URL = '/backend/login/'
 BACKEND_LOGIN_REDIRECT_URL = '/backend/management/'
 BACKEND_LOGOUT_REDIRECT_URL = '/backend/login/'
 
+# 使用自定义的用户模型
 AUTH_USER_MODEL = 'app113209.User'
 
+# Logging Configuration
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s %(levelname)s %(message)s',
@@ -139,7 +140,10 @@ EMAIL_HOST_PASSWORD = 'evcajuubazrginrn'
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 30
-SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False  # 開發模式下應該設為 False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_NAME = 'sessionid'
 
 # Cache settings
 CACHES = {
@@ -149,7 +153,7 @@ CACHES = {
     }
 }
 
-# 认证后端
+# 認證後端
 AUTHENTICATION_BACKENDS = (
     'app113209.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
@@ -167,6 +171,7 @@ REST_FRAMEWORK = {
     ],
 }
 
+# JWT 配置
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -175,35 +180,30 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': False,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    'JTI_CLAIM': 'jti',
 }
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    f"http://{fixed_ip}:8080",  # 固定的 IP 地址
-    "http://192.168.168.109:8080",  # 手機的內部 IP 地址
-
-]
+CORS_ALLOW_ALL_ORIGINS = True  # 設置允許所有來源。如果要限制特定來源，可以使用下面的配置
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8080",
+#     "http://192.168.168.87:8080",  # 本機 IP 地址
+#     "http://192.168.168.109:8080",  # Bluestacks IP 地址
+# ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
-    f"http://{fixed_ip}:8080",  # 固定的 IP 地址
-    "http://192.168.168.109:8080",  # 手機的內部 IP 地址
+    "http://192.168.168.87:8080",  # 本機 IP 地址
+    "http://192.168.168.109:8080",  # Bluestacks IP 地址
 ]
 
-
+# Logging 設置
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -218,15 +218,7 @@ LOGGING = {
     },
 }
 
-# 确保以下设置适用于开发环境
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-SESSION_COOKIE_NAME = 'sessionid'
-
-CORS_ALLOW_ALL_ORIGINS = True
-
+# Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
