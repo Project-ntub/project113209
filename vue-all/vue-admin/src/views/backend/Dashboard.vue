@@ -2,21 +2,25 @@
   <div class="dashboard-page">
     <TopNavbar title="儀表板管理" />
     <div class="dashboard-container">
+      <!-- 下拉選單來選擇圖表類型 -->
       <div class="top-left-controls">
+        <select @change="showDashboard($event.target.value)">
+          <option value="all">所有圖表</option>
+          <option value="sales">銷售額</option>
+          <option value="revenue">營業額</option>
+          <option value="inventory">庫存量</option>
+        </select>
+      </div>
+
+      <!-- 新增圖表和預覽角色介面按鈕放在這裡 -->
+      <div class="button-group">
         <button @click="openChartModal(false)">新增圖表</button>
         <button @click="openPreviewModal">預覽角色介面</button>
       </div>
 
-      <div class="top-left-controls">
-        <button @click="showDashboard('all')">所有圖表</button>
-        <button @click="showDashboard('sales')">銷售額</button>
-        <button @click="showDashboard('revenue')">營業額</button>
-        <button @click="showDashboard('inventory')">庫存量</button>
-      </div>
-
       <div class="dashboard">
+        <!-- 渲染篩選後的圖表 -->
         <div v-for="chart in filteredCharts" :key="chart.chartId" class="chart-wrapper">
-          <!-- 將每個圖表包裝在 ChartContainer 中 -->
           <ChartContainer :chartConfig="chart">
             <PlotlyChart :chartConfig="chart" />
           </ChartContainer>
@@ -24,7 +28,7 @@
       </div>
     </div>
 
-    <!-- 新增圖表窗口  -->
+    <!-- 新增圖表窗口 -->
     <Modal 
       v-if="showChartModal" 
       :isEditing="isEditing" 
@@ -32,7 +36,7 @@
       @close="closeChartModal" 
     />
 
-    <!-- 角色介面預覽模態窗口 -->
+    <!-- 預覽角色介面窗口 -->
     <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" />
   </div>
 </template>
@@ -42,7 +46,7 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import Modal from '@/components/backend/ChartModal.vue';
-import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; // 預覽角色介面視窗
+import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; 
 
 export default {
   name: 'DashboardManager',
@@ -78,13 +82,13 @@ export default {
       ],
       filteredCharts: [], // 用來存放篩選後的圖表
       showChartModal: false,
-      showPreviewModal: false
+      showPreviewModal: false,
+      isEditing: false,
+      selectedChartId: null,
     };
   },
   mounted() {
-    // 預設顯示所有圖表
-    console.log(this.chartConfig);
-    this.filteredCharts = this.charts;
+    this.filteredCharts = this.charts; // 預設顯示所有圖表
   },
   methods: {
     openChartModal(editing, chartId = null) {
@@ -94,24 +98,13 @@ export default {
     },
     closeChartModal() {
       this.showChartModal = false;
-      // 如果不需要刷新圖表，可以移除此行
-      // this.fetchCharts();
-    },
-    fetchCharts() {
-      // 確保 fetchCharts 是定義的並正確工作
-      console.log('Fetching charts from backend');
-      // 可以根據需求從後端重新獲取圖表數據
-      // axios.get('/api/charts').then(response => {
-      //   this.charts = response.data;
-      //   this.filteredCharts = this.charts;
-      // });
     },
     openPreviewModal() {
       this.showPreviewModal = true;
     },
     closePreviewModal() {
       this.showPreviewModal = false;
-    }, 
+    },
     showDashboard(type) {
       if (type === 'all') {
         this.filteredCharts = this.charts;
@@ -127,4 +120,5 @@ export default {
 };
 </script>
 
+<!-- 引入分離的 CSS -->
 <style scoped src="@/assets/css/backend/Dashboard.css"></style>
