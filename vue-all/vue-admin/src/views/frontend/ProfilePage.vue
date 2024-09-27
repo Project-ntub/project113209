@@ -255,6 +255,8 @@ export default {
   background-color: #f4f4f4;
   overflow-y: auto; /* 只讓外部容器滾動 */
   padding: 20px;
+  margin-top: 100px; /* 增加 margin-top 讓內容下移 */
+
 }
 
 .profile-card {

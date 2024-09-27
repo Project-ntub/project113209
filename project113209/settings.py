@@ -7,7 +7,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 固定 IP 地址，确保与路由器中设置的静态 IP 地址相同
-fixed_ip = '192.168.1.100'  # 可以根據實際情況更新這個 IP 地址
+fixed_ip = '192.168.1.100'  # 將這個 IP 設置為固定的主機 IP
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -19,7 +19,7 @@ SECRET_KEY = 'django-insecure-y&%10_w2a%0v)(jqe46d2)mevjv0f^ro8!#+pu#67d%md8k8vr
 DEBUG = True
 
 # 設定允許的主機，包括本機和 Bluestacks 的 IP 地址
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.87', '192.168.168.109']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.87', '192.168.168.109', '172.16.32.106']
 
 # Application definition
 INSTALLED_APPS = [
@@ -187,20 +187,15 @@ SIMPLE_JWT = {
 }
 
 # CORS configuration
-CORS_ALLOW_ALL_ORIGINS = True  # 設置允許所有來源。如果要限制特定來源，可以使用下面的配置
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:8080",
-#     "http://192.168.168.87:8080",  # 本機 IP 地址
-#     "http://192.168.168.109:8080",  # Bluestacks IP 地址
-# ]
-
+CORS_ALLOW_ALL_ORIGINS = True  # 設置允許所有來源
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
-    "http://192.168.168.87:8080",  # 本機 IP 地址
-    "http://192.168.168.109:8080",  # Bluestacks IP 地址
+    "http://172.16.32.106:8080",  # 本機固定 IP
+    "http://192.168.168.87:8080",  # Bluestacks 固定 IP
+    "http://192.168.168.109:8080"
 ]
 
 # Logging 設置
@@ -221,4 +216,3 @@ LOGGING = {
 # Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-

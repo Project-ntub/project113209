@@ -7,20 +7,23 @@
 
 html, body {
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* 主容器樣式 */
 .home-page {
   display: flex;
   flex-direction: column;
-  align-items: center; /* 置中內容 */
+  align-items: center;
   margin-left: 30px;
+  margin-top: 40px; /* 這裡增加 margin-top 為 40px 讓內容下移更多 */
   transition: margin-left 0.3s ease;
   padding: 20px;
-  overflow-y: auto; /* 添加垂直滾動條 */
-  height: 100vh; /* 設置主頁的高度以允許滾動 */
+  overflow-y: auto;
+  height: 100vh;
   min-height: 100vh;
-  padding-bottom: 400px; /* 增加底部空白區域，確保圖表不會被截斷 */
+  padding-bottom: 100px;
 }
 
 /* 側邊欄樣式 */
@@ -36,11 +39,11 @@ html, body {
 }
 
 .sidebar.open {
-  width: 160px; /* 增加開啟狀態的寬度 */
+  width: 160px;
 }
 
 .sidebar.open + .home-page {
-  margin-left: 160px; /* 調整主內容區域位置 */
+  margin-left: 160px;
 }
 
 /* 分店選擇區域 */
@@ -48,19 +51,20 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px; /* 增加文字與選單之間的間距 */
-  margin-bottom: 20px; /* 調整下方間距 */
-  width: 100%; /* 讓分店選擇區域佔滿寬度 */
+  gap: 15px;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .branch-selection label {
-  font-size: 18px; /* 調整字體大小 */
+  font-size: 18px;
 }
 
 .branch-selection select {
-  width: 550px; /* 增加選單的寬度 */
-  padding: 12px 15px; /* 調整 padding 讓選單更大 */
-  font-size: 16px; /* 調整字體大小 */
+  width: 100%; /* Full width for select */
+  max-width: 800px; /* Adjust max-width to fit */
+  padding: 12px 15px;
+  font-size: 16px;
   border-radius: 5px;
   border: 1px solid #ccc;
 }
@@ -69,21 +73,22 @@ html, body {
 .chart-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px; /* 圖表之間的間距 */
-  justify-content: center; /* 置中圖表 */
+  gap: 30px;
+  justify-content: center;
   width: 100%;
-  flex-grow: 1; /* 確保圖表區域填滿剩餘空間 */
+  flex-grow: 1;
 }
 
 /* 圖表容器 */
 .chart-container {
-  width: 45%; /* 設置每個圖表寬度為 45%，讓兩個圖表能夠並排顯示 */
+  width: 100%;
+  max-width: 550px; /* Adjust maximum width to fit */
   height: auto;
   aspect-ratio: 16 / 9;
   background-color: #f2f2f2;
   border-radius: 10px;
-  padding: 20px; /* 增加內部填充 */
-  margin-bottom: 100px; /* 增加圖表之間的間隔 */
+  padding: 20px;
+  margin-bottom: 50px;
 }
 
 .sidebar.open + .home-page .chart-container {
@@ -94,15 +99,15 @@ html, body {
 .chart-controls {
   display: flex;
   align-items: center;
-  gap: 20px; /* 增加按鈕之間的距離 */
+  gap: 20px;
   flex-wrap: nowrap;
-  margin-bottom: 30px; /* 調整 margin-bottom */
-  justify-content: center; /* 置中按鈕 */
+  margin-bottom: 30px;
+  justify-content: center;
 }
 
 .chart-controls button {
-  padding: 12px 20px; /* 增加按鈕內部填充，使其變大 */
-  font-size: 16px; /* 調整字體大小 */
+  padding: 12px 20px;
+  font-size: 16px;
   border: none;
   border-radius: 10px;
   background-color: #3498db;
@@ -139,13 +144,13 @@ html, body {
   }
 
   .chart-container {
-    width: 100%; /* 小螢幕時圖表寬度為 100% */
+    width: 100%;
     aspect-ratio: 16 / 9;
     padding: 15px;
   }
 
   .branch-selection select {
-    width: 100%; /* 小螢幕時選單寬度佔滿可視區域 */
+    width: 100%;
   }
 }
 
@@ -185,6 +190,6 @@ html, body {
   .chart-container {
     height: auto;
     aspect-ratio: 16 / 9;
-    margin-bottom: 100px;
+    margin-bottom: 50px;
   }
 }
