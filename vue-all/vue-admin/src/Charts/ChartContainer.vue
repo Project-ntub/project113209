@@ -7,9 +7,9 @@
           <div v-if="showMenu" class="menu">
             <template v-if="!isFrontend">
               <button @click="editChart">編輯圖表</button>
-              <button @click="deleteChart">刪除圖表</button> <!-- v-if="localCanDelete" -->
+              <button  v-if="localCanDelete"  @click="deleteChart">刪除圖表</button> <!---->
             </template>
-            <div class="export-button"> <!-- v-if="localCanExport" -->
+            <div v-if="localCanExport" class="export-button"> 
               <button @click="exportChart('csv')">匯出為 CSV</button>
               <button @click="exportChart('excel')">匯出為 Excel</button>
               <button @click="exportChart('pdf')">匯出為 PDF</button>
