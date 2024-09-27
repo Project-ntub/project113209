@@ -3,7 +3,7 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
-  font-size: 16px;
+  font-size: 18px; /* 調整字體大小 */
 }
 
 .main-container {
@@ -11,9 +11,9 @@ body {
   flex-direction: column;
   flex-grow: 1;
   margin-left: 7vw;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  padding: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
@@ -23,18 +23,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .header button {
-  margin: 0.5rem;
-  padding: 0.5rem 1rem;
+  margin: 0.75rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   background-color: #6c757d;
   color: white;
-  font-size: 1rem;
+  font-size: 1.25rem; /* 增大按鈕字體大小 */
 }
 
 .header button.active {
@@ -48,18 +48,18 @@ body {
 .table-container {
   overflow-y: auto;
   max-height: 60vh;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .role-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem; /* 調整字體大小 */
+  font-size: 1rem; /* 調整字體大小 */
 }
 
 .role-table th, .role-table td {
   border: 1px solid #ddd;
-  padding: 0.5rem;
+  padding: 0.75rem; /* 增加表格內邊距 */
   text-align: left;
 }
 
@@ -76,15 +76,15 @@ body {
 }
 
 .permissions-btn, .delete-btn {
-  padding: 1vw 2vw;
+  padding: 1.25vw 2.5vw;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   color: white;
-  font-size: 1.2rem;
-  margin: 1vw;
-  max-width: 20vw;
-  min-width: 100px;
+  font-size: 1.4rem; /* 增加按鈕字體 */
+  margin: 1.25vw;
+  max-width: 22vw;
+  min-width: 120px;
 }
 
 .permissions-btn {
@@ -106,8 +106,8 @@ body {
 .switch {
   position: relative;
   display: inline-block;
-  width: 2rem; /* 更小的寬度 */
-  height: 1rem; /* 更小的高度 */
+  width: 2.25rem; /* 調整開關寬度 */
+  height: 1.25rem; /* 調整開關高度 */
 }
 
 .switch input {
@@ -125,14 +125,14 @@ body {
   bottom: 0;
   background-color: #ccc;
   transition: .4s;
-  border-radius: 20px;
+  border-radius: 25px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 0.8rem; /* 更小的滑塊 */
-  width: 0.8rem;
+  height: 1rem; /* 調整滑塊 */
+  width: 1rem;
   left: 0.1rem;
   bottom: 0.1rem;
   background-color: white;
@@ -145,12 +145,12 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(1rem); /* 調整滑塊的位移 */
+  transform: translateX(1.25rem); /* 調整滑塊的位移 */
 }
 
 @media (max-width: 768px) {
   .container {
-    max-width: 100vw;  /* 在小螢幕上設置最大寬度為100vw */
+    max-width: 100vw; /* 在小螢幕上設置最大寬度為100vw */
   }
 
   .header {
@@ -161,12 +161,12 @@ input:checked + .slider:before {
   .header button, .header h2 {
     width: auto;
     max-width: 100%;
-    margin: 5px;
+    margin: 10px;
   }
 
   .permissions-btn, .delete-btn {
     width: 100%;
     max-width: 100%;
-    margin: 5px 0;
+    margin: 10px 0;
   }
 }
