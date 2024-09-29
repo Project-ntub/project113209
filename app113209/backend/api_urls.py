@@ -53,7 +53,8 @@ urlpatterns = [
     path('chart-data/', api_views.ChartDataAPIView.as_view(), name='chart-data'),
     path('create-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'create_chart_action'}), name='create_chart'),
     path('update-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'update_chart'}), name='update_chart'),
-    
+    path('delete-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'delete_chart'}), name='delete_chart'),
+
     # 圖表數據（更正名稱以避免衝突）
     # path('sales-chart-data/', api_views.SalesDataAPIView.as_view(), name='sales-chart-data'),
     # path('revenue-chart-data/', api_views.RevenueDataAPIView.as_view(), name='revenue-chart-data'),

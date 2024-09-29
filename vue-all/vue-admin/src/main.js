@@ -15,7 +15,7 @@ const app = createApp(App);
 app.use(router);
 app.use(store);
 app.component('font-awesome-icon', FontAwesomeIcon);
-library.add(fas);
+library.add(fas); // 將所有 Font Awesome 的圖標加入庫
 app.use(VueCookies); // 註冊 vue-cookies 插件
 
 // 設置 Axios 攔截器來攜帶 token 和 CSRF token
@@ -36,7 +36,6 @@ axios.interceptors.request.use(config => {
 }, error => {
   return Promise.reject(error);
 });
-
 
 // 判斷前台還是後台
 const isBackend = window.location.pathname.startsWith('/admin');

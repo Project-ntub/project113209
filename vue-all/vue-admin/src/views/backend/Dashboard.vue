@@ -2,21 +2,28 @@
   <div class="dashboard-page">
     <TopNavbar title="儀表板管理" />
     <div class="dashboard-container">
+      <!-- 下拉選單來選擇圖表類型 -->
       <div class="top-left-controls">
+        <select @change="showDashboard($event.target.value)">
+          <option value="all">所有圖表</option>
+          <option value="sales">銷售額</option>
+          <option value="revenue">營業額</option>
+          <option value="inventory">庫存量</option>
+        </select>
+      </div>
+
+      <!-- 新增圖表和預覽角色介面按鈕放在這裡 -->
+      <div class="button-group">
         <button @click="openChartModal(false)">新增圖表</button>
         <button @click="openPreviewModal">預覽角色介面</button>
       </div>
 
-      <div class="top-left-controls">
-        <button @click="showDashboard('all')">所有圖表</button>
-        <button @click="showDashboard('sales')">銷售額</button>
-        <button @click="showDashboard('revenue')">營業額</button>
-        <button @click="showDashboard('inventory')">庫存量</button>
-      </div>
-
-      <div class="chart-container">
+      <div class="dashboard">
+        <!-- 渲染篩選後的圖表 -->
         <div v-for="chart in filteredCharts" :key="chart.chartId" class="chart-wrapper">
-          <PlotlyChart :chartConfig="chart" />
+          <ChartContainer :chartConfig="chart">
+            <PlotlyChart :chartConfig="chart" />
+          </ChartContainer>
         </div>
       </div>
     </div>
@@ -29,17 +36,16 @@
       @close="closeChartModal" 
     />
 
-    <!-- 角色介面預覽模態窗口 -->
+    <!-- 預覽角色介面窗口 -->
     <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" />
   </div>
 </template>
 
 <script>
-import axios from 'axios';
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/Charts/PlotlyChart.vue';
 import Modal from '@/components/backend/ChartModal.vue';
-import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
+import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; 
 
 export default {
   name: 'DashboardManager',
@@ -51,8 +57,28 @@ export default {
   },
   data() {
     return {
-      charts: [],
-      filteredCharts: [],
+      charts: [
+        { 
+          name: 'RevenueChart', label: '營業額', chartId: 1, 
+          chartType: 'bar', width: 600, height: 400, 
+          xAxisLabel: '店铺名稱', yAxisLabel: '營業額' 
+        },
+        { 
+          name: 'InventoryChart', label: '庫存量', chartId: 2, 
+          chartType: 'bar', width: 600, height: 400, 
+          xAxisLabel: '商品名稱', yAxisLabel: '數量' 
+        },
+        { 
+          name: 'SalesChart', label: '銷售額', chartId: 3, 
+          chartType: 'line', width: 600, height: 400,
+          xAxisLabel: '日期', yAxisLabel: '銷售額'         
+        },
+        { 
+          name: 'ProductSalesPieChart', label: '產品銷售佔比', chartId: 4, 
+          chartType: 'pie', width: 600, height: 400 
+        }
+      ],
+      filteredCharts: [], // 用來存放篩選後的圖表
       showChartModal: false,
       showPreviewModal: false,
       isEditing: false,
@@ -60,8 +86,7 @@ export default {
     };
   },
   mounted() {
-    // 預設加載圖表資料
-    this.fetchCharts();
+    this.filteredCharts = this.charts; // 預設顯示所有圖表
   },
   methods: {
     openChartModal(editing, chartId = null) {
@@ -71,68 +96,6 @@ export default {
     },
     closeChartModal() {
       this.showChartModal = false;
-    },
-    fetchCharts() {
-      // 根據不同 API 端點抓取數據
-      axios.get('/backend/dashboard/revenue/')
-        .then(response => {
-          const revenueData = response.data;
-          this.charts.push({
-            name: 'RevenueChart',
-            label: '營業額',
-            chartId: 1,
-            chartType: 'bar',
-            width: 600,
-            height: 400,
-            xAxisLabel: '店鋪名稱',
-            yAxisLabel: '營業額',
-            data: revenueData,
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching revenue data:', error);
-        });
-
-      axios.get('/backend/dashboard/sales/')
-        .then(response => {
-          const salesData = response.data;
-          this.charts.push({
-            name: 'SalesChart',
-            label: '銷售額',
-            chartId: 2,
-            chartType: 'line',
-            width: 600,
-            height: 400,
-            xAxisLabel: '日期',
-            yAxisLabel: '銷售額',
-            data: salesData,
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching sales data:', error);
-        });
-
-      axios.get('/backend/dashboard/stock/')
-        .then(response => {
-          const stockData = response.data;
-          this.charts.push({
-            name: 'InventoryChart',
-            label: '庫存量',
-            chartId: 3,
-            chartType: 'bar',
-            width: 600,
-            height: 400,
-            xAxisLabel: '商品名稱',
-            yAxisLabel: '數量',
-            data: stockData,
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching stock data:', error);
-        });
-
-      // 預設顯示所有圖表
-      this.filteredCharts = this.charts;
     },
     openPreviewModal() {
       this.showPreviewModal = true;
@@ -155,4 +118,5 @@ export default {
 };
 </script>
 
+<!-- 引入分離的 CSS -->
 <style scoped src="@/assets/css/backend/Dashboard.css"></style>

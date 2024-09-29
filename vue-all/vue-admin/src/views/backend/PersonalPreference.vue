@@ -4,8 +4,6 @@
     <table class="preferences-table">
       <thead>
         <tr>
-          <th>編號</th>
-          <th>用戶</th>
           <th>字體大小</th>
           <th>通知</th>
           <th>自動登入</th>
@@ -15,10 +13,8 @@
       </thead>
       <tbody>
         <tr v-for="preference in preferences" :key="preference.id">
-          <td>{{ preference.id }}</td>
-          <td>{{ preference.user_id }}</td>
           <td>
-            <!-- 將字體大小改為下拉式選單 -->
+            <!-- 字體大小選擇 -->
             <select v-model="preference.fontsize">
               <option value="small">小</option>
               <option value="medium">中</option>
@@ -39,7 +35,7 @@
           </td>
           <td>{{ preference.authentication ? '已驗證' : '未驗證' }}</td>
           <td>
-            <button @click="savePreference(preference)">保存</button>
+            <button class="save-btn" @click="savePreference(preference)">保存</button>
           </td>
         </tr>
       </tbody>
@@ -87,9 +83,20 @@ export default {
 
 <style scoped>
 .personal-preference-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   text-align: center;
+  padding: 40px;
+  background: linear-gradient(135deg, #f0f8ff, #fae3d9); /* 使用漸層背景 */
+  border-radius: 15px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* 添加陰影效果 */
+}
+
+h1 {
+  color: #333;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
 .preferences-table {
@@ -99,11 +106,46 @@ export default {
 }
 
 .preferences-table th, .preferences-table td {
-  padding: 10px;
+  padding: 15px;
   border: 1px solid #ddd;
+  text-align: center;
 }
 
 .preferences-table th {
-  background-color: #f4f4f4;
+  background-color: #ff8c00;
+  color: white;
+  font-weight: bold;
+}
+
+.preferences-table tr:nth-child(even) {
+  background-color: #f9f9f9; /* 使用交錯顏色行 */
+}
+
+.preferences-table tr:hover {
+  background-color: #ffe4b5; /* 滑鼠懸停時背景色變化 */
+}
+
+select {
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.save-btn {
+  background-color: #ff4500;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* 添加平滑的背景顏色變化效果 */
+}
+
+.save-btn:hover {
+  background-color: #ff6347; /* 懸停時的背景顏色 */
+}
+
+.save-btn:active {
+  transform: scale(0.98); /* 點擊時按鈕縮小效果 */
 }
 </style>

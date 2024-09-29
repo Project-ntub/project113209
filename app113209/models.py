@@ -169,14 +169,15 @@ class Chart(models.Model):
         return self.chart_name
 
 class ChartConfiguration(models.Model):
-    name = models.CharField(max_length=100) #圖表的名字
-    chart_type = models.CharField(max_length=50) #圖表的類型，如 'line', 'bar', 'scatter' 等
-    data_source = models.CharField(max_length=100) #數據來源，可能是資料表名稱或API端點
-    x_axis_field = models.CharField(max_length=50) #x軸欄位名稱
-    y_axis_field = models.CharField(max_length=50) #y軸欄位名稱
-    filter_condtions = models.JSONField(null=True, blank=True) #過濾條件，JSON格式
-    refresh_interval = models.IntegerField(default=60) #自動刷新間隔，以秒為單位
-    is_active = models.BooleanField(default=True) #此圖表是否啟用
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    chart_type = models.CharField(max_length=50)
+    data_source = models.CharField(max_length=100)
+    x_axis_field = models.CharField(max_length=100)
+    y_axis_field = models.CharField(max_length=100)
+    filter_conditions = models.JSONField(blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)  # 用來標記是否已刪除/隱藏
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name

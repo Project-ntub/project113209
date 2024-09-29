@@ -100,7 +100,7 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
 class UserPreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPreferences
-        fields = ['id', 'user_id', 'fontsize', 'notificationSettings', 'autoLogin', 'authentication']
+        fields = ['id', 'user_id', 'fontsize', 'notificationSettings', 'authentication']
         
 # 圖表權限
 

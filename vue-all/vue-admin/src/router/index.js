@@ -32,7 +32,7 @@ import ModuleForm from '@/components/backend/ModuleForm.vue';
 import RolePermissions from '@/components/backend/RolePermissions.vue';
 import HistoricalRecord from '@/views/backend/HistoricalRecord.vue';
 import PersonalPreference from '@/views/backend/PersonalPreference.vue';
-import Profile from '@/views/backend/Profile.vue';
+import BackendProfile from '@/views/backend/Profile.vue';
 
 const routes = [
   // Frontend Routes
@@ -69,7 +69,7 @@ const routes = [
   { path: '/backend/role_permissions/:roleId', name: 'BackendRolePermissions', component: RolePermissions },
   { path: '/backend/history', name: '歷史紀錄', component: HistoricalRecord },    
   { path: '/backend/preferences', name: '個人偏好', component: PersonalPreference },
-  { path: '/backend/profile', name: '個人資料', component: Profile }
+  { path: '/backend/profile', name: '個人資料', component: BackendProfile }
 ];
 
 const router = createRouter({

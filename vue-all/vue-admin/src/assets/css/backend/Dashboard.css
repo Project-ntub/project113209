@@ -11,42 +11,101 @@
   flex-direction: column;
   flex-grow: 1;
   margin: 0;
-  padding: 20px;
+  padding: 10px; /* 調整容器的填充 */
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   box-sizing: border-box;
   overflow-y: auto;
+  width: 100%; /* 確保容器佔滿可用寬度 */
 }
 
 .top-left-controls {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 10px; /* 調整下邊距 */
 }
 
-.chart-container {
+.short-select {
+  width: 100px; /* 繼續縮短下拉選單寬度 */
+  margin-right: 10px; /* 添加右邊距 */
+}
+
+.button-group {
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  gap: 20px; /* 增加按鈕間距 */
+  margin-bottom: 15px; /* 增加下邊距 */
+}
+
+button {
+  padding: 12px 24px; /* 增大按鈕大小 */
+  font-size: 16px; /* 調整按鈕字體大小 */
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+select {
+  padding: 6px;
+  font-size: 14px; /* 調整選擇框字體大小 */
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* 圖表容器 flexbox 佈局 */
+.dashboard {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 15px; /* 調整圖表之間的間距 */
+  justify-content: flex-start;
 }
 
 .chart-wrapper {
-  flex: 1 1 48%; /* 左右排列，每行 2 個 */
-  min-width: 400px;
-  height: 300px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 10px;
+  flex: 1 1 calc(45% - 15px); /* 調整為更小的佔比和間距 */
+  min-width: 250px; /* 調整圖表最小寬度 */
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px; /* 調整圖表內邊距 */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
 }
 
-/* 響應式設計 */
-@media (max-width: 1024px) {
+/* 響應式設計：小屏幕切換為單列顯示 */
+@media (max-width: 768px) {
   .chart-wrapper {
-    flex: 1 1 100%; /* 在小屏幕上變成單列 */
-    min-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+/* 等比例縮放 */
+html {
+  font-size: 100%;
+}
+
+body {
+  transform: scale(1);
+  transform-origin: top left;
+}
+
+@media (max-width: 1200px) {
+  body {
+    transform: scale(0.9);
+  }
+}
+
+@media (max-width: 992px) {
+  body {
+    transform: scale(0.8);
   }
 }
 
@@ -57,12 +116,8 @@
   }
 }
 
-.top-left-controls button {
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-right: 10px;
+@media (max-width: 576px) {
+  body {
+    transform: scale(0.6);
+  }
 }
