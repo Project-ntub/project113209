@@ -26,11 +26,11 @@
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">個人資訊</span>
         </router-link>
 
-        <!-- 帳號設定 -->
+        <!-- 帳號設定
         <router-link to="/frontend/accountsettings" class="sidebar-link">
           <font-awesome-icon icon="cogs" class="icon" />
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">帳號設定</span>
-        </router-link>
+        </router-link> -->
 
         <!-- 登出 -->
         <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
