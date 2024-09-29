@@ -4,8 +4,6 @@
     <table class="preferences-table">
       <thead>
         <tr>
-          <th>編號</th>
-          <th>用戶</th>
           <th>字體大小</th>
           <th>通知</th>
           <th>自動登入</th>
@@ -15,8 +13,6 @@
       </thead>
       <tbody>
         <tr v-for="preference in preferences" :key="preference.id">
-          <td>{{ preference.id }}</td>
-          <td>{{ preference.user_id }}</td>
           <td>
             <!-- 字體大小選擇 -->
             <select v-model="preference.fontsize">
