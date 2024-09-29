@@ -14,17 +14,14 @@
         <button @click="showDashboard('inventory')">庫存量</button>
       </div>
 
-      <div class="dashboard">
+      <div class="chart-container">
         <div v-for="chart in filteredCharts" :key="chart.chartId" class="chart-wrapper">
-          <!-- 將每個圖表包裝在 ChartContainer 中 -->
-          <ChartContainer :chartConfig="chart">
-            <PlotlyChart :chartConfig="chart" />
-          </ChartContainer>
+          <PlotlyChart :chartConfig="chart" />
         </div>
       </div>
     </div>
 
-    <!-- 新增圖表窗口  -->
+    <!-- 新增圖表窗口 -->
     <Modal 
       v-if="showChartModal" 
       :isEditing="isEditing" 
@@ -40,24 +37,22 @@
 <script>
 import axios from 'axios';
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
-import PlotlyChart from '@/components/backend/PlotlyChart.vue';
-import ChartContainer from '@/Charts/ChartContainer.vue';
+import PlotlyChart from '@/Charts/PlotlyChart.vue';
 import Modal from '@/components/backend/ChartModal.vue';
-import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; // 預覽角色介面視窗
+import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
 
 export default {
   name: 'DashboardManager',
   components: {
     TopNavbar,
     PlotlyChart,
-    ChartContainer,
     Modal,
     UserInterfacePreviewModal,
   },
   data() {
     return {
       charts: [],
-      filteredCharts: [], // 用來存放篩選後的圖表
+      filteredCharts: [],
       showChartModal: false,
       showPreviewModal: false,
       isEditing: false,
@@ -91,7 +86,7 @@ export default {
             height: 400,
             xAxisLabel: '店鋪名稱',
             yAxisLabel: '營業額',
-            data: revenueData
+            data: revenueData,
           });
         })
         .catch(error => {
@@ -110,7 +105,7 @@ export default {
             height: 400,
             xAxisLabel: '日期',
             yAxisLabel: '銷售額',
-            data: salesData
+            data: salesData,
           });
         })
         .catch(error => {
@@ -129,7 +124,7 @@ export default {
             height: 400,
             xAxisLabel: '商品名稱',
             yAxisLabel: '數量',
-            data: stockData
+            data: stockData,
           });
         })
         .catch(error => {
@@ -155,8 +150,8 @@ export default {
       } else if (type === 'inventory') {
         this.filteredCharts = this.charts.filter(chart => chart.name.includes('Inventory'));
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

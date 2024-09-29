@@ -4,6 +4,7 @@ from . import views as backend_views
 from . import api_views
 from .views import BranchListAPIView, SavePermissionsAPIView, record_login_history
 from .views import logout_view
+from .api_views import get_revenue_data, get_sales_data, get_stock_data
 app_name = 'backend'
 
 
@@ -22,5 +23,8 @@ urlpatterns = [
     path('branches/', BranchListAPIView.as_view(), name='branch-list'),  # 正確的分店路由
     path('save-permissions/', SavePermissionsAPIView.as_view(), name='save-permissions'),
     path('logout/', logout_view, name='logout'),  # 登出的 URL
+    path('dashboard/revenue/', api_views.get_revenue_data, name='get_revenue_data'),
+    path('dashboard/sales/', api_views.get_sales_data, name='get_sales_data'),
+    path('dashboard/stock/', api_views.get_stock_data, name='get_stock_data'),
 ]
 

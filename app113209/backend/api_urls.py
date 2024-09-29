@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from . import api_views
-
+# from .api_views import get_revenue_data, get_sales_data, get_stock_data
 router = DefaultRouter()
 router.register(r'users', api_views.UserViewSet)
 router.register(r'modules', api_views.ModuleViewSet)
@@ -55,12 +55,12 @@ urlpatterns = [
     path('update-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'update_chart'}), name='update_chart'),
     
     # 圖表數據（更正名稱以避免衝突）
-    path('sales-chart-data/', api_views.SalesDataAPIView.as_view(), name='sales-chart-data'),
-    path('revenue-chart-data/', api_views.RevenueDataAPIView.as_view(), name='revenue-chart-data'),
-    path('inventory-chart-data/', api_views.InventoryDataAPIView.as_view(), name='inventory-chart-data'),
-    path('sales-volume-chart-data/', api_views.SalesVolumeChartDataAPIView.as_view(), name='sales-volume-chart-data'),
-    path('store-comparison-chart-data/', api_views.StoreComparisonChartDataAPIView.as_view(), name='store-comparison-chart-data'),
-    path('product-sales-pie-chart-data/', api_views.ProductSalesPieChartAPIView.as_view(), name='product-sales-pie-chart-data'),
+    # path('sales-chart-data/', api_views.SalesDataAPIView.as_view(), name='sales-chart-data'),
+    # path('revenue-chart-data/', api_views.RevenueDataAPIView.as_view(), name='revenue-chart-data'),
+    # path('inventory-chart-data/', api_views.InventoryDataAPIView.as_view(), name='inventory-chart-data'),
+    # path('sales-volume-chart-data/', api_views.SalesVolumeChartDataAPIView.as_view(), name='sales-volume-chart-data'),
+    # path('store-comparison-chart-data/', api_views.StoreComparisonChartDataAPIView.as_view(), name='store-comparison-chart-data'),
+    # path('product-sales-pie-chart-data/', api_views.ProductSalesPieChartAPIView.as_view(), name='product-sales-pie-chart-data'),
 
 
     # 數據端點

@@ -1,10 +1,9 @@
-/* src\assets\css\backend\Dashboard.css */
 .dashboard-page {
   display: flex;
   flex-direction: column;
   height: 100vh; /* 100% 視窗高度 */
   width: 100%;
-  overflow-y: auto; /* 啟用垂直滾動 */
+  overflow-y: auto; /* 垂直滾動 */
 }
 
 .dashboard-container {
@@ -16,7 +15,7 @@
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  box-sizing: border-box; /* 確保邊距和填充不會影響寬度 */
+  box-sizing: border-box;
   overflow-y: auto;
 }
 
@@ -26,65 +25,6 @@
   margin-bottom: 20px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.selection-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.module-selection,
-.role-selection {
-  flex: 1 1 45%;
-  max-width: 45%;
-  min-width: 220px; /* 增加最小寬度以避免過度壓縮 */
-}
-
-.chart-selection {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.chart-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.chart-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.chart-selection button,
-.chart-actions button {
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.chart-button {
-  background-color: #28a745; /* 綠色背景 */
-  margin: 5px; /* 每個按鈕之間的距離 */
-  flex: 1;
-}
-
 .chart-container {
   display: flex;
   flex-wrap: wrap;
@@ -92,93 +32,37 @@
 }
 
 .chart-wrapper {
-  flex: 1 1 300px;
-  min-width: 300px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  position: relative; /* 確保縮放操作能夠正常工作 */
+  flex: 1 1 48%; /* 左右排列，每行 2 個 */
+  min-width: 400px;
+  height: 300px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  position: relative;
 }
 
 /* 響應式設計 */
 @media (max-width: 1024px) {
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .selection-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .module-selection,
-  .role-selection {
-    max-width: 100%;
-    min-width: 220px; /* 保持適當的最小寬度 */
-  }
-}
-
-@media (max-width: 768px) {
-  .header {
-    align-items: flex-start;
-  }
-
-  .chart-selection,
-  .chart-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .chart-selection button,
-  .chart-actions button {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .chart-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .chart-wrapper {
+    flex: 1 1 100%; /* 在小屏幕上變成單列 */
     min-width: 100%;
-    margin-bottom: 20px;
-  }
-}
-
-/* 等比例縮放 */
-html {
-  font-size: 100%;
-}
-
-body {
-  transform: scale(1);
-  transform-origin: top left;
-}
-
-@media (max-width: 1200px) {
-  body {
-    transform: scale(0.9);
-  }
-}
-
-@media (max-width: 992px) {
-  body {
-    transform: scale(0.8);
   }
 }
 
 @media (max-width: 768px) {
-  body {
-    transform: scale(0.7);
+  .chart-wrapper {
+    flex: 1 1 100%;
+    min-width: 100%;
   }
 }
 
-@media (max-width: 576px) {
-  body {
-    transform: scale(0.6);
-  }
+.top-left-controls button {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-right: 10px;
 }
