@@ -170,6 +170,7 @@ class Chart(models.Model):
 
 class ChartConfiguration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, blank=True, null=True)
     chart_type = models.CharField(max_length=50)
     data_source = models.CharField(max_length=100)
     x_axis_field = models.CharField(max_length=100)

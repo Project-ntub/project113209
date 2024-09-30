@@ -1,8 +1,6 @@
 <template>
   <div :class="['home-page', { 'sidebar-open': isSidebarOpen }]">
     <TopNavbar @trigger-export="exportChart" ref="topNavbar" />
-
-    <!-- 分店下拉選單（經理） -->
     <div v-if="userPosition === '經理'" class="branch-selection">
       <label for="branch-select">選擇分店:</label>
       <select id="branch-select" v-model="selectedBranch" @change="onBranchChange">
@@ -11,21 +9,15 @@
         </option>
       </select>
     </div>
-
-    <!-- 店長專用顯示當前分店 -->
     <div v-else-if="userPosition === '店長'" class="branch-info">
       <p>當前分店: {{ branches[0]?.branch_name }}</p>
     </div>
-
-    <!-- 按鈕控制區域，根據權限顯示按鈕 -->
     <div v-if="permissions.length > 0" class="chart-controls">
       <button v-if="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" @click="setCurrentChart('RevenueChart')">營業額</button>
       <button v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" @click="setCurrentChart('SalesCharts')">銷售額</button>
       <button v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" @click="setCurrentChart('InventoryChart')">庫存量</button>
       <button @click="setCurrentChart('all')">顯示所有圖表</button>
     </div>
-
-    <!-- 圖表區域 -->
     <div class="chart-grid">
       <ChartContainer v-if="currentChart === 'all' || currentChart === 'RevenueChart'" :chartConfig="getChartConfig('RevenueChart')" :is-Frontend="true">
         <PlotlyChart :chartConfig="getChartConfig('RevenueChart')" />
@@ -86,16 +78,25 @@ export default {
         console.error('Error fetching branches:', error);
       }
     },
-    async fetchPermissions() {
-      try {
-        const response = await axios.get('/api/backend/permissions/');
-        this.permissions = response.data;
-      } catch (error) {
-        console.error('Error fetching permissions:', error);
-      }
+    fetchPermissions() {
+      axios.get('/api/backend/permissions/')
+        .then(response => {
+          this.permissions = response.data.filter(perm => perm.can_view === 1);
+        })
+        .catch(error => {
+          console.error('無法獲取權限:', error);
+        });
     },
     setCurrentChart(chart) {
-      this.currentChart = chart;
+      const allowedCharts = this.permissions.map(perm => perm.permission_name);
+
+      if (chart === 'all') {
+        this.currentChart = 'all';
+      } else if (allowedCharts.includes(chart)) {
+        this.currentChart = chart;
+      } else {
+        alert('您沒有檢視此圖表的權限');
+      }
     },
     getChartConfig(chartName) {
       const chartConfigs = {

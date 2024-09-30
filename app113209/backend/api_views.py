@@ -183,13 +183,12 @@ class UserPermissionViewSet(viewsets.ModelViewSet):
         permissions = RolePermission.objects.filter(
             role__roleuser__user=user,
             is_deleted=False
-        ).values('permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete')
+        ).values('permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete', 'can_export')
 
         return Response(list(permissions))
 
 
 # 待審核
-
 class PendingUserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
@@ -501,6 +500,7 @@ class RoleDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 # 保留 generics 視圖來處理更多CRUD操作：
 class RoleListCreateView(generics.ListCreateAPIView):
     queryset = Role.objects.all()
@@ -609,18 +609,22 @@ def get_table_fields(request, table_name):
 
 # 動態生成圖表
 def create_chart(chart_type, x_data, y_data):
-    if chart_type == 'line':
-        fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
-    elif chart_type == 'bar':
-        fig = go.Figure(data=[go.Bar(x=x_data, y=y_data)])
-    elif chart_type == 'pie':
-        fig = go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
-    elif chart_type == 'scatter':
-        fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
-    else:
-        fig = go.Figure()  # 返回空白圖表，避免崩潰
-
-    return fig
+    try:
+        if chart_type == 'line':
+            fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
+        elif chart_type == 'bar':
+            fig = go.Figure(data=[go.Bar(x=x_data, y=y_data)])
+        elif chart_type == 'pie':
+            fig = go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+        elif chart_type == 'scatter':
+            fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
+        else:
+            raise ValueError(f"Unsupported chart type: {chart_type}")
+        
+        return fig
+    except Exception as e:
+        logger.error(f"An error occurred while creating the chart: {e}")
+        return go.Figure()  # 返回空白圖表
 
 
 # API：生成互動圖表（返回JSON格式）
@@ -629,24 +633,38 @@ class ChartDataAPIView(APIView):
 
     def post(self, request):
         chart_config = request.data
-        chart_type = chart_config.get('chart_type')
-        x_data = chart_config.get('x_data')
-        y_data = chart_config.get('y_data')
+        x_field = chart_config.get('x_field')
+        y_field = chart_config.get('y_field')
+        filter_conditions = chart_config.get('filter_conditions')
 
-        # 確保 x_data 和 y_data 不為空
-        if not x_data or not y_data:
+        # 這裡加上log來確保API收到請求
+        print(f"X Field: {x_field}, Y Field: {y_field}, Filters: {filter_conditions}")
+
+        # 檢查是否有正確的 x_data 和 y_data
+        if not x_field or not y_field:
             return JsonResponse({'error': 'x_data 和 y_data 不能為空'}, status=400)
 
-        fig = create_chart(chart_type, x_data, y_data)
+        # 模擬數據處理
+        x_data = get_x_data(x_field)  # 從資料庫或模型中獲取x_data
+        y_data = get_y_data(y_field)  # 從資料庫或模型中獲取y_data
 
-        # 確保生成圖表正確並轉換為 JSON
-        chart_json = fig.to_json()
+        return JsonResponse({'x_data': x_data, 'y_data': y_data})
 
-        # 記錄生成圖表的操作
-        record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
+
+
+@api_view(['GET'])
+def get_table_fields(request, table_name):
+    try:
+        model = globals().get(table_name)
+        if not model:
+            return JsonResponse({'error': '資料表不存在'}, status=400)
         
-        # 返回分析後的數據
-        return JsonResponse(chart_json, safe=False)
+        fields = [field.name for field in model._meta.fields]
+        return JsonResponse(fields, safe=False)
+    except Exception as e:
+        logger.error(f"Error retrieving table fields: {e}")
+        return JsonResponse({'error': '無法獲取欄位'}, status=500)
+
     
 # API：生成圖表並保存為圖片
 
@@ -680,16 +698,39 @@ def save_chart_configuration(request):
     )
     return Response({"message": "圖表配置已儲存"}, status=201)
 
-# API：根據圖表配置獲取數據
-# @api_view(['GET'])
-# def get_chart_data(request, chart_id):
-#     try:
-#         config = get_object_or_404(ChartConfiguration, id=chart_id)
-#         data = fetch_data_from_source(config.data_source, config.filter_conditions)
-#         return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
-#     except Exception as e:
-#         logger.error(f"Error fetching chart data: {e}")
-#         return JsonResponse({'error': 'Failed to fetch chart data'}, status=500)
+@api_view(['GET'])
+def get_chart_data(request, table_name):
+    x_field = request.GET.get('x_field')
+    y_field = request.GET.get('y_field')
+    filter_conditions = request.GET.get('filter_conditions')
+
+    # 將 filter_conditions 從 JSON 字符串轉換為字典
+    try:
+        filter_conditions = json.loads(filter_conditions) if filter_conditions else {}
+    except json.JSONDecodeError:
+        return JsonResponse({'error': '過濾條件格式無效'}, status=400)
+
+    # 查找對應的資料模型
+    model = globals().get(table_name)
+    if not model:
+        return JsonResponse({'error': '資料表不存在'}, status=400)
+
+    try:
+        # 構建查詢語句，根據 x_field 和 y_field 進行數據聚合
+        queryset = model.objects.all()
+
+        # 應用過濾條件
+        if filter_conditions:
+            queryset = queryset.filter(**filter_conditions)
+
+        # 提取 x_field 和 y_field 的數據
+        x_data = queryset.values_list(x_field, flat=True)
+        y_data = queryset.values_list(y_field, flat=True)
+
+        return JsonResponse({'x_data': list(x_data), 'y_data': list(y_data)})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 # API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
@@ -699,11 +740,14 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def create_chart_action(self, request):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()  # 複製請求數據
+        data['user'] = request.user.id  # 手動設置 user 為當前登錄用戶
+
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        logger.error(f"Chart creation failed: {serializer.errors}")  # 記錄錯誤
+        logger.error(f"Chart creation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
