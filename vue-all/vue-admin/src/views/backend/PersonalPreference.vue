@@ -111,7 +111,7 @@ export default {
 
 <style scoped>
 .personal-preference-container {
-  max-width: 900px;
+  max-width: 1000px; /* 增加最大寬度 */
   margin: 0 auto;
   text-align: center;
   padding: 40px;
@@ -122,21 +122,22 @@ export default {
 
 h1 {
   color: #333;
-  font-size: 32px;
+  font-size: 36px; /* 增加字體大小 */
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 30px; /* 增加 margin */
 }
 
 .preferences-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 .preferences-table th, .preferences-table td {
-  padding: 15px;
+  padding: 20px; /* 增加內部邊距 */
   border: 1px solid #ddd;
   text-align: center;
+  font-size: 16px; /* 增加字體大小 */
 }
 
 .preferences-table th {
@@ -154,15 +155,16 @@ h1 {
 }
 
 select {
-  padding: 5px;
+  padding: 10px; /* 增加 padding */
   border-radius: 5px;
   border: 1px solid #ccc;
+  font-size: 14px; /* 增加字體大小 */
 }
 
 .save-btn {
   background-color: #ff4500;
   color: white;
-  padding: 10px 20px;
+  padding: 12px 24px; /* 增加 padding */
   border: none;
   border-radius: 5px;
   cursor: pointer;

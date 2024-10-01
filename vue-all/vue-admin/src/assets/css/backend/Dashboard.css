@@ -4,6 +4,8 @@
   height: 100vh; /* 100% 視窗高度 */
   width: 100%;
   overflow-y: auto; /* 啟用垂直滾動 */
+  padding: 20px;
+  padding-bottom: 50px; /* 增加下方的空白範圍 */
 }
 
 .dashboard-container {
@@ -11,25 +13,19 @@
   flex-direction: column;
   flex-grow: 1;
   margin: 0;
-  padding: 10px; /* 調整容器的填充 */
+  padding: 20px; /* 調整容器的填充 */
+  padding-bottom: 50px; /* 增加下方空白範圍 */
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   box-sizing: border-box; /* 確保邊距和填充不會影響寬度 */
-  overflow-y: auto;
-  width: 100%; /* 確保容器佔滿可用寬度 */
 }
 
 .top-left-controls {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin-bottom: 10px; /* 調整下邊距 */
-}
-
-.short-select {
-  width: 100px; /* 繼續縮短下拉選單寬度 */
-  margin-right: 10px; /* 添加右邊距 */
+  margin-bottom: 15px; /* 增加下邊距 */
 }
 
 .button-group {
@@ -40,12 +36,12 @@
 }
 
 button {
-  padding: 12px 24px; /* 增大按鈕大小 */
-  font-size: 16px; /* 調整按鈕字體大小 */
+  padding: 10px 20px; /* 增大按鈕大小 */
+  font-size: 14px; /* 調整按鈕字體大小 */
   background-color: #007BFF;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -62,7 +58,7 @@ select {
 }
 
 /* 圖表容器 flexbox 佈局 */
-.dashboard {
+.charts {
   display: flex;
   flex-wrap: wrap;
   gap: 15px; /* 調整圖表之間的間距 */
@@ -70,53 +66,20 @@ select {
 }
 
 .chart-wrapper {
-  flex: 1 1 calc(45% - 15px); /* 調整為更小的佔比和間距 */
-  min-width: 250px; /* 調整圖表最小寬度 */
+  flex: 1 1 calc(50% - 20px); /* 調整為每行兩個圖表，並增加間距 */
+  min-width: 300px; /* 調整最小寬度 */
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 10px; /* 調整圖表內邊距 */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
+  box-sizing: border-box;
 }
 
 /* 響應式設計：小屏幕切換為單列顯示 */
 @media (max-width: 768px) {
   .chart-wrapper {
-    flex: 1 1 100%;
-  }
-}
-
-/* 等比例縮放 */
-html {
-  font-size: 100%;
-}
-
-body {
-  transform: scale(1);
-  transform-origin: top left;
-}
-
-@media (max-width: 1200px) {
-  body {
-    transform: scale(0.9);
-  }
-}
-
-@media (max-width: 992px) {
-  body {
-    transform: scale(0.8);
-  }
-}
-
-@media (max-width: 768px) {
-  body {
-    transform: scale(0.7);
-  }
-}
-
-@media (max-width: 576px) {
-  body {
-    transform: scale(0.6);
+    flex: 1 1 100%; /* 手機時每行一個 */
   }
 }

@@ -256,7 +256,7 @@ export default {
   overflow-y: auto; /* 只讓外部容器滾動 */
   padding: 20px;
   margin-top: 100px; /* 增加 margin-top 讓內容下移 */
-
+  padding-bottom: 50px; /* 增加下方的空白，讓介面有更多空間 */
 }
 
 .profile-card {
@@ -267,7 +267,7 @@ export default {
   width: 800px;
   max-height: none; /* 避免內部元素也滾動 */
   overflow: visible; /* 禁止內部滾動行為 */
-  margin-bottom: 50px;
+  margin-bottom: 75px; /* 增加下方空白 */
 }
 
 .form-group {
@@ -365,4 +365,5 @@ export default {
   text-align: center;
   margin-top: 15px;
 }
+
 </style>
