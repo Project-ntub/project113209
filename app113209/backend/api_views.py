@@ -183,13 +183,12 @@ class UserPermissionViewSet(viewsets.ModelViewSet):
         permissions = RolePermission.objects.filter(
             role__roleuser__user=user,
             is_deleted=False
-        ).values('permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete')
+        ).values('permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete', 'can_export')
 
         return Response(list(permissions))
 
 
 # 待審核
-
 class PendingUserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(is_active=False, is_approved=False)
     serializer_class = UserSerializer
@@ -501,6 +500,7 @@ class RoleDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 # 保留 generics 視圖來處理更多CRUD操作：
 class RoleListCreateView(generics.ListCreateAPIView):
     queryset = Role.objects.all()
@@ -607,20 +607,44 @@ def get_table_fields(request, table_name):
     
     return Response(fields)
 
+@api_view(['POST'])
+def dynamic_chart_data(request):
+    table_name = request.data.get('table_name')
+    x_field = request.data.get('x_field')
+    y_field = request.data.get('y_field')
+    print(f"Received table_name: {table_name}, x_field: {x_field}, y_field: {y_field}")
+
+    model = globals().get(table_name)
+    if not model:
+        return JsonResponse({'error': '資料表不存在'}, status=400)
+    
+    # 從資料庫中提取 x_field 和 y_field 的數據
+    try:
+        queryset = model.objects.values_list(x_field, y_field)
+        x_data = [item[0] for item in queryset]
+        y_data = [item[1] for item in queryset]  # 修正這裡的索引
+        return JsonResponse({'x_data': x_data, 'y_data': y_data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
 # 動態生成圖表
 def create_chart(chart_type, x_data, y_data):
-    if chart_type == 'line':
-        fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
-    elif chart_type == 'bar':
-        fig = go.Figure(data=[go.Bar(x=x_data, y=y_data)])
-    elif chart_type == 'pie':
-        fig = go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
-    elif chart_type == 'scatter':
-        fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
-    else:
-        fig = go.Figure()  # 返回空白圖表，避免崩潰
-
-    return fig
+    try:
+        if chart_type == 'line':
+            fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='lines')])
+        elif chart_type == 'bar':
+            fig = go.Figure(data=[go.Bar(x=x_data, y=y_data)])
+        elif chart_type == 'pie':
+            fig = go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
+        elif chart_type == 'scatter':
+            fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
+        else:
+            raise ValueError(f"Unsupported chart type: {chart_type}")
+        
+        return fig
+    except Exception as e:
+        logger.error(f"An error occurred while creating the chart: {e}")
+        return go.Figure()  # 返回空白圖表
 
 
 # API：生成互動圖表（返回JSON格式）
@@ -629,24 +653,38 @@ class ChartDataAPIView(APIView):
 
     def post(self, request):
         chart_config = request.data
-        chart_type = chart_config.get('chart_type')
-        x_data = chart_config.get('x_data')
-        y_data = chart_config.get('y_data')
+        x_field = chart_config.get('x_field')
+        y_field = chart_config.get('y_field')
+        filter_conditions = chart_config.get('filter_conditions')
 
-        # 確保 x_data 和 y_data 不為空
-        if not x_data or not y_data:
+        # 這裡加上log來確保API收到請求
+        print(f"X Field: {x_field}, Y Field: {y_field}, Filters: {filter_conditions}")
+
+        # 檢查是否有正確的 x_data 和 y_data
+        if not x_field or not y_field:
             return JsonResponse({'error': 'x_data 和 y_data 不能為空'}, status=400)
 
-        fig = create_chart(chart_type, x_data, y_data)
+        # 模擬數據處理
+        x_data = get_x_data(x_field)  # 從資料庫或模型中獲取x_data
+        y_data = get_y_data(y_field)  # 從資料庫或模型中獲取y_data
 
-        # 確保生成圖表正確並轉換為 JSON
-        chart_json = fig.to_json()
+        return JsonResponse({'x_data': x_data, 'y_data': y_data})
 
-        # 記錄生成圖表的操作
-        record_history(request.user, f"用戶 {request.user.username} 生成了一個 {chart_type} 圖表")
+
+
+@api_view(['GET'])
+def get_table_fields(request, table_name):
+    try:
+        model = globals().get(table_name)
+        if not model:
+            return JsonResponse({'error': '資料表不存在'}, status=400)
         
-        # 返回分析後的數據
-        return JsonResponse(chart_json, safe=False)
+        fields = [field.name for field in model._meta.fields]
+        return JsonResponse(fields, safe=False)
+    except Exception as e:
+        logger.error(f"Error retrieving table fields: {e}")
+        return JsonResponse({'error': '無法獲取欄位'}, status=500)
+
     
 # API：生成圖表並保存為圖片
 
@@ -670,26 +708,53 @@ def save_chart_configuration(request):
     user = request.user
     config_data = request.data
 
-    ChartConfiguration.objects.create(
+    chart_config = ChartConfiguration.objects.create(
         user=user,
         chart_type=config_data['chart_type'],
         data_source=config_data['data_source'],
         x_axis_field=config_data['x_axis_field'],
         y_axis_field=config_data['y_axis_field'],
-        filter_conditions=config_data['filter_conditions']
+        filter_conditions=config_data.get('filter_conditions', '{}')
     )
-    return Response({"message": "圖表配置已儲存"}, status=201)
+    return JsonResponse({'message': '圖表已儲存', 'id': chart_config.id}, status=201)
 
-# API：根據圖表配置獲取數據
-# @api_view(['GET'])
-# def get_chart_data(request, chart_id):
-#     try:
-#         config = get_object_or_404(ChartConfiguration, id=chart_id)
-#         data = fetch_data_from_source(config.data_source, config.filter_conditions)
-#         return JsonResponse({'x': data[config.x_axis_field], 'y': data[config.y_axis_field]})
-#     except Exception as e:
-#         logger.error(f"Error fetching chart data: {e}")
-#         return JsonResponse({'error': 'Failed to fetch chart data'}, status=500)
+@api_view(['GET'])
+def get_chart_configuration(request):
+    configs = ChartConfiguration.objects.filter(is_deleted=False)
+    data = []
+    for config in configs:
+        data.append({
+            "id": config.id,
+            "name": config.name,
+            "chart_type": config.chart_type,
+            "x_axis_field": config.x_axis_field,
+            "y_axis_field": config.y_axis_field,
+            "data_source": config.data_source
+        })
+    return JsonResponse(data, safe=False)
+
+@api_view(['GET'])
+def get_chart_data(request, table_name):
+    x_field = request.GET.get('x_field')
+    y_field = request.GET.get('y_field')
+
+    # 確保資料表存在
+    model = globals().get(table_name)
+    if not model:
+        return JsonResponse({'error': '資料表不存在'}, status=400)
+
+    try:
+        queryset = model.objects.all()
+
+        # 提取 x_field 和 y_field 的數據
+        x_data = queryset.values_list(x_field, flat=True)
+        y_data = queryset.values_list(y_field, flat=True)
+
+        return JsonResponse({'x_data': list(x_data), 'y_data': list(y_data)})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 
 # API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
@@ -699,11 +764,14 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def create_chart_action(self, request):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data.copy()  # 複製請求數據
+        data['user'] = request.user.id  # 手動設置 user 為當前登錄用戶
+
+        serializer = self.get_serializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        logger.error(f"Chart creation failed: {serializer.errors}")  # 記錄錯誤
+        logger.error(f"Chart creation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
@@ -718,11 +786,14 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def delete_chart(self, request, pk=None):
-        chart_config = get_object_or_404(ChartConfiguration, pk=pk)
-        chart_config.is_deleted = True
-        chart_config.save()
-        record_history(request.user, f"用戶 {request.user.username} 隱藏了圖表 {chart_config.chart_type}")
-        return Response({"message": "圖表已被隱藏"}, status=200)
+        try:
+            chart_config = get_object_or_404(ChartConfiguration, pk=pk)
+            chart_config.is_deleted = True  # 標記為已刪除
+            chart_config.save()
+            return Response({"message": "圖表已被刪除"}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
 
     # 恢復隱藏的圖表
     # @action(detail=True, methods=['post'])
@@ -742,57 +813,68 @@ class SalesDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 從資料庫中取得銷售數據
-        sales_data = TEST_Sales.objects.all()
-        serializer = SalesDataSerializer(sales_data, many=True)
-        return Response(serializer.data)
+        try:
+            sales_data = TEST_Sales.objects.values('sale_date').annotate(total_sales=Sum('quantity'))
+            return JsonResponse(list(sales_data), safe=False)
+        except Exception as e:
+            logger.error(f"Error fetching sales chart data: {e}")
+            return JsonResponse({'error': 'Failed to fetch sales data'}, status=500)
 
 # 營業額數據 API
 class RevenueDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 從資料庫中取得營業額數據
-        revenue_data = TEST_Revenue.objects.all()
-        serializer = RevenueDataSerializer(revenue_data, many=True)
-        return Response(serializer.data)
+        try:
+            # 從資料庫中取得營業額數據
+            revenue_data = TEST_Revenue.objects.all()
+            serializer = RevenueDataSerializer(revenue_data, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error fetching revenue data: {e}")
+            return JsonResponse({'error': 'Failed to fetch revenue data'}, status=500)
 
 # 庫存數據 API
 class InventoryDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 從資料庫中取得庫存數據
-        inventory_data = TEST_Inventory.objects.all()
-        serializer = InventoryDataSerializer(inventory_data, many=True)
-        return Response(serializer.data)
+        try:
+            inventory_data = TEST_Inventory.objects.values('branch_id').annotate(total_stock=Sum('stock_quantity'))
+            return JsonResponse(list(inventory_data), safe=False)
+        except Exception as e:
+            logger.error(f"Error fetching inventory chart data: {e}")
+            return JsonResponse({'error': 'Failed to fetch inventory data'}, status=500)
 
 # 銷售量趨勢圖 API
 class SalesVolumeChartDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get (self, request):
-        # 從資料庫中獲取數據，進行分析
-        sales_data = TEST_Sales.objects.values('sale_date').annotate(total_quantity=Sum('quantity'))
-        # 這裡根據實際的需求進行篩選和處理
-        # 假設需要返回的數據為日期和銷售量
-        data = list(sales_data)
-        return JsonResponse(data, safe=False)
-    
+    def get(self, request):
+        try:
+            sales_data = TEST_Sales.objects.values('sale_date').annotate(total_quantity=Sum('quantity'))
+            data = list(sales_data)
+            return JsonResponse(data, safe=False)
+        except Exception as e:
+            logger.error(f"Error fetching sales volume chart data: {e}")
+            return JsonResponse({'error': 'Failed to fetch sales volume data'}, status=500)
+
+# 產品銷售圓餅圖 API
 class ProductSalesPieChartAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 使用 product__category 來取得相關聯的 product 資訊
-        product_sales = TEST_Sales.objects.values('product__category').annotate(total_sales=Sum('quantity'))
+        try:
+            product_sales = TEST_Sales.objects.values('product_id__category').annotate(total_sales=Sum('quantity'))
+            data = {
+                'categories': [item['product_id__category'] for item in product_sales],
+                'sales': [item['total_sales'] for item in product_sales]
+            }
+            return JsonResponse(data, safe=False)
+        except Exception as e:
+            logger.error(f"Error fetching product sales pie chart data: {e}")
+            return JsonResponse({'error': 'Failed to fetch product sales data'}, status=500)
 
-        # 準備圓餅圖所需的數據
-        data = {
-            'categories': [item['product__category'] for item in product_sales],
-            'sales': [item['total_sales'] for item in product_sales]
-        }
-
-        return JsonResponse(data, safe=False)
 
 # 新增這個函數來生成店鋪的分布數據
 # def get_store_distribution():
@@ -821,7 +903,8 @@ class StoreComparisonChartDataAPIView(APIView):
 
     def get(self, request):
         # 從資料庫中獲取各個店鋪的收益數據
-        revenue_data = TEST_Revenue.objects.values('store__store_name').annotate(total_revenue=Sum('total_revenue'))
+# 調整欄位名稱以符合你的資料表結構
+        revenue_data = TEST_Revenue.objects.values('store_id').annotate(total_revenue=Sum('total_revenue'))
         data = list(revenue_data)
         return JsonResponse(data, safe=False)
     

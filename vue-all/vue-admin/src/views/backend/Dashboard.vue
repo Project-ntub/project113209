@@ -46,6 +46,7 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/Charts/PlotlyChart.vue';
 import Modal from '@/components/backend/ChartModal.vue';
 import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; 
+import axios from 'axios';
 
 export default {
   name: 'DashboardManager',
@@ -83,10 +84,14 @@ export default {
       showPreviewModal: false,
       isEditing: false,
       selectedChartId: null,
+      permissions: [] // 確保權限初始為空
     };
   },
-  mounted() {
-    this.filteredCharts = this.charts; // 預設顯示所有圖表
+  async mounted() {
+    await this.fetchPermissions(); // 確保權限加載完畢後執行篩選
+    this.filteredCharts = this.charts.filter(chart => 
+      this.permissions.some(perm => perm.permission_name === chart.name && perm.can_view === 1)
+    );
   },
   methods: {
     openChartModal(editing, chartId = null) {
@@ -103,15 +108,26 @@ export default {
     closePreviewModal() {
       this.showPreviewModal = false;
     },
+    async fetchPermissions() {
+      try {
+        const response = await axios.get('/api/backend/permissions/');
+        this.permissions = response.data.filter(perm => perm.can_view === 1); // 加載權限並過濾可查看的圖表
+      } catch (error) {
+        console.error('無法獲取權限:', error);
+      }
+    },
     showDashboard(type) {
+      // 提取當前用戶具有檢視權限的圖表名稱
+      const visibleCharts = this.permissions.map(perm => perm.permission_name);
+
       if (type === 'all') {
-        this.filteredCharts = this.charts;
-      } else if (type === 'sales') {
-        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Sales'));
-      } else if (type === 'revenue') {
-        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Revenue'));
-      } else if (type === 'inventory') {
-        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Inventory'));
+        // 當選擇「所有圖表」時，只顯示具有檢視權限的圖表
+        this.filteredCharts = this.charts.filter(chart => visibleCharts.includes(chart.name));
+      } else {
+        // 根據選中的類型進行篩選，同時確保用戶有檢視權限
+        this.filteredCharts = this.charts.filter(chart => 
+          chart.name.includes(type) && visibleCharts.includes(chart.name)
+        );
       }
     },
   },

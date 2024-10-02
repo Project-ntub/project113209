@@ -58,6 +58,7 @@
         </div>
       </div>
       <div class="chart-modal-footer">
+        <button class="btn-preview" @click="previewChart">預覽圖表</button>
         <button class="btn-save" @click="saveChart">{{ isEditing ? '保存變更' : '新增圖表' }}</button>
         <button class="btn-cancel" @click="closeModal">取消</button>
       </div>
@@ -135,44 +136,84 @@ export default {
       }
     },
     saveChart() {
+      // 確保 filterConditions 是 JSON 格式的字典
+      let filterConditions = {};
+      try {
+        filterConditions = JSON.parse(this.chartData.filterConditions);
+      } catch (error) {
+        alert("過濾條件格式無效，請輸入正確的 JSON 格式。");
+        return;
+      }
+
+      // 根據用戶選擇的資料來源和欄位來生成 x_data 和 y_data
+      axios.get(`/api/backend/chart-data/${this.chartData.dataSource}/`, {
+        params: {
+          x_field: this.chartData.xAxisField,
+          y_field: this.chartData.yAxisField,
+          filter_conditions: JSON.stringify(filterConditions)
+        }
+      }).then(response => {
+        const { x_data, y_data } = response.data;
+
+        if (x_data && y_data) {
+          let chartConfig = {
+            chart_type: this.chartData.style,
+            name: this.chartData.name || 'Unnamed Chart',
+            data_source: this.chartData.dataSource,
+            x_axis_field: this.chartData.xAxisField,
+            y_axis_field: this.chartData.yAxisField,
+            x_data: x_data,
+            y_data: y_data
+          };
+
+          axios.post('/api/backend/create-chart/', chartConfig)
+            .then(response => {
+              alert('圖表已成功創建！');
+              this.$emit('chart-saved', response.data);
+              this.closeModal();
+            })
+            .catch(error => {
+              const errorMsg = error.response?.data?.error || '發生未知錯誤';
+              alert(`創建圖表失敗: ${errorMsg}`);
+            });
+        } else {
+          alert('x_data 和 y_data 不能為空，請輸入有效數據');
+        }
+      }).catch(error => {
+        console.error('獲取圖表數據時出錯:', error);
+        alert('無法獲取圖表數據，請稍後再試。');
+      });
+    },
+    previewChart() {
       // 檢查 x_data 和 y_data 是否為空
       if (!this.chartData.x_data.length || !this.chartData.y_data.length) {
         alert('x_data 和 y_data 不能為空，請輸入有效數據');
         return;
       }
 
-      const chartConfig = {
-        chart_type: this.chartData.style,
-        name: this.chartData.name,
-        data_source: this.chartData.dataSource,
-        x_axis_field: this.chartData.xAxisField,
-        y_axis_field: this.chartData.yAxisField,
-        filterConditions: JSON.parse(this.chartData.filterConditions || '{}'),
-        x_data: this.chartData.x_data,
-        y_data: this.chartData.y_data
+      const trace = {
+        x: this.chartData.x_data,
+        y: this.chartData.y_data,
+        type: this.chartData.style || 'bar'
       };
 
-      axios.post('/api/backend/create-chart/', chartConfig)
-        .then(response => {
-          const chartData = response.data;
-          const parsedChartData = JSON.parse(chartData);
-          
-          Plotly.newPlot('chart-container', parsedChartData.data, parsedChartData.layout);
-          this.$emit('chart-saved', response.data); 
-          this.closeModal();
-        })
-        .catch(error => {
-          console.error('創建圖表時出錯', error.response.data);
-        });
+      const layout = {
+        title: this.chartData.name || '圖表預覽',
+        xaxis: { title: this.chartData.xAxisField || 'X 軸' },
+        yaxis: { title: this.chartData.yAxisField || 'Y 軸' }
+      };
+
+      Plotly.newPlot('chart-container', [trace], layout);
     },
     closeModal() {
       this.$emit('close');
     }
   },
   watch: {
-    // eslint-disable-next-line no-unused-vars
     'chartData.dataSource': function(newDataSource) {
-      this.fetchTableFields();
+      if (newDataSource) {
+        this.fetchTableFields();  // 動態加載欄位
+      }
     }
   },
   mounted() {
@@ -232,6 +273,7 @@ export default {
 .setting {
   margin-bottom: 15px;
 }
+.btn-preview,
 .btn-save,
 .btn-cancel {
   background-color: #007BFF;

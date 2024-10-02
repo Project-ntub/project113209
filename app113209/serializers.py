@@ -74,36 +74,42 @@ class UserHistorySerializer(serializers.ModelSerializer):
 class ChartConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChartConfiguration
-        fields = ['id', 'name', 'chart_type', 'data_source', 'x_axis_field', 'y_axis_field', 'filter_condtions', 'refresh_interval', 'is_active']
-
+        fields = ['id', 'user', 'name', 'chart_type', 'data_source', 'x_axis_field', 'y_axis_field', 'filter_conditions', 'is_deleted', 'created_at', 'updated_at']
 
     def validate(self, data):
-        # 檢查必填欄位
+        # 確保圖表名稱不為空
         if not data.get('name'):
-            raise serializers.ValidationError({'name': 'This field may not be blank.'})
+            raise serializers.ValidationError({'name': '此欄位不能為空.'})
+        
+        # 確保數據來源不為空
         if not data.get('data_source'):
-            raise serializers.ValidationError({'data_source': 'This field is required.'})
+            raise serializers.ValidationError({'data_source': '此欄位不能為空.'})
+        
+        # 確保 x 軸資料欄位不為空
         if not data.get('x_axis_field'):
-            raise serializers.ValidationError({'x_axis_field': 'This field is required.'})
+            raise serializers.ValidationError({'x_axis_field': 'x 軸資料欄位不能為空.'})
+        
+        # 確保 y 軸資料欄位不為空
         if not data.get('y_axis_field'):
-            raise serializers.ValidationError({'y_axis_field': 'This field is required.'})
-        
+            raise serializers.ValidationError({'y_axis_field': 'y 軸資料欄位不能為空.'})
+
         # 確保過濾條件是字典而不是字符串
-        if isinstance(data.get('filterConditions'), str):
+        if isinstance(data.get('filter_conditions'), str):
             try:
-                data['filterConditions'] = json.loads(data['filterConditions'])
+                data['filter_conditions'] = json.loads(data['filter_conditions'])
             except ValueError:
-                raise serializers.ValidationError({'filterConditions': 'Invalid JSON format'})
-        
+                raise serializers.ValidationError({'filter_conditions': '無效的 JSON 格式'})
+
         return data
+
 
 class UserPreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPreferences
         fields = ['id', 'user_id', 'fontsize', 'notificationSettings', 'authentication']
-        
-# 圖表權限
 
+
+# 圖表權限
 
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:

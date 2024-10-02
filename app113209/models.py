@@ -170,6 +170,7 @@ class Chart(models.Model):
 
 class ChartConfiguration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, blank=True, null=True)
     chart_type = models.CharField(max_length=50)
     data_source = models.CharField(max_length=100)
     x_axis_field = models.CharField(max_length=100)
@@ -249,13 +250,13 @@ class TEST_Stores(models.Model):
 
     def __str__(self):
         return self.store_name
-    
+
+
 class TEST_Products(models.Model):
     product_id = models.AutoField(primary_key=True)
     product_name = models.CharField(max_length=255)
     category = models.CharField(max_length=255, null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -263,38 +264,12 @@ class TEST_Products(models.Model):
 
     def __str__(self):
         return self.product_name
-    
-class TEST_Inventory(models.Model):
-    inventory_id = models.AutoField(primary_key=True)
-    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # 將 store_id 變成外鍵，連結到 TEST_Stores
-    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE)  # 將 product_id 變成外鍵，連結到 TEST_Products
-    stock_quantity = models.IntegerField()
-    last_updated = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        db_table = 'TEST_Inventory'
-    
-    def __str__(self):
-        return f"Inventory ID: {self.inventory_id}, Store: {self.store.store_name}, Product: {self.product.product_name}"
-
-
-class TEST_Revenue(models.Model):
-    revenue_id = models.AutoField(primary_key=True)
-    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # Link to TEST_Stores
-    total_revenue = models.DecimalField(max_digits=15, decimal_places=2)
-    revenue_date = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'TEST_Revenue'
-
-    def __str__(self):
-        return f"Revenue ID: {self.revenue_id}, Store: {self.store.store_name}, Date: {self.revenue_date}"
 
 class TEST_Sales(models.Model):
     sale_id = models.AutoField(primary_key=True)
-    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # 將 store_id 變成外鍵，連結到 TEST_Stores
-    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE)  # 將 product_id 變成外鍵，連結到 TEST_Products
+    branch_id = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE, db_column='branch_id')  # 連結到 TEST_Stores 的 branch_id
+    product_id = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, db_column='product_id')  # 連結到 TEST_Products 的 product_id
     quantity = models.IntegerField()
     sale_price = models.DecimalField(max_digits=10, decimal_places=2)
     sale_date = models.DateField()
@@ -305,7 +280,35 @@ class TEST_Sales(models.Model):
         db_table = 'TEST_Sales'
 
     def __str__(self):
-        return f"Sale ID: {self.sale_id}, Store: {self.store.store_name}, Product: {self.product.product_name}"
+        return f"Sale ID: {self.sale_id}, Branch: {self.branch_id.branch_name}, Product: {self.product_id.product_name}"
+
+
+class TEST_Inventory(models.Model):
+    inventory_id = models.CharField(max_length=50, primary_key=True)  # 對應資料庫中的 varchar(50)
+    stock_quantity = models.CharField(max_length=50)  # 對應資料庫中的 varchar(50)
+    last_updated = models.CharField(max_length=30)  # 對應資料庫中的 varchar(30)
+    product_id = models.ForeignKey(TEST_Products, on_delete=models.SET_NULL, null=True, db_column='product_id')  # 連結到 TEST_Products 的 product_id
+    branch_id = models.ForeignKey(TEST_Stores, on_delete=models.SET_NULL, null=True, db_column='branch_id')  # 連結到 TEST_Stores 的 branch_id
+
+    class Meta:
+        db_table = 'TEST_Inventory'
+    
+    def __str__(self):
+        return f"Inventory ID: {self.inventory_id}, Branch: {self.branch_id.branch_name}, Product: {self.product_id.product_name}"
+
+
+class TEST_Revenue(models.Model):
+    revenue_id = models.AutoField(primary_key=True)
+    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # 連結到 TEST_Stores
+    total_revenue = models.DecimalField(max_digits=15, decimal_places=2)
+    revenue_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'TEST_Revenue'
+
+    def __str__(self):
+        return f"Revenue ID: {self.revenue_id}, Store: {self.store.store_name}, Date: {self.revenue_date}"
 
 
 #frontend
