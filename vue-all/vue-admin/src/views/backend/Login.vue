@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div class="container">
     <h2>登入</h2>
     <form @submit.prevent="login">
@@ -21,7 +21,7 @@
       還未擁有帳號? <router-link to="/backend/register">註冊</router-link>
     </p>
     <p>
-      忘記密碼? <router-link to="/frontend/forgot_password">重置密碼</router-link>
+      忘記密碼? <router-link to="/backend/forgetpassword">重置密碼</router-link> <!-- 修改的地方 -->
     </p>
     <p v-if="error">{{ error }}</p>
   </div>

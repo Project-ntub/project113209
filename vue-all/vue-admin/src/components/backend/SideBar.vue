@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div :class="['sidebar', { open: isSidebarActive }]">
+    <!-- 只有當前頁面不是重設密碼或註冊頁面時顯示 sidebar -->
+    <div v-if="!hideSidebar" :class="['sidebar', { open: isSidebarActive }]">
       <div class="sidebar-header">
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
@@ -41,6 +42,8 @@
         <span class="text">登出</span>
       </button>
     </div>
+    
+    <!-- content 部分 -->
     <div :class="['content', { shift: isSidebarActive }]">
       <slot></slot>
     </div>
@@ -56,6 +59,12 @@ export default {
       username: '',
       showUserLinks: false, // 控制用戶相關鏈接的顯示
     };
+  },
+  computed: {
+    hideSidebar() {
+      // 當路由名稱為 "BackendForgetPassword" 或 "BackendRegister" 時，隱藏 sidebar
+      return this.$route.name === 'BackendForgetPassword' || this.$route.name === 'BackendRegister';
+    },
   },
   props: {
     isSidebarActive: {
