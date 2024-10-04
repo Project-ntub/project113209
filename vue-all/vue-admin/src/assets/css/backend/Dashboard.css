@@ -3,9 +3,7 @@
   flex-direction: column;
   height: 100vh; /* 100% 視窗高度 */
   width: 100%;
-  overflow-y: auto; /* 啟用垂直滾動 */
-  padding: 20px;
-  padding-bottom: 50px; /* 增加下方的空白範圍 */
+  overflow-y: auto; /* 垂直滾動 */
 }
 
 .dashboard-container {
@@ -18,7 +16,9 @@
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  box-sizing: border-box; /* 確保邊距和填充不會影響寬度 */
+  box-sizing: border-box;
+  overflow-y: auto;
+  width: 100%; /* 確保容器佔滿可用寬度 */
 }
 
 .top-left-controls {
@@ -80,6 +80,41 @@ select {
 /* 響應式設計：小屏幕切換為單列顯示 */
 @media (max-width: 768px) {
   .chart-wrapper {
-    flex: 1 1 100%; /* 手機時每行一個 */
+    flex: 1 1 100%;
+  }
+}
+
+/* 等比例縮放 */
+html {
+  font-size: 100%;
+}
+
+body {
+  transform: scale(1);
+  transform-origin: top left;
+}
+
+@media (max-width: 1200px) {
+  body {
+    transform: scale(0.9);
+  }
+}
+
+@media (max-width: 992px) {
+  body {
+    transform: scale(0.8);
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-wrapper {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    transform: scale(0.6);
   }
 }

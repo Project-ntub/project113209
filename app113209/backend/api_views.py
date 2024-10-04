@@ -1012,6 +1012,8 @@ from django.http import JsonResponse
 from django.db import connection
 
 # 營業額 API
+from django.views.decorators.csrf import csrf_exempt
+
 def get_revenue_data(request):
     with connection.cursor() as cursor:
         cursor.execute("""
