@@ -3,6 +3,7 @@ import axios from 'axios';
 // 使用固定 IP 作為 baseURL
 const baseURL = process.env.VUE_APP_API_URL || `http://${window.location.hostname}:8000`;
 
+// 設置 Axios 的基本配置
 axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['X-CSRFToken'] = getCookie('csrftoken');
