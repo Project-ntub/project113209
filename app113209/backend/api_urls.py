@@ -76,9 +76,9 @@ urlpatterns = [
     # path('generate-chart-image/', api_views.generate_chart_image, name='generate-chart-image')
 
     # 匯出數據 API
-    path('export-data-csv/', api_views.export_data_csv, name='export-data-csv'),
-    path('export-data-excel/', api_views.export_data_excel, name='export-data-excel'),
-    path('export-data-pdf/', api_views.export_data_pdf, name='export-data-pdf'),
+    path('export-data-csv/', api_views.export_to_csv, name='export-data-csv'),
+    path('export-data-excel/', api_views.export_to_excel, name='export-data-excel'),
+    path('export-data-pdf/', api_views.export_to_pdf, name='export-data-pdf'),
 
     # 另一個資料庫的圖表數據
 

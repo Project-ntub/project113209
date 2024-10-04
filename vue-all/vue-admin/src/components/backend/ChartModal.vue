@@ -7,30 +7,33 @@
       </div>
       <div class="chart-modal-body">
         <div class="chart-settings">
+          <!-- 圖表名稱 -->
+          <div class="setting">
+            <label for="chart-name">圖表名稱</label>
+            <input id="chart-name" v-model="chartData.name" type="text" placeholder="輸入圖表名稱" />
+          </div>
           <!-- 圖表類型 -->
           <div class="setting">
             <label for="chart-style">圖表類型</label>
             <select id="chart-style" v-model="chartData.style">
               <option value="bar">柱狀圖</option>
               <option value="line">折線圖</option>
-              <option value="pie">圓餅圖</option>
-              <option value="radar">雷達圖</option>
-              <option value="scatter">散點圖</option>
+              <option value="pie">餅圖</option>
               <!-- 更多圖表類型 -->
             </select>
           </div>
-          <!-- 數據來源 -->
+          <!-- 資料來源 -->
           <div class="setting">
-            <label for="data-source">數據來源</label>
+            <label for="data-source">資料來源</label>
             <select id="data-source" v-model="chartData.dataSource">
               <option v-for="source in dataSource" :key="source.value" :value="source.value">
                 {{ source.label }}
               </option>
             </select>
           </div>
-          <!-- X軸和Y軸字段 -->
+          <!-- X 軸和 Y 軸欄位 -->
           <div class="setting">
-            <label for="x-axis-field">X軸欄位</label>
+            <label for="x-axis-field">X 軸欄位</label>
             <select id="x-axis-field" v-model="chartData.xAxisField">
               <option v-for="field in tableFields" :key="field" :value="field">
                 {{ field }}
@@ -38,7 +41,7 @@
             </select>
           </div>
           <div class="setting">
-            <label for="y-axis-field">Y軸欄位</label>
+            <label for="y-axis-field">Y 軸欄位</label>
             <select id="y-axis-field" v-model="chartData.yAxisField">
               <option v-for="field in tableFields" :key="field" :value="field">
                 {{ field }}
@@ -58,7 +61,7 @@
         </div>
       </div>
       <div class="chart-modal-footer">
-        <button class="btn-preview" @click="previewChart">預覽圖表</button>
+        <!-- 已移除“預覽圖表”按鈕 -->
         <button class="btn-save" @click="saveChart">{{ isEditing ? '保存變更' : '新增圖表' }}</button>
         <button class="btn-cancel" @click="closeModal">取消</button>
       </div>
@@ -73,7 +76,7 @@ import Plotly from 'plotly.js-dist';
 export default {
   props: {
     isEditing: Boolean,
-    chartId: { // 新增 chartId 用來識別是否為編輯模式
+    chartId: {
       type: Number,
       default: null
     }
@@ -90,15 +93,15 @@ export default {
         x_data: [],
         y_data: []
       },
-      dataSource: [],  // 用於存儲從後端獲取的資料來源選項
-      tableFields: [] // 確保初始化tableFields為空數組
+      dataSource: [],
+      tableFields: []
     };
   },
   methods: {
     fetchDataSources() {
       axios.get('/api/backend/data-sources/')
         .then(response => {
-          this.dataSource = response.data;  // 將選項存儲在 dataSources 中
+          this.dataSource = response.data;
         })
         .catch(error => {
           console.error('獲取資料來源出錯:', error);
@@ -108,7 +111,14 @@ export default {
       if (this.chartData.dataSource) {
         axios.get(`/api/backend/table-fields/${this.chartData.dataSource}/`)
           .then(response => {
-            this.tableFields = response.data;  // 確認這裡的賦值是正確的
+            this.tableFields = response.data;
+            // 如果是編輯模式，且已經有選中的欄位，設定它們
+            if (this.isEditing && this.chartData.xAxisField && this.chartData.yAxisField) {
+              this.$nextTick(() => {
+                // 直接調用 fetchChartData 以重新渲染圖表
+                this.fetchChartData();
+              });
+            }
           })
           .catch(error => {
             console.error('獲取欄位名稱出錯:', error);
@@ -117,80 +127,55 @@ export default {
     },
     fetchData() {
       if (this.isEditing && this.chartId) {
-        // 修正 API 路徑
         axios.get(`/api/backend/charts/${this.chartId}/`)
           .then(response => {
             const data = response.data;
-            this.chartData.style = data.chart_type;
-            this.chartData.name = data.name;
-            this.chartData.dataSource = data.dataSource;
-            this.chartData.xAxisField = data.xAxisField;
-            this.chartData.yAxisField = data.yAxisField;
-            this.chartData.filterConditions = JSON.stringify(data.filterConditions);
-            this.chartData.x_data = data.x_data;
-            this.chartData.y_data = data.y_data;
+            this.chartData = {
+              style: data.chart_type,
+              name: data.name,
+              dataSource: data.data_source,
+              xAxisField: data.x_axis_field,
+              yAxisField: data.y_axis_field,
+              filterConditions: data.filter_conditions || '{}',
+              x_data: data.x_data || [],
+              y_data: data.y_data || []
+            };
+            this.fetchTableFields();
           })
           .catch(error => {
             console.error('加載圖表數據時出錯', error);
           });
       }
     },
-    saveChart() {
-      // 確保 filterConditions 是 JSON 格式的字典
+    fetchChartData() {
       let filterConditions = {};
       try {
-        filterConditions = JSON.parse(this.chartData.filterConditions);
+        filterConditions = JSON.parse(this.chartData.filterConditions || '{}');
       } catch (error) {
-        alert("過濾條件格式無效，請輸入正確的 JSON 格式。");
-        return;
+        console.error("過濾條件格式無效，使用預設值 {}");
       }
 
-      // 根據用戶選擇的資料來源和欄位來生成 x_data 和 y_data
       axios.get(`/api/backend/chart-data/${this.chartData.dataSource}/`, {
         params: {
           x_field: this.chartData.xAxisField,
           y_field: this.chartData.yAxisField,
-          filter_conditions: JSON.stringify(filterConditions)
+          filter_conditions: JSON.stringify(filterConditions) // 添加這一行
         }
       }).then(response => {
         const { x_data, y_data } = response.data;
 
         if (x_data && y_data) {
-          let chartConfig = {
-            chart_type: this.chartData.style,
-            name: this.chartData.name || 'Unnamed Chart',
-            data_source: this.chartData.dataSource,
-            x_axis_field: this.chartData.xAxisField,
-            y_axis_field: this.chartData.yAxisField,
-            x_data: x_data,
-            y_data: y_data
-          };
-
-          axios.post('/api/backend/create-chart/', chartConfig)
-            .then(response => {
-              alert('圖表已成功創建！');
-              this.$emit('chart-saved', response.data);
-              this.closeModal();
-            })
-            .catch(error => {
-              const errorMsg = error.response?.data?.error || '發生未知錯誤';
-              alert(`創建圖表失敗: ${errorMsg}`);
-            });
+          this.chartData.x_data = x_data;
+          this.chartData.y_data = y_data;
+          this.renderChart();
         } else {
-          alert('x_data 和 y_data 不能為空，請輸入有效數據');
+          console.error('x_data 和 y_data 不能為空');
         }
       }).catch(error => {
         console.error('獲取圖表數據時出錯:', error);
-        alert('無法獲取圖表數據，請稍後再試。');
       });
     },
-    previewChart() {
-      // 檢查 x_data 和 y_data 是否為空
-      if (!this.chartData.x_data.length || !this.chartData.y_data.length) {
-        alert('x_data 和 y_data 不能為空，請輸入有效數據');
-        return;
-      }
-
+    renderChart() {
       const trace = {
         x: this.chartData.x_data,
         y: this.chartData.y_data,
@@ -203,22 +188,77 @@ export default {
         yaxis: { title: this.chartData.yAxisField || 'Y 軸' }
       };
 
-      Plotly.newPlot('chart-container', [trace], layout);
+      const config = {
+        displaylogo: false, 
+        modeBarButtonsToRemove: [
+          'select2d',     
+          'lasso2d',      
+          'autoScale2d',
+          // 其他不需要的按鈕
+        ]
+      };
+
+
+      Plotly.newPlot('chart-container', [trace], layout, config);
+    },
+    saveChart() {
+      let filterConditions = {};
+      try {
+        filterConditions = JSON.parse(this.chartData.filterConditions || '{}');
+      } catch (error) {
+        alert("過濾條件格式無效，請輸入正確的 JSON 格式。");
+        return;
+      }
+
+      if (!this.chartData.x_data.length || !this.chartData.y_data.length) {
+        alert('x_data 和 y_data 不能為空，無法保存圖表');
+        return;
+      }
+
+      let chartConfig = {
+        chart_type: this.chartData.style,
+        name: this.chartData.name || '未命名圖表',
+        data_source: this.chartData.dataSource,
+        x_axis_field: this.chartData.xAxisField,
+        y_axis_field: this.chartData.yAxisField,
+        filter_conditions: filterConditions, // 使用已解析的 filterConditions
+        x_data: this.chartData.x_data,
+        y_data: this.chartData.y_data
+      };
+
+      axios.post('/api/backend/create-chart/', chartConfig)
+        .then(response => {
+          alert('圖表已成功創建！');
+          this.$emit('chart-saved', response.data);
+          this.closeModal();
+        })
+        .catch(error => {
+          const errorMsg = error.response?.data?.error || '發生未知錯誤';
+          alert(`創建圖表失敗: ${errorMsg}`);
+        });
     },
     closeModal() {
       this.$emit('close');
     }
   },
   watch: {
-    'chartData.dataSource': function(newDataSource) {
-      if (newDataSource) {
-        this.fetchTableFields();  // 動態加載欄位
+    'chartData.dataSource': function(newVal) {
+      if (newVal) {
+        this.fetchTableFields();
       }
+    },
+    chartData: {
+      handler: function() { // 移除了 'newVal' 參數
+        if (this.chartData.dataSource && this.chartData.xAxisField && this.chartData.yAxisField) {
+          this.fetchChartData();
+        }
+      },
+      deep: true
     }
   },
   mounted() {
-    this.fetchData(); // 在組件加載時調用此方法
-    this.fetchDataSources(); // 加載組件時獲取資料來源選項
+    this.fetchData();
+    this.fetchDataSources();
   }
 };
 </script>
@@ -262,7 +302,8 @@ export default {
   flex: 1;
   border: 1px solid #ccc;
   padding: 10px;
-  height: 400px;
+  height: 500px;
+  width: 100%
 }
 
 #chart-container {

@@ -12,15 +12,15 @@
         </select>
       </div>
 
-      <!-- 新增圖表和預覽角色介面按鈕放在這裡 -->
+      <!-- 新增圖表和預覽角色介面按鈕 -->
       <div class="button-group">
         <button @click="openChartModal(false)">新增圖表</button>
         <button @click="openPreviewModal">預覽角色介面</button>
       </div>
 
-      <div class="dashboard">
+      <div class="charts">
         <!-- 渲染篩選後的圖表 -->
-        <div v-for="chart in filteredCharts" :key="chart.chartId" class="chart-wrapper">
+        <div v-for="chart in filteredCharts" :key="chart.id" class="chart-wrapper">
           <ChartContainer :chartConfig="chart">
             <PlotlyChart :chartConfig="chart" />
           </ChartContainer>
@@ -46,7 +46,7 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import Modal from '@/components/backend/ChartModal.vue';
-import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; 
+import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
 import axios from 'axios';
 
 export default {
@@ -60,40 +60,31 @@ export default {
   },
   data() {
     return {
-      charts: [
-        { 
-          name: 'RevenueChart', label: '營業額', chartId: 1, 
-          chartType: 'bar', width: 600, height: 400, 
-          xAxisLabel: '店铺名稱', yAxisLabel: '營業額' 
-        },
-        { 
-          name: 'InventoryChart', label: '庫存量', chartId: 2, 
-          chartType: 'bar', width: 600, height: 400, 
-          xAxisLabel: '商品名稱', yAxisLabel: '數量' 
-        },
-        { 
-          name: 'SalesChart', label: '銷售額', chartId: 3, 
-          chartType: 'line', width: 600, height: 400,
-          xAxisLabel: '日期', yAxisLabel: '銷售額'         
-        },
-        { 
-          name: 'ProductSalesPieChart', label: '產品銷售佔比', chartId: 4, 
-          chartType: 'pie', width: 600, height: 400 
-        }
-      ],
+      charts: [],
       filteredCharts: [], // 用來存放篩選後的圖表
       showChartModal: false,
       showPreviewModal: false,
       isEditing: false,
       selectedChartId: null,
-      permissions: [] // 確保權限初始為空
     };
   },
-  async mounted() {
-    await this.fetchPermissions(); // 確保權限加載完畢後執行篩選
-    this.filteredCharts = this.charts.filter(chart => 
-      this.permissions.some(perm => perm.permission_name === chart.name && perm.can_view === 1)
-    );
+  mounted() {
+    this.filteredCharts = this.charts; // 預設顯示所有圖表
+    axios.get('/api/backend/get-chart-configurations/')
+    .then(response => {
+      this.charts = response.data.map(chart => ({
+        ...chart,
+        dataSource: chart.data_source,
+        xAxisField: chart.x_axis_field,
+        yAxisField: chart.y_axis_field,
+        chartType: chart.chart_type,
+        // 如果有其他字段需要转换，继续添加
+      }));
+      this.filteredCharts = this.charts; // 更新 filteredCharts
+    })
+    .catch(error => {
+      console.error('Error fetching chart configurations:', error);
+    });
   },
   methods: {
     openChartModal(editing, chartId = null) {
@@ -110,26 +101,15 @@ export default {
     closePreviewModal() {
       this.showPreviewModal = false;
     },
-    async fetchPermissions() {
-      try {
-        const response = await axios.get('/api/backend/permissions/');
-        this.permissions = response.data.filter(perm => perm.can_view === 1); // 加載權限並過濾可查看的圖表
-      } catch (error) {
-        console.error('無法獲取權限:', error);
-      }
-    },
     showDashboard(type) {
-      // 提取當前用戶具有檢視權限的圖表名稱
-      const visibleCharts = this.permissions.map(perm => perm.permission_name);
-
       if (type === 'all') {
-        // 當選擇「所有圖表」時，只顯示具有檢視權限的圖表
-        this.filteredCharts = this.charts.filter(chart => visibleCharts.includes(chart.name));
-      } else {
-        // 根據選中的類型進行篩選，同時確保用戶有檢視權限
-        this.filteredCharts = this.charts.filter(chart => 
-          chart.name.includes(type) && visibleCharts.includes(chart.name)
-        );
+        this.filteredCharts = this.charts;
+      } else if (type === 'sales') {
+        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Sales'));
+      } else if (type === 'revenue') {
+        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Revenue'));
+      } else if (type === 'inventory') {
+        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Inventory'));
       }
     }
   }

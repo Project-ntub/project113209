@@ -6,20 +6,32 @@
           <button class="menu-icon" @click="toggleMenu">⋮</button>
           <div v-if="showMenu" class="menu">
             <template v-if="!isFrontend">
-              <button @click="editChart">編輯圖表</button>
-              <button v-if="localCanDelete" @click="deleteChart">刪除圖表</button>
+              <button @click="editChart">编辑图表</button>
+              <button v-if="localCanDelete" @click="deleteChart">删除图表</button>
             </template>
             <div v-if="localCanExport" class="export-button">
-              <button @click="exportChart('csv')">匯出為 CSV</button>
-              <button @click="exportChart('excel')">匯出為 Excel</button>
-              <button @click="exportChart('pdf')">匯出為 PDF</button>
+              <button @click="exportChart('csv')">导出为 CSV</button>
+              <button @click="exportChart('excel')">导出为 Excel</button>
+              <button @click="exportChart('pdf')">导出为 PDF</button>
             </div>
           </div>
         </div>
       </div>
-      <PlotlyChart :chartConfig="localChartConfig" @update-chart-config="updateChartConfig"></PlotlyChart>
+      <!-- 點擊圖表，打开查看圖表的視窗 -->
+      <div @click="openChartModal">
+        <PlotlyChart :chartConfig="localChartConfig" />
+      </div>
+
+      <!-- 查看圖表的視窗 -->
+      <div v-if="isChartModalVisible" class="chart-modal-overlay" @click.self="closeChartModal">
+        <div class="chart-modal-content">
+          <PlotlyChart :chartConfig="localChartConfig" />
+          <button class="close-btn" @click="closeChartModal">×</button>
+        </div>
+      </div>
     </div>
-    <ChartModal v-if="!isFrontend && isChartModalVisible" :isEditing="true" @close="isChartModalVisible = false" />
+    <!-- 编辑圖表的視窗 -->
+    <ChartModal v-if="!isFrontend && isEditModalVisible" :isEditing="true" :chartId="localChartConfig.id" @close="closeEditModal" />
   </div>
 </template>
 
@@ -43,6 +55,7 @@ export default {
     return {
       showMenu: false,
       isChartModalVisible: false,
+      isEditModalVisible: false,
       localChartConfig: { ...this.chartConfig },
       localCanExport: false,
       localCanDelete: false,
@@ -52,14 +65,24 @@ export default {
     this.localCanExport = this.canExport; // 初始化匯出權限
     this.localCanDelete = this.canDelete; // 初始化刪除權限
     this.fetchUserPermissions();
+    
   },
   methods: {
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },
-    editChart() {
+    openChartModal() {
       this.isChartModalVisible = true;
+    },
+    closeChartModal() {
+      this.isChartModalVisible = false;
+    },
+    editChart() {
+      this.isEditModalVisible = true;
       this.showMenu = false;
+    },
+    closeEditModal() {
+      this.isEditModalVisible = false;
     },
     async deleteChart() {
       if (!this.localChartConfig.id) {
@@ -137,6 +160,36 @@ export default {
   align-items: center;
   gap: 10px;
   z-index: 10;
+}
+.chart-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.chart-modal-content {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 80%;
+  max-height: 80%;
+  overflow: auto;
+}
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 .menu-button {
   position: relative;

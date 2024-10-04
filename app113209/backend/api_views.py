@@ -14,7 +14,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import F, Sum  # 添加这行
+from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
@@ -23,7 +23,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from app113209.models import (User, Module, Role,RoleUser, RolePermission, UserHistory, 
+from app113209.models import (User, Module, Role, RoleUser, RolePermission, UserHistory, 
                              UserPreferences, ChartConfiguration, TEST_Inventory, 
                              TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
@@ -31,19 +31,14 @@ from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSeriali
                                    ChartConfigurationSerializer, SalesDataSerializer,
                                    RevenueDataSerializer, InventoryDataSerializer, UserPreferencesSerializer)
 from app113209.utils import record_history
-from plotly.graph_objs import Bar, Scatter, Pie
-# from generate_chart import save_chart_as_image
-
 
 logger = logging.getLogger(__name__)
 
 def login_view(request):
     user = authenticate(username=request.POST['username'], password=request.POST['password'])
-    if user is not None:
-        # 用戶成功登入，更新last_login
+    if user:
         user.last_login = timezone.now()
         user.save()
-
         login(request, user)
         return JsonResponse({'message': 'Login successful'})
     return JsonResponse({'error': 'Invalid credentials'}, status=400)
@@ -607,26 +602,41 @@ def get_table_fields(request, table_name):
     
     return Response(fields)
 
+MODEL_MAPPING = {
+    'TEST_Inventory': TEST_Inventory,
+    'TEST_Products': TEST_Products,
+    'TEST_Revenue': TEST_Revenue,
+    'TEST_Sales': TEST_Sales,
+    'TEST_Stores': TEST_Stores,
+    # 如有其他模型，請繼續添加
+}
+
 @api_view(['POST'])
 def dynamic_chart_data(request):
     table_name = request.data.get('table_name')
     x_field = request.data.get('x_field')
     y_field = request.data.get('y_field')
-    print(f"Received table_name: {table_name}, x_field: {x_field}, y_field: {y_field}")
+    logger.info(f"Fetching data from {table_name} with x_field={x_field} and y_field={y_field}")
 
-    model = globals().get(table_name)
+    model = MODEL_MAPPING.get(table_name)
     if not model:
         return JsonResponse({'error': '資料表不存在'}, status=400)
-    
-    # 從資料庫中提取 x_field 和 y_field 的數據
+
     try:
         queryset = model.objects.values_list(x_field, y_field)
         x_data = [item[0] for item in queryset]
-        y_data = [item[1] for item in queryset]  # 修正這裡的索引
+        y_data = [item[1] for item in queryset]
         return JsonResponse({'x_data': x_data, 'y_data': y_data})
     except Exception as e:
+        logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-    
+   
+def save_chart_as_image(fig):
+    file_name = f"chart_{uuid.uuid4().hex}.png"
+    file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+    fig.write_image(file_path)
+    return f"{settings.MEDIA_URL}{file_name}"    
+   
 # 動態生成圖表
 def create_chart(chart_type, x_data, y_data):
     try:
@@ -636,15 +646,14 @@ def create_chart(chart_type, x_data, y_data):
             fig = go.Figure(data=[go.Bar(x=x_data, y=y_data)])
         elif chart_type == 'pie':
             fig = go.Figure(data=[go.Pie(labels=x_data, values=y_data)])
-        elif chart_type == 'scatter':
-            fig = go.Figure(data=[go.Scatter(x=x_data, y=y_data, mode='markers')])
         else:
             raise ValueError(f"Unsupported chart type: {chart_type}")
         
         return fig
     except Exception as e:
         logger.error(f"An error occurred while creating the chart: {e}")
-        return go.Figure()  # 返回空白圖表
+        return go.Figure()
+
 
 
 # API：生成互動圖表（返回JSON格式）
@@ -686,22 +695,6 @@ def get_table_fields(request, table_name):
         return JsonResponse({'error': '無法獲取欄位'}, status=500)
 
     
-# API：生成圖表並保存為圖片
-
-@api_view(['POST'])
-def generate_chart_image(request):
-    chart_type = request.data.get('chart_type')
-    x_data = request.data.get('x_data')
-    y_data = request.data.get('y_data')
-
-    file_name = f"chart_{uuid.uuid4().hex}.png"
-    file_path = os.path.join(settings.MEDIA_ROOT, file_name)
-
-    fig = create_chart(chart_type, x_data, y_data)
-    fig.write_image(file_path)
-
-    return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
-
 # API：儲存圖表配置
 @api_view(['POST'])
 def save_chart_configuration(request):
@@ -738,23 +731,23 @@ def get_chart_data(request, table_name):
     x_field = request.GET.get('x_field')
     y_field = request.GET.get('y_field')
 
-    # 確保資料表存在
-    model = globals().get(table_name)
+    # 使用 MODEL_MAPPING 字典
+    model = MODEL_MAPPING.get(table_name)
     if not model:
         return JsonResponse({'error': '資料表不存在'}, status=400)
 
     try:
         queryset = model.objects.all()
 
-        # 提取 x_field 和 y_field 的數據
-        x_data = queryset.values_list(x_field, flat=True)
-        y_data = queryset.values_list(y_field, flat=True)
+        # 提取 x_field 和 y_field 的数据
+        data = list(queryset.values_list(x_field, y_field))
 
-        return JsonResponse({'x_data': list(x_data), 'y_data': list(y_data)})
+        x_data = [item[0] for item in data]
+        y_data = [item[1] for item in data]
+
+        return JsonResponse({'x_data': x_data, 'y_data': y_data})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-
 
 # API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
@@ -927,100 +920,65 @@ class StoreComparisonChartDataAPIView(APIView):
 
 # 匯出 CSV
 @api_view(['POST'])
-def export_data_csv(request):
+def export_data(request):
     data = request.data.get('chartConfig', {}).get('data', [])
-    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')  # 獲取圖表名稱
-    x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
-    y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
+    format = request.data.get('format')
+    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')
+
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.csv"'
-
-    writer = csv.writer(response)
-    writer.writerow([x_axis_label, y_axis_label])  # 使用具體的標籤名稱
-
-    for row in data:
-        writer.writerow([row['x'], row['y']])
+    if format == 'csv':
+        response = export_to_csv(data, chart_name)
+    elif format == 'excel':
+        response = export_to_excel(data, chart_name)
+    elif format == 'pdf':
+        response = export_to_pdf(data, chart_name)
+    else:
+        return JsonResponse({"error": "Unsupported format"}, status=400)
 
     return response
 
+def export_to_csv(data, chart_name):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{chart_name}.csv"'
+    writer = csv.writer(response)
+    for row in data:
+        writer.writerow([row['x'], row['y']])
+    return response
 
-# 匯出 Excel
-@api_view(['POST'])
-def export_data_excel(request):
-    data = request.data.get('chartConfig', {}).get('data', [])
-    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')  # 獲取圖表名稱
-    x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
-    y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
-    if not data:
-        return JsonResponse({"error": "No data provided"}, status=400)
-
+def export_to_excel(data, chart_name):
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
-
-    worksheet.write('A1', x_axis_label)  # 使用具體的標籤名稱
-    worksheet.write('B1', y_axis_label)
-
     for index, row in enumerate(data, start=1):
         worksheet.write(index, 0, row['x'])
         worksheet.write(index, 1, row['y'])
-
     workbook.close()
     output.seek(0)
-
     response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.xlsx"'
-
+    response['Content-Disposition'] = f'attachment; filename="{chart_name}.xlsx"'
     return response
-
 
 # 指定字體的路徑
 font_path = os.path.join(settings.BASE_DIR, 'static/fonts/NotoSansTC-Regular.ttf')
 pdfmetrics.registerFont(TTFont('NotoSansTC', font_path))
 
-
-# 匯出 PDF
-@api_view(['POST'])
-def export_data_pdf(request):
-    data = request.data.get('chartConfig', {}).get('data', [])
-    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')
-    x_axis_label = request.data.get('chartConfig', {}).get('xAxisLabel', 'X')
-    y_axis_label = request.data.get('chartConfig', {}).get('yAxisLabel', 'Y')
-
-    if not data:
-        return JsonResponse({"error": "No data provided"}, status=400)
-
+def export_to_pdf(data, chart_name):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
-
-    # 使用指定字體
-    p.setFont("NotoSansTC", 12)
-
-    p.drawString(100, 750, f"{x_axis_label} | {y_axis_label}")
+    p.drawString(100, 750, f"{chart_name}")
     y_position = 730
-
     for row in data:
         p.drawString(100, y_position, f"{row['x']} | {row['y']}")
         y_position -= 20
-
-        if y_position < 100:
-            p.showPage()
-            p.setFont("NotoSansTC", 12)
-            y_position = 750
-
     p.showPage()
     p.save()
-
     buffer.seek(0)
     response = HttpResponse(buffer.read(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{chart_name}-export.pdf"'
-
+    response['Content-Disposition'] = f'attachment; filename="{chart_name}.pdf"'
     return response
 
-    return HttpResponse(buffer.read(), content_type='application/pdf')
 
 
 # 另一個資料庫的測試資料

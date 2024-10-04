@@ -18,18 +18,9 @@
       <button v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" @click="setCurrentChart('InventoryChart')">庫存量</button>
       <button @click="setCurrentChart('all')">顯示所有圖表</button>
     </div>
-    <div class="chart-grid">
-      <ChartContainer v-if="currentChart === 'all' || currentChart === 'RevenueChart'" :chartConfig="getChartConfig('RevenueChart')" :is-Frontend="true">
-        <PlotlyChart :chartConfig="getChartConfig('RevenueChart')" />
-      </ChartContainer>
-      <ChartContainer v-if="currentChart === 'all' || currentChart === 'SalesCharts'" :chartConfig="getChartConfig('SalesChart')" :is-Frontend="true">
-        <PlotlyChart :chartConfig="getChartConfig('SalesChart')" />
-      </ChartContainer>
-      <ChartContainer v-if="currentChart === 'all' || currentChart === 'ProductSalesPieChart'" :chartConfig="getChartConfig('ProductSalesPieChart')" :is-Frontend="true">
-        <PlotlyChart :chartConfig="getChartConfig('ProductSalesPieChart')" />
-      </ChartContainer>
-      <ChartContainer v-if="currentChart === 'all' || currentChart === 'InventoryChart'" :chartConfig="getChartConfig('InventoryChart')" :is-Frontend="true">
-        <PlotlyChart :chartConfig="getChartConfig('InventoryChart')" />
+    <div v-for="chart in charts" :key="chart.id" class="chart-grid">
+      <ChartContainer :chartConfig="chart">
+        <PlotlyChart :chartConfig="chart" />
       </ChartContainer>
     </div>
   </div>
@@ -50,6 +41,7 @@ export default {
   },
   data() {
     return {
+      charts: [],
       isSidebarOpen: localStorage.getItem('sidebarOpen') === 'true',
       currentChart: 'all',
       branches: [],
@@ -57,6 +49,26 @@ export default {
       userPosition: null,
       permissions: [],
     };
+  },
+  async mounted() {
+    axios.get('/api/backend/get-chart-configurations/')
+    .then(response => {
+      this.charts = response.data.map(chart => ({
+        ...chart,
+        dataSource: chart.data_source,
+        xAxisField: chart.x_axis_field,
+        yAxisField: chart.y_axis_field,
+        chartType: chart.chart_type,
+        // 如果有其他字段需要转换，继续添加
+      }));
+      this.filteredCharts = this.charts; // 更新 filteredCharts
+    })
+    .catch(error => {
+      console.error('Error fetching chart configurations:', error);
+    });
+    
+    // 获取用户职位等信息
+    await this.fetchUserPosition();
   },
   methods: {
     async fetchUserPosition() {
@@ -98,48 +110,6 @@ export default {
         alert('您沒有檢視此圖表的權限');
       }
     },
-    getChartConfig(chartName) {
-      const chartConfigs = {
-        RevenueChart: {
-          name: 'RevenueChart',
-          label: '營業額',
-          chartType: 'bar',
-          width: 300,
-          height: 250,
-          xAxisLabel: '店铺名稱',
-          yAxisLabel: '營業額',
-        },
-        InventoryChart: {
-          name: 'InventoryChart',
-          label: '庫存量',
-          chartType: 'bar',
-          width: 300,
-          height: 250,
-          xAxisLabel: '商品名稱',
-          yAxisLabel: '數量',
-        },
-        SalesChart: {
-          name: 'SalesChart',
-          label: '銷售額',
-          chartType: 'line',
-          width: 300,
-          height: 250,
-          xAxisLabel: '日期',
-          yAxisLabel: '銷售額',
-        },
-        ProductSalesPieChart: {
-          name: 'ProductSalesPieChart',
-          label: '產品銷售佔比',
-          chartType: 'pie',
-          width: 300,
-          height: 250,
-        },
-      };
-      return chartConfigs[chartName] || chartConfigs['SalesChart'];
-    },
-  },
-  async mounted() {
-    await this.fetchUserPosition();
   },
 };
 </script>

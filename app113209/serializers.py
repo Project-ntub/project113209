@@ -72,9 +72,14 @@ class UserHistorySerializer(serializers.ModelSerializer):
 
 
 class ChartConfigurationSerializer(serializers.ModelSerializer):
+    dataSource = serializers.CharField(source='data_source')
+    xAxisField = serializers.CharField(source='x_axis_field')
+    yAxisField = serializers.CharField(source='y_axis_field')
+    chartType = serializers.CharField(source='chart_type')
+    
     class Meta:
         model = ChartConfiguration
-        fields = ['id', 'user', 'name', 'chart_type', 'data_source', 'x_axis_field', 'y_axis_field', 'filter_conditions', 'is_deleted', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'name', 'chartType', 'dataSource', 'xAxisField', 'yAxisField', 'filter_conditions', 'is_deleted', 'created_at', 'updated_at']
 
     def validate(self, data):
         # 確保圖表名稱不為空

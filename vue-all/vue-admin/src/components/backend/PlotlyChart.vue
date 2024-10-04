@@ -12,71 +12,60 @@ export default {
   data() {
     return {
       lastUpdated: '',
-      localChartConfig: { ...this.chartConfig } // 複製 chartConfig 到本地數據
+      localChartConfig: {
+        ...this.chartConfig,
+        dataSource: this.chartConfig.data_source || '',
+        xAxisField: this.chartConfig.x_axis_field || '',
+        yAxisField: this.chartConfig.y_axis_field || '',
+        chartType: this.chartConfig.chart_type || '',
+        name: this.chartConfig.name || '',
+        label: this.chartConfig.label || '',
+      },
+      chartData: {
+        xAxisField: [],
+        yAxisField: []
+      }
     };
   },
   mounted() {
-    this.fetchChartData();
+    this.fetchChartData(this.localChartConfig.id);
   },
   methods: {
-    async fetchChartData() {
-      let apiUrl = '';
-      switch (this.localChartConfig.name) {
-        case 'SalesChart':
-          apiUrl = '/api/backend/sales-chart-data/';
-          break;
-        case 'RevenueChart':
-          apiUrl = '/api/backend/revenue-chart-data/';
-          break;
-        case 'InventoryChart':
-          apiUrl = '/api/backend/inventory-chart-data/';
-          break;
-        case 'ProductSalesPieChart':
-          apiUrl = '/api/backend/product-sales-pie-chart-data/';
-          break;
-        default:
-          console.error('Unknown chart type');
-          return;
+    async fetchChartData(chartId) {
+      if (!this.localChartConfig.dataSource || !this.localChartConfig.xAxisField || !this.localChartConfig.yAxisField) {
+        console.error('資料來源、X軸或Y軸字段未提供');
+        alert('資料來源、X軸或Y軸字段未提供');
+        return; 
       }
 
       try {
-        const response = await axios.get(apiUrl);
+        console.log('Fetching chart data with:', {
+          table_name: this.localChartConfig.dataSource,
+          x_field: this.localChartConfig.xAxisField,
+          y_field: this.localChartConfig.yAxisField,
+          chart_id: chartId
+        });
+        const response = await axios.post('/api/backend/dynamic-chart-data/', {
+          table_name: this.localChartConfig.dataSource,
+          x_field: this.localChartConfig.xAxisField,
+          y_field: this.localChartConfig.yAxisField,
+          chart_id: chartId
+        });
+        console.log('Chart data response:', response.data);
         const data = response.data;
-        console.log("Fetched data from API: ", data);
-
-        let xData, yData;
-        if (this.localChartConfig.name === 'ProductSalesPieChart') {
-          xData = data.categories;
-          yData = data.sales;
-        } else {
-          xData = data.map(item => item.product_name || item.store_name || item.sale_date);
-          yData = data.map(item => item.total_amount || item.total_revenue || item.stock_quantity || item.total_sales);
-        }
-
-        this.renderChart(xData, yData);
-
-        // 將 data 設置到 chartConfig 中
-        this.localChartConfig.data = xData.map((x, i) => ({
-          x,
-          y: yData[i]
-        }));
-
-        console.log("localChartConfig after data load: ", this.localChartConfig);
-
-        // 通知父組件 chartConfig 已更新
-        this.$emit('update-chart-config', this.localChartConfig);
-
-        this.lastUpdated = new Date().toLocaleString();
+        this.chartData.xAxisField = data.x_data;
+        this.chartData.yAxisField = data.y_data;
+        this.renderChart(this.chartData.xAxisField, this.chartData.yAxisField);
       } catch (error) {
-        console.error('Error fetching chart data:', error);
-        alert('無法獲取圖表數據，請稍後再試。');
+        console.error('獲取圖表數據時出錯:', error);
+        alert('獲取圖表數據時出錯，請檢查後端日誌以獲取更多信息。');
       }
     },
     renderChart(xData, yData) {
       const chartEl = this.$refs.chart;
 
       let trace;
-      if (this.localChartConfig.name === 'ProductSalesPieChart') {
+      if (this.localChartConfig.chartType === 'pie') {
         trace = {
           labels: xData,
           values: yData,
@@ -91,17 +80,16 @@ export default {
       }
 
       const layout = {
-        title: this.localChartConfig.label || '圖表',
+        title: this.localChartConfig.name || '圖表',
         xaxis: { 
-          title: this.localChartConfig.xAxisLabel || 'X 軸',
+          title: this.localChartConfig.xAxisField || 'X 軸',
           tickangle: -90,
           automargin: true
         },
         yaxis: { 
-          title: this.localChartConfig.yAxisLabel || 'Y 軸'
+          title: this.localChartConfig.yAxisField || 'Y 軸'
         },
-        width: this.localChartConfig.width || 600,
-        height: this.localChartConfig.height || 400
+        autosize: true,
       };
 
       const config = {
@@ -114,6 +102,21 @@ export default {
       };
 
       Plotly.newPlot(chartEl, [trace], layout, config);
+    },
+    watch: {
+      chartConfig: {
+        handler(newConfig) {
+          this.localChartConfig = {
+            ...newConfig,
+            dataSource: newConfig.dataSource || '',
+            xAxisField: newConfig.xAxisField || '',
+            yAxisField: newConfig.yAxisField || ''
+          };
+          this.fetchChartData(newConfig.id);  // 根據新的配置重新加載圖表數據
+        },
+        immediate: true,
+        deep: true
+      }
     }
   }
 };
