@@ -6,18 +6,18 @@
           <button class="menu-icon" @click="toggleMenu">⋮</button>
           <div v-if="showMenu" class="menu">
             <template v-if="!isFrontend">
-              <button @click="editChart">编辑图表</button>
-              <button v-if="localCanDelete" @click="deleteChart">删除图表</button>
+              <button @click="editChart">編輯圖表</button>
+              <button v-if="localCanDelete" @click="deleteChart">刪除圖表</button>
             </template>
             <div v-if="localCanExport" class="export-button">
-              <button @click="exportChart('csv')">导出为 CSV</button>
-              <button @click="exportChart('excel')">导出为 Excel</button>
-              <button @click="exportChart('pdf')">导出为 PDF</button>
+              <button @click="exportChart('csv')">匯出 CSV</button>
+              <button @click="exportChart('excel')">匯出 Excel</button>
+              <button @click="exportChart('pdf')">匯出 PDF</button>
             </div>
           </div>
         </div>
       </div>
-      <!-- 點擊圖表，打开查看圖表的視窗 -->
+      <!-- 點擊圖表，打開查看圖表的視窗 -->
       <div @click="openChartModal">
         <PlotlyChart :chartConfig="localChartConfig" />
       </div>
@@ -30,8 +30,14 @@
         </div>
       </div>
     </div>
-    <!-- 编辑圖表的視窗 -->
-    <ChartModal v-if="!isFrontend && isEditModalVisible" :isEditing="true" :chartId="localChartConfig.id" @close="closeEditModal" />
+    <!-- 編輯圖表的視窗 -->
+    <ChartModal 
+      v-if="!isFrontend && isEditModalVisible" 
+      :isEditing="true" 
+      :chartId="localChartConfig.id" 
+      :fetchChartConfig="fetchChartConfigMethod"
+      @close="closeEditModal" 
+    />
   </div>
 </template>
 
@@ -65,7 +71,6 @@ export default {
     this.localCanExport = this.canExport; // 初始化匯出權限
     this.localCanDelete = this.canDelete; // 初始化刪除權限
     this.fetchUserPermissions();
-    
   },
   methods: {
     toggleMenu() {
@@ -109,7 +114,6 @@ export default {
         .then(response => {
           const permissions = response.data;
 
-          // 依據圖表名稱確認權限
           this.localCanExport = permissions.some(perm => 
             perm.permission_name === this.localChartConfig.label && perm.can_export === true
           );
@@ -123,7 +127,7 @@ export default {
     },
     async exportChart(format) {
       if (!this.localChartConfig.data || this.localChartConfig.data.length === 0) {
-        alert("圖表配置無效，無法導出！");
+        alert('圖表配置無效，無法導出！');
         return;
       }
 
@@ -138,6 +142,31 @@ export default {
       } catch (error) {
         console.error('匯出數據時出錯:', error);
         alert('匯出失敗，請檢查數據並重試。');
+      }
+    },
+    async fetchChartConfigMethod(chartId) {
+      if (!chartId) {
+        console.error('chartId is undefined');
+        alert('無效的圖表 ID，無法加載圖表配置');
+        return;
+      }
+      try {
+        const response = await axios.get(`/api/backend/charts/${chartId}/`);
+        const data = response.data;
+
+        this.updateChartConfig({
+          style: data.chartType,
+          name: data.name,
+          dataSource: data.dataSource,
+          xAxisField: data.xAxisField,
+          yAxisField: data.yAxisField,
+          filterConditions: JSON.stringify(data.filter_conditions || '{}'),
+          x_data: data.x_data || [],
+          y_data: data.y_data || []
+        });
+      } catch (error) {
+        console.error('加載圖表配置時發生錯誤:', error);
+        alert('加載圖表配置時發生錯誤，請稍後再試');
       }
     }
   }

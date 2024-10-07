@@ -12,7 +12,7 @@ router.register(r'roles', api_views.RoleViewSet)
 router.register(r'role_permissions', api_views.RolePermissionViewSet)
 router.register(r'pending-users', api_views.PendingUserViewSet, basename='pending-user')
 router.register(r'permissions', api_views.UserPermissionViewSet, basename='user-permissions')
-
+router.register(r'charts', api_views.ChartConfigurationViewSet, basename='chart-configuration')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -49,7 +49,7 @@ urlpatterns = [
     # 圖表與數據 API
     path('data-sources/', api_views.get_data_sources, name='get_data_sources'),
     path('table-fields/<str:table_name>/', api_views.get_table_fields, name='get_table_fields'),
-    path('charts/', api_views.ChartConfigurationViewSet.as_view({'get': 'list'}), name='charts-list'),
+    path('charts/<int:id>/', api_views.ChartConfigurationViewSet.as_view({'get': 'retrieve'}), name='charts-retrieve'),
     path('chart-data/<str:table_name>/', api_views.get_chart_data, name='get_chart_data'),
     path('create-chart/', api_views.ChartConfigurationViewSet.as_view({'post': 'create_chart_action'}), name='create_chart'),
     path('update-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'update_chart'}), name='update_chart'),

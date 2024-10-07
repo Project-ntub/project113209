@@ -43,7 +43,8 @@
 
 <script>
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
-import PlotlyChart from '@/Charts/PlotlyChart.vue';
+import PlotlyChart from '@/components/backend/PlotlyChart.vue';
+import ChartContainer from '@/Charts/ChartContainer.vue';
 import Modal from '@/components/backend/ChartModal.vue';
 import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
 import axios from 'axios';
@@ -53,6 +54,7 @@ export default {
   components: {
     TopNavbar,
     PlotlyChart,
+    ChartContainer,
     Modal,
     UserInterfacePreviewModal,
   },

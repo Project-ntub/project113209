@@ -32,22 +32,38 @@
             </select>
           </div>
           <!-- X 軸和 Y 軸欄位 -->
+          <!-- X 軸欄位選擇 -->
           <div class="setting">
             <label for="x-axis-field">X 軸欄位</label>
             <select id="x-axis-field" v-model="chartData.xAxisField">
+              <!-- 當前模型的欄位 -->
               <option v-for="field in tableFields" :key="field" :value="field">
                 {{ field }}
               </option>
+              <!-- 關聯模型的欄位 -->
+              <optgroup v-for="(relatedField, key) in joinableFields" :key="key" :label="`關聯欄位：${key}`">
+                <option v-for="field in relatedField.fields" :key="field" :value="`${key}__${field}`">
+                  {{ field }}
+                </option>
+              </optgroup>
             </select>
           </div>
+
+          <!-- Y 軸欄位選擇 -->
           <div class="setting">
             <label for="y-axis-field">Y 軸欄位</label>
             <select id="y-axis-field" v-model="chartData.yAxisField">
               <option v-for="field in tableFields" :key="field" :value="field">
                 {{ field }}
               </option>
+              <optgroup v-for="(relatedField, key) in joinableFields" :key="key" :label="`關聯欄位：${key}`">
+                <option v-for="field in relatedField.fields" :key="field" :value="`${key}__${field}`">
+                  {{ field }}
+                </option>
+              </optgroup>
             </select>
           </div>
+
           <!-- 過濾條件 -->
           <div class="setting">
             <label for="filter-conditions">過濾條件</label>
@@ -61,7 +77,6 @@
         </div>
       </div>
       <div class="chart-modal-footer">
-        <!-- 已移除“預覽圖表”按鈕 -->
         <button class="btn-save" @click="saveChart">{{ isEditing ? '保存變更' : '新增圖表' }}</button>
         <button class="btn-cancel" @click="closeModal">取消</button>
       </div>
@@ -79,6 +94,10 @@ export default {
     chartId: {
       type: Number,
       default: null
+    },
+    fetchChartConfig: {
+      type: Function,
+      required: true
     }
   },
   data() {
@@ -91,11 +110,28 @@ export default {
         yAxisField: '',
         filterConditions: '{}',
         x_data: [],
-        y_data: []
+        y_data: [], 
+        joinFields: []
       },
+      joinableFields: [], //可用關聯欄位
       dataSource: [],
       tableFields: []
     };
+  },
+  mounted() {
+    this.fetchDataSources();
+    if (this.isEditing && this.chartId) {
+      this.fetchChartConfig(this.chartId)
+        .then(config => {
+          if (config) {
+            this.chartData = {
+              ...this.chartData,
+              ...config
+            };
+            this.fetchTableFields();
+          }
+        });
+    }
   },
   methods: {
     fetchDataSources() {
@@ -111,11 +147,10 @@ export default {
       if (this.chartData.dataSource) {
         axios.get(`/api/backend/table-fields/${this.chartData.dataSource}/`)
           .then(response => {
-            this.tableFields = response.data;
-            // 如果是編輯模式，且已經有選中的欄位，設定它們
+            this.tableFields = response.data.fields;
+            this.joinableFields = response.data.related_fields;
             if (this.isEditing && this.chartData.xAxisField && this.chartData.yAxisField) {
               this.$nextTick(() => {
-                // 直接調用 fetchChartData 以重新渲染圖表
                 this.fetchChartData();
               });
             }
@@ -125,41 +160,19 @@ export default {
           });
       }
     },
-    fetchData() {
-      if (this.isEditing && this.chartId) {
-        axios.get(`/api/backend/charts/${this.chartId}/`)
-          .then(response => {
-            const data = response.data;
-            this.chartData = {
-              style: data.chart_type,
-              name: data.name,
-              dataSource: data.data_source,
-              xAxisField: data.x_axis_field,
-              yAxisField: data.y_axis_field,
-              filterConditions: data.filter_conditions || '{}',
-              x_data: data.x_data || [],
-              y_data: data.y_data || []
-            };
-            this.fetchTableFields();
-          })
-          .catch(error => {
-            console.error('加載圖表數據時出錯', error);
-          });
-      }
-    },
     fetchChartData() {
       let filterConditions = {};
       try {
         filterConditions = JSON.parse(this.chartData.filterConditions || '{}');
       } catch (error) {
-        console.error("過濾條件格式無效，使用預設值 {}");
+        console.error('過濾條件格式無效，使用預設值 {}');
       }
 
       axios.get(`/api/backend/chart-data/${this.chartData.dataSource}/`, {
         params: {
           x_field: this.chartData.xAxisField,
           y_field: this.chartData.yAxisField,
-          filter_conditions: JSON.stringify(filterConditions) // 添加這一行
+          filter_conditions: JSON.stringify(filterConditions)
         }
       }).then(response => {
         const { x_data, y_data } = response.data;
@@ -193,11 +206,9 @@ export default {
         modeBarButtonsToRemove: [
           'select2d',     
           'lasso2d',      
-          'autoScale2d',
-          // 其他不需要的按鈕
+          'autoScale2d'
         ]
       };
-
 
       Plotly.newPlot('chart-container', [trace], layout, config);
     },
@@ -206,12 +217,7 @@ export default {
       try {
         filterConditions = JSON.parse(this.chartData.filterConditions || '{}');
       } catch (error) {
-        alert("過濾條件格式無效，請輸入正確的 JSON 格式。");
-        return;
-      }
-
-      if (!this.chartData.x_data.length || !this.chartData.y_data.length) {
-        alert('x_data 和 y_data 不能為空，無法保存圖表');
+        alert('過濾條件格式無效，請輸入正確的 JSON 格式。');
         return;
       }
 
@@ -221,7 +227,7 @@ export default {
         data_source: this.chartData.dataSource,
         x_axis_field: this.chartData.xAxisField,
         y_axis_field: this.chartData.yAxisField,
-        filter_conditions: filterConditions, // 使用已解析的 filterConditions
+        filter_conditions: filterConditions,
         x_data: this.chartData.x_data,
         y_data: this.chartData.y_data
       };
@@ -240,25 +246,6 @@ export default {
     closeModal() {
       this.$emit('close');
     }
-  },
-  watch: {
-    'chartData.dataSource': function(newVal) {
-      if (newVal) {
-        this.fetchTableFields();
-      }
-    },
-    chartData: {
-      handler: function() { // 移除了 'newVal' 參數
-        if (this.chartData.dataSource && this.chartData.xAxisField && this.chartData.yAxisField) {
-          this.fetchChartData();
-        }
-      },
-      deep: true
-    }
-  },
-  mounted() {
-    this.fetchData();
-    this.fetchDataSources();
   }
 };
 </script>
@@ -308,7 +295,7 @@ export default {
 
 #chart-container {
   width: 100%;
-  height: 100%; /* 確保圖表填滿容器 */
+  height: 100%;
 }
 
 .setting {

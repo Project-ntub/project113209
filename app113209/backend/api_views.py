@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from app113209.models import (User, Module, Role, RoleUser, RolePermission, UserHistory, 
                              UserPreferences, ChartConfiguration, TEST_Inventory, 
-                             TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores)
+                             TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores, Branch)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer,
                                    ChartConfigurationSerializer, SalesDataSerializer,
@@ -585,29 +585,13 @@ def get_data_sources(request):
     return Response(data_sources)
 
 
-# 根據資料表獲取欄位
-@api_view(['GET'])
-def get_table_fields(request, table_name):
-    fields = []
-    if table_name == "TEST_Inventory":
-        fields = [field.name for field in TEST_Inventory._meta.fields]
-    elif table_name == "TEST_Products":
-        fields = [field.name for field in TEST_Products._meta.fields]
-    elif table_name == "TEST_Revenue":
-        fields = [field.name for field in TEST_Revenue._meta.fields]
-    elif table_name == "TEST_Sales":
-        fields = [field.name for field in TEST_Sales._meta.fields]
-    elif table_name == "TEST_Stores":
-        fields = [field.name for field in TEST_Stores._meta.fields]
-    
-    return Response(fields)
-
 MODEL_MAPPING = {
     'TEST_Inventory': TEST_Inventory,
     'TEST_Products': TEST_Products,
     'TEST_Revenue': TEST_Revenue,
     'TEST_Sales': TEST_Sales,
     'TEST_Stores': TEST_Stores,
+    'Branch': Branch,
     # 如有其他模型，請繼續添加
 }
 
@@ -616,20 +600,53 @@ def dynamic_chart_data(request):
     table_name = request.data.get('table_name')
     x_field = request.data.get('x_field')
     y_field = request.data.get('y_field')
+    join_fields = request.data.get('join_fields', [])
     logger.info(f"Fetching data from {table_name} with x_field={x_field} and y_field={y_field}")
 
     model = MODEL_MAPPING.get(table_name)
     if not model:
+        logger.error(f"Model for table {table_name} not found in MODEL_MAPPING")
         return JsonResponse({'error': '資料表不存在'}, status=400)
 
     try:
-        queryset = model.objects.values_list(x_field, y_field)
-        x_data = [item[0] for item in queryset]
-        y_data = [item[1] for item in queryset]
+        # 處理關聯字段
+        queryset = model.objects.all()
+        # 如果 x_field 或 y_field 包含關聯字段，提取關聯欄位並使用 select_related        related_fields = set()
+        related_fields = set()
+        if '__' in x_field:
+            related_fields.add(x_field.split('__')[0])
+        if '__' in y_field:
+            related_fields.add(y_field.split('__')[0])
+
+        if related_fields:
+            queryset = queryset.select_related(*related_fields)
+
+        # 處理 join_fields，如果有額外的關聯欄位
+        if join_fields:
+            queryset = queryset.select_related(*join_fields)
+
+        # 動態取得欄位值
+        x_data = []
+        y_data = []
+        for obj in queryset:
+            # 獲取 x_value，支援關聯欄位
+            x_value = obj
+            for attr in x_field.split('__'):
+                x_value = getattr(x_value, attr)
+
+            # 獲取 y_value，支援關聯欄位
+            y_value = obj
+            for attr in y_field.split('__'):
+                y_value = getattr(y_value, attr)
+
+            x_data.append(x_value)
+            y_data.append(y_value)
+
         return JsonResponse({'x_data': x_data, 'y_data': y_data})
     except Exception as e:
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
    
 def save_chart_as_image(fig):
     file_name = f"chart_{uuid.uuid4().hex}.png"
@@ -684,15 +701,29 @@ class ChartDataAPIView(APIView):
 @api_view(['GET'])
 def get_table_fields(request, table_name):
     try:
-        model = globals().get(table_name)
+        model = MODEL_MAPPING.get(table_name)
         if not model:
             return JsonResponse({'error': '資料表不存在'}, status=400)
-        
+
+        # 取得当前模型的欄位列表
         fields = [field.name for field in model._meta.fields]
-        return JsonResponse(fields, safe=False)
+
+        # 取得獲取關聯欄位（ForeignKey）
+        related_fields = {}
+        for field in model._meta.fields:
+            if isinstance(field, models.ForeignKey):
+                related_model = field.related_model
+                related_field_names = [f.name for f in related_model._meta.fields]
+                related_fields[field.name] = {
+                    'related_model': related_model.__name__,
+                    'fields': related_field_names
+                }
+
+        return JsonResponse({'fields': fields, 'related_fields': related_fields})
     except Exception as e:
         logger.error(f"Error retrieving table fields: {e}")
         return JsonResponse({'error': '無法獲取欄位'}, status=500)
+
 
     
 # API：儲存圖表配置
@@ -786,7 +817,14 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             return Response({"message": "圖表已被刪除"}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
-
+    
+    def retrieve(self, request, pk=None):
+        try:
+            chart_config = self.get_object()
+            serializer = self.get_serializer(chart_config)
+            return Response(serializer.data)
+        except ChartConfiguration.DoesNotExist:
+            return Response({'error': 'Chart not found'}, status=404)
 
     # 恢復隱藏的圖表
     # @action(detail=True, methods=['post'])
@@ -858,7 +896,7 @@ class ProductSalesPieChartAPIView(APIView):
 
     def get(self, request):
         try:
-            product_sales = TEST_Sales.objects.values('product_id__category').annotate(total_sales=Sum('quantity'))
+            product_sales = TEST_Sales.objects.select_related('product_id').values('product_id__category').annotate(total_sales=Sum('quantity'))
             data = {
                 'categories': [item['product_id__category'] for item in product_sales],
                 'sales': [item['total_sales'] for item in product_sales]
