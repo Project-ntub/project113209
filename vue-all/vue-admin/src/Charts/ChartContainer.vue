@@ -4,6 +4,7 @@
       <div class="chart-header">
         <div class="menu-button">
           <button class="menu-icon" @click="toggleMenu">⋮</button>
+          <button class="zoom-icon" @click="openZoomModal"><i class="fas fa-search-plus"></i></button>
           <div v-if="showMenu" class="menu">
             <template v-if="!isFrontend">
               <button @click="editChart">編輯圖表</button>
@@ -17,19 +18,19 @@
           </div>
         </div>
       </div>
-      <!-- 點擊圖表，打開查看圖表的視窗 -->
-      <div @click="openChartModal">
-        <PlotlyChart :chartConfig="localChartConfig" />
-      </div>
-
+      
+      <!-- Plotly Chart 組件處理渲染 -->
+      <PlotlyChart :chartConfig="localChartConfig" />
+      
       <!-- 查看圖表的視窗 -->
-      <div v-if="isChartModalVisible" class="chart-modal-overlay" @click.self="closeChartModal">
-        <div class="chart-modal-content">
+      <div v-if="isZoomModalVisible" class="zoom-modal-overlay" @click.self="closeZoomModal">
+        <div class="zoom-modal-content">
           <PlotlyChart :chartConfig="localChartConfig" />
-          <button class="close-btn" @click="closeChartModal">×</button>
+          <button class="close-btn" @click="closeZoomModal">×</button>
         </div>
       </div>
     </div>
+    
     <!-- 編輯圖表的視窗 -->
     <ChartModal 
       v-if="!isFrontend && isEditModalVisible" 
@@ -60,7 +61,7 @@ export default {
   data() {
     return {
       showMenu: false,
-      isChartModalVisible: false,
+      isZoomModalVisible: false,
       isEditModalVisible: false,
       localChartConfig: { ...this.chartConfig },
       localCanExport: false,
@@ -68,19 +69,19 @@ export default {
     };
   },
   mounted() {
-    this.localCanExport = this.canExport; // 初始化匯出權限
-    this.localCanDelete = this.canDelete; // 初始化刪除權限
+    this.localCanExport = this.canExport;
+    this.localCanDelete = this.canDelete;
     this.fetchUserPermissions();
   },
   methods: {
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },
-    openChartModal() {
-      this.isChartModalVisible = true;
+    openZoomModal() {
+      this.isZoomModalVisible = true;
     },
-    closeChartModal() {
-      this.isChartModalVisible = false;
+    closeZoomModal() {
+      this.isZoomModalVisible = false;
     },
     editChart() {
       this.isEditModalVisible = true;
@@ -97,8 +98,8 @@ export default {
       const confirmation = confirm('確定要隱藏此圖表嗎？');
       if (confirmation) {
         try {
-          const response = await axios.post(`/api/backend/delete-chart/${this.localChartConfig.id}/`);
-          alert(response.data.message || '圖表已被隱藏');
+          await axios.post(`/api/backend/delete-chart/${this.localChartConfig.id}/`);
+          alert('圖表已被隱藏');
           this.$emit('reload-charts');
         } catch (error) {
           console.error('隱藏圖表時出錯:', error);
@@ -113,20 +114,16 @@ export default {
       axios.get('/api/backend/permissions/')
         .then(response => {
           const permissions = response.data;
-
-          this.localCanExport = permissions.some(perm => 
-            perm.permission_name === this.localChartConfig.label && perm.can_export === true
-          );
-          this.localCanDelete = permissions.some(perm => 
-            perm.permission_name === this.localChartConfig.label && perm.can_delete === true
-          );
+          console.log('User permissions:', permissions);
+          this.localCanExport = permissions.some(perm => perm.can_export);
+          this.localCanDelete = permissions.some(perm => perm.can_delete);
         })
         .catch(error => {
           console.error('無法獲取權限:', error);
         });
     },
     async exportChart(format) {
-      if (!this.localChartConfig.data || this.localChartConfig.data.length === 0) {
+      if (!this.localChartConfig.x_data || !this.localChartConfig.y_data) {
         alert('圖表配置無效，無法導出！');
         return;
       }
@@ -136,7 +133,7 @@ export default {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `${this.localChartConfig.label || 'exported-file'}.${format}`);
+        link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
         document.body.appendChild(link);
         link.click();
       } catch (error) {
@@ -148,14 +145,14 @@ export default {
       if (!chartId) {
         console.error('chartId is undefined');
         alert('無效的圖表 ID，無法加載圖表配置');
-        return;
+        return null;
       }
       try {
         const response = await axios.get(`/api/backend/charts/${chartId}/`);
         const data = response.data;
 
         this.updateChartConfig({
-          style: data.chartType,
+          chartType: data.chartType, // 使用 chartType
           name: data.name,
           dataSource: data.dataSource,
           xAxisField: data.xAxisField,
@@ -164,9 +161,11 @@ export default {
           x_data: data.x_data || [],
           y_data: data.y_data || []
         });
+        return data;
       } catch (error) {
         console.error('加載圖表配置時發生錯誤:', error);
         alert('加載圖表配置時發生錯誤，請稍後再試');
+        return null;
       }
     }
   }
@@ -181,6 +180,7 @@ export default {
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
 .chart-header {
   position: absolute;
   top: 10px;
@@ -190,49 +190,23 @@ export default {
   gap: 10px;
   z-index: 10;
 }
-.chart-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.chart-modal-content {
-  position: relative;
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 80%;
-  max-height: 80%;
-  overflow: auto;
-}
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
+
 .menu-button {
   position: relative;
   z-index: 11;
 }
-.menu-icon {
+
+.menu-icon, .zoom-icon {
   background: rgba(255, 255, 255, 0.8);
   border: none;
   color: black;
   padding: 8px;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
+  margin-right: 5px;
 }
+
 .menu {
   position: absolute;
   top: 100%;
@@ -244,6 +218,7 @@ export default {
   z-index: 12;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
 .menu button {
   display: block;
   width: 100%;
@@ -254,7 +229,50 @@ export default {
   cursor: pointer;
   color: white;
 }
+
 .menu button:hover {
   background-color: #2980b9;
+}
+
+.zoom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.zoom-modal-content {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 1200px;
+  height: 90%;
+  overflow: auto;
+}
+
+.plotly-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0,3);
 }
 </style>

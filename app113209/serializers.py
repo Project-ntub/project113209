@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue
 
@@ -72,14 +73,29 @@ class UserHistorySerializer(serializers.ModelSerializer):
 
 
 class ChartConfigurationSerializer(serializers.ModelSerializer):
-    dataSource = serializers.CharField(source='data_source')
-    xAxisField = serializers.CharField(source='x_axis_field')
-    yAxisField = serializers.CharField(source='y_axis_field')
-    chartType = serializers.CharField(source='chart_type')
+    # 讀取時使用駝峰命名
+    chartType = serializers.CharField(source='chart_type', read_only=True)
+    dataSource = serializers.CharField(source='data_source', read_only=True)
+    xAxisField = serializers.CharField(source='x_axis_field', read_only=True)
+    yAxisField = serializers.CharField(source='y_axis_field', read_only=True)
     
+    # 寫入時接受蛇形命名
+    chart_type = serializers.CharField(write_only=True)
+    data_source = serializers.CharField(write_only=True)
+    x_axis_field = serializers.CharField(write_only=True)
+    y_axis_field = serializers.CharField(write_only=True)
+
     class Meta:
         model = ChartConfiguration
-        fields = ['id', 'user', 'name', 'chartType', 'dataSource', 'xAxisField', 'yAxisField', 'filter_conditions', 'is_deleted', 'created_at', 'updated_at']
+        fields = '__all__'
+
+    def to_internal_value(self, data):
+        # 允許前端使用駝峰命名或蛇形命名
+        data['chart_type'] = data.get('chartType', data.get('chart_type'))
+        data['data_source'] = data.get('dataSource', data.get('data_source'))
+        data['x_axis_field'] = data.get('xAxisField', data.get('x_axis_field'))
+        data['y_axis_field'] = data.get('yAxisField', data.get('y_axis_field'))
+        return super().to_internal_value(data)
 
     def validate(self, data):
         # 確保圖表名稱不為空
@@ -97,16 +113,14 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
         # 確保 y 軸資料欄位不為空
         if not data.get('y_axis_field'):
             raise serializers.ValidationError({'y_axis_field': 'y 軸資料欄位不能為空.'})
-
+        
         # 確保過濾條件是字典而不是字符串
-        if isinstance(data.get('filter_conditions'), str):
+        if 'filter_conditions' in data and data['filter_conditions']:
             try:
                 data['filter_conditions'] = json.loads(data['filter_conditions'])
-            except ValueError:
-                raise serializers.ValidationError({'filter_conditions': '無效的 JSON 格式'})
-
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("Filter conditions must be valid JSON.")
         return data
-
 
 class UserPreferencesSerializer(serializers.ModelSerializer):
     class Meta:

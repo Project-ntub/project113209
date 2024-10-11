@@ -1,5 +1,5 @@
 <template>
-  <div ref="chart" class="plotly-chart"></div>
+  <div ref="chart" class="plotly-chart" @click.stop></div>
   <div class="last-updated">最後更新時間: {{ lastUpdated }}</div>
 </template>
 
@@ -14,25 +14,26 @@ export default {
       lastUpdated: '',
       localChartConfig: {
         ...this.chartConfig,
-        dataSource: this.chartConfig.data_source || '',
-        xAxisField: this.chartConfig.x_axis_field || '',
-        yAxisField: this.chartConfig.y_axis_field || '',
-        chartType: this.chartConfig.chart_type || '',
+        dataSource: this.chartConfig.dataSource || '',
+        xAxisField: this.chartConfig.xAxisField || '',
+        yAxisField: this.chartConfig.yAxisField || '',
+        chartType: this.chartConfig.chartType || '', // 使用 chartType
         name: this.chartConfig.name || '',
-        label: this.chartConfig.label || '',
+        id: this.chartConfig.id || null,
+        filterConditions: this.chartConfig.filterConditions || '{}',
       },
       chartData: {
-        xAxisField: [],
-        yAxisField: []
+        x_data: [],
+        y_data: [],
+        joinFields: []
       }
     };
   },
   mounted() {
-    if (!this.$refs.chart) {
-      console.error('无法获取图表的引用（this.$refs.chart），请检查模板中的 ref 是否正确。');
-      return;
+    if (this.localChartConfig.id) {
+      this.fetchChartData(this.localChartConfig.id);
     }
-    this.fetchChartData(this.localChartConfig.id);
+    window.addEventListener('resize', this.renderChart);
   },
   methods: {
     async fetchChartData(chartId) {
@@ -53,54 +54,52 @@ export default {
           table_name: this.localChartConfig.dataSource,
           x_field: this.localChartConfig.xAxisField,
           y_field: this.localChartConfig.yAxisField,
-          chart_id: chartId
+          filter_conditions: JSON.parse(this.localChartConfig.filterConditions || '{}'),
+          join_fields: this.chartData.joinFields
         });
         console.log('Chart data response:', response.data);
-        const data = response.data;
-        // 檢查是否有錯誤
-        if (data.error) {
-          console.error('後端返回錯誤:', data.error);
-          alert('後端返回錯誤: ' + data.error);
-          return;
-        }
-
-        // 檢查 x_data 和 y_data 是否存在
-        if (!data.x_data || !data.y_data) {
-          console.error('x_data 或 y_data 缺失:', data);
+        
+        if (!response.data.x_data || !response.data.y_data) {
+          console.error('x_data 或 y_data 缺失:', response.data);
           alert('後端返回的數據格式錯誤，請檢查後端日誌以獲取更多信息。');
           return;
         }
-        this.chartData.xAxisField = data.x_data;
-        this.chartData.yAxisField = data.y_data;
 
-        // 在调用 renderChart 之前，添加调试信息
-        console.log('xData:', this.chartData.xAxisField);
-        console.log('yData:', this.chartData.yAxisField);
+        this.chartData.x_data = response.data.x_data;
+        this.chartData.y_data = response.data.y_data;
+        this.lastUpdated = response.data.last_updated || new Date().toLocaleString();
 
-        this.renderChart(this.chartData.xAxisField, this.chartData.yAxisField);
+        console.log('xData:', this.chartData.x_data);
+        console.log('yData:', this.chartData.y_data);
+
+        this.renderChart();
       } catch (error) {
         console.error('獲取圖表數據時出錯:', error);
         alert('獲取圖表數據時出錯，請檢查後端日誌以獲取更多信息。');
       }
     },
-    renderChart(xData, yData) {
+    renderChart() {
       const chartEl = this.$refs.chart;
       if (!chartEl) {
-        console.error('无法获取图表的引用（chartEl），请检查模板中的 ref 是否正确。');
+        console.error('無法取得圖表的引用（chartEl），請檢查範本中的 ref 是否正確。');
         return;
       }
+
+      console.log('Rendering chart with type:', this.localChartConfig.chartType);
+      console.log('x_data:', this.chartData.x_data);
+      console.log('y_data:', this.chartData.y_data);
 
       let trace;
       if (this.localChartConfig.chartType === 'pie') {
         trace = {
-          labels: xData,
-          values: yData,
+          labels: this.chartData.x_data,
+          values: this.chartData.y_data,
           type: 'pie',
         };
       } else {
         trace = {
-          x: xData,
-          y: yData,
+          x: this.chartData.x_data,
+          y: this.chartData.y_data,
           type: this.localChartConfig.chartType || 'bar'
         };
       }
@@ -138,9 +137,15 @@ export default {
           ...newConfig,
           dataSource: newConfig.dataSource || '',
           xAxisField: newConfig.xAxisField || '',
-          yAxisField: newConfig.yAxisField || ''
+          yAxisField: newConfig.yAxisField || '',
+          chartType: newConfig.chartType || '', // 使用 chartType
+          name: newConfig.name || '',
+          id: newConfig.id || null,
+          filterConditions: newConfig.filterConditions || '{}',
         };
-        this.fetchChartData(newConfig.id);  // 根據新的配置重新加載圖表數據
+        if (this.localChartConfig.id) {
+          this.fetchChartData(this.localChartConfig.id);
+        }
       },
       immediate: true,
       deep: true

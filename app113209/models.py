@@ -150,7 +150,7 @@ class Chart(models.Model):
         # 可以根據需要添加更多的圖表類型
     ]
 
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True, default=1)
     chart_type = models.CharField(max_length=50, choices=CHART_TYPES)
     chart_name = models.CharField(max_length=255)
     chart_data = models.JSONField()  # 存储图表数据，建议使用 JSON 字段来存储复杂数据
@@ -204,7 +204,7 @@ class ChartConfiguration(models.Model):
 #         return f"{self.object_repr} (Action: {self.action_flag}) at {self.action_time}"
 
 class UserHistory(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True, default=1)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='histories')
     action = models.CharField(max_length=500)  # Increased the length for action descriptions
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -226,7 +226,6 @@ class UserHistory(models.Model):
         return f"User {user_display} performed '{self.action}' on {device_brand} ({device_type}) with result {'success' if self.operation_result else 'failure'} at {self.timestamp}"
 
 
-
 class UserPreferences(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fontsize = models.CharField(max_length=10, choices=[('small', '小'), ('medium', '中'), ('large', '大')], default='medium')
@@ -243,13 +242,14 @@ class UserPreferences(models.Model):
 #frontend
 
 class Branch(models.Model):
-    branch_id = models.AutoField(primary_key=True)  # 主鍵
-    branch_name = models.CharField(max_length=100)  # 分店名稱
-    address = models.CharField(max_length=255)  # 地址
-    manager = models.CharField(max_length=100)  # 經理姓名
+    branch_id = models.CharField(max_length=50, primary_key=True)
+    branch_name = models.CharField(max_length=45, unique=True)
+    address = models.CharField(max_length=45, null=True, blank=True)
+    manager = models.CharField(max_length=45, unique=True)
 
     class Meta:
-        db_table = 'branches' 
+        db_table = 'branches'
+
     def __str__(self):
         return self.branch_name
 
@@ -277,7 +277,7 @@ class HistoryRecord(models.Model):
 
 #圖表資料
 class TEST_Stores(models.Model):
-    store_id = models.AutoField(primary_key=True)
+    store_id = models.AutoField(primary_key=True, default=1)
     store_name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -288,12 +288,12 @@ class TEST_Stores(models.Model):
     def __str__(self):
         return self.store_name
 
-
+# 測試用產品模型
 class TEST_Products(models.Model):
-    product_id = models.AutoField(primary_key=True)
+    product_id = models.CharField(max_length=50, primary_key=True)
     product_name = models.CharField(max_length=255)
     category = models.CharField(max_length=255, null=True, blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # 修改為 DecimalField
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -302,53 +302,62 @@ class TEST_Products(models.Model):
     def __str__(self):
         return self.product_name
 
-
+# 測試用銷售模型
 class TEST_Sales(models.Model):
-    sale_id = models.AutoField(primary_key=True)
-    branch_id = models.ForeignKey(Branch, on_delete=models.CASCADE, db_column='branch_id')  # 連結到 TEST_Stores 的 branch_id
-    product_id = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, db_column='product_id')  # 連結到 TEST_Products 的 product_id
-    quantity = models.IntegerField()
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2)
-    sale_date = models.DateField()
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-    tax_rate = models.CharField(max_length=10, null=True, blank=True)
+    sale_id = models.CharField(max_length=50, primary_key=True)
+    quantity = models.IntegerField()  # 修改為 IntegerField
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2)  # 修改為 DecimalField
+    sale_date = models.DateField()  # 修改為 DateField
+    total_amount = models.DecimalField(max_digits=20, decimal_places=2)  # 修改為 DecimalField
+    created_at = models.DateTimeField(auto_now=True)
+    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, null=True, db_column='product_id')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True, db_column='branch_id')
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # 修改為 DecimalField
 
     class Meta:
         db_table = 'TEST_Sales'
 
     def __str__(self):
-        branch_name = self.branch_id.branch_name if self.branch_id else 'N/A'
-        product_name = self.product_id.product_name if self.product_id else 'N/A'
+        branch_name = self.branch.branch_name if self.branch else 'N/A'
+        product_name = self.product.product_name if self.product else 'N/A'
         return f"Sale ID: {self.sale_id}, Branch: {branch_name}, Product: {product_name}"
 
 
+# 測試用庫存模型
 class TEST_Inventory(models.Model):
-    inventory_id = models.CharField(max_length=50, primary_key=True)  # 對應資料庫中的 varchar(50)
-    stock_quantity = models.CharField(max_length=50)  # 對應資料庫中的 varchar(50)
-    last_updated = models.CharField(max_length=30)  # 對應資料庫中的 varchar(30)
-    product_id = models.ForeignKey(TEST_Products, on_delete=models.SET_NULL, null=True, db_column='product_id')  # 連結到 TEST_Products 的 product_id
-    branch_id = models.ForeignKey(TEST_Stores, on_delete=models.SET_NULL, null=True, db_column='branch_id')  # 連結到 TEST_Stores 的 branch_id
+    product = models.ForeignKey('TEST_Products', on_delete=models.CASCADE, db_column='product_id')
+    warehouse_id = models.CharField(max_length=50)
+    warehouse_name = models.CharField(max_length=200, null=True, blank=True)
+    product_name = models.CharField(max_length=200, null=True, blank=True)
+    stock_quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    last_update = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'TEST_Inventory'
-    
+
     def __str__(self):
-        return f"Inventory ID: {self.inventory_id}, Branch: {self.branch_id.branch_name}, Product: {self.product_id.product_name}"
+        return f"{self.product_name} - {self.warehouse_name}"
 
 
 class TEST_Revenue(models.Model):
-    revenue_id = models.AutoField(primary_key=True)
-    store = models.ForeignKey(TEST_Stores, on_delete=models.CASCADE)  # 連結到 TEST_Stores
-    total_revenue = models.DecimalField(max_digits=15, decimal_places=2)
-    revenue_date = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    branch = models.ForeignKey('Branch', on_delete=models.CASCADE, db_column='branch_id')
+    branch_name = models.CharField(max_length=100)
+    product = models.ForeignKey('TEST_Products', on_delete=models.CASCADE, db_column='product_id')
+    revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    discount_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    net_revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    cost_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    tax_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    final_revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    last_update = models.DateTimeField(auto_now=True)
+ 
     class Meta:
         db_table = 'TEST_Revenue'
+        unique_together = (('branch_id', 'product_id'),)
+
 
     def __str__(self):
-        return f"Revenue ID: {self.revenue_id}, Store: {self.store.store_name}, Date: {self.revenue_date}"
+        return f"Revenue for Branch {self.branch_name} - Product {self.product_id}"
 
 
 

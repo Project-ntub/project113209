@@ -12,6 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import F, Sum
@@ -609,44 +610,58 @@ def dynamic_chart_data(request):
         return JsonResponse({'error': '資料表不存在'}, status=400)
 
     try:
-        # 處理關聯字段
         queryset = model.objects.all()
-        # 如果 x_field 或 y_field 包含關聯字段，提取關聯欄位並使用 select_related        related_fields = set()
-        related_fields = set()
-        if '__' in x_field:
-            related_fields.add(x_field.split('__')[0])
-        if '__' in y_field:
-            related_fields.add(y_field.split('__')[0])
 
-        if related_fields:
-            queryset = queryset.select_related(*related_fields)
-
-        # 處理 join_fields，如果有額外的關聯欄位
+        # 處理關聯字段
         if join_fields:
+            logger.info(f"Using join_fields with fields: {join_fields}")
             queryset = queryset.select_related(*join_fields)
 
-        # 動態取得欄位值
         x_data = []
         y_data = []
         for obj in queryset:
-            # 獲取 x_value，支援關聯欄位
-            x_value = obj
-            for attr in x_field.split('__'):
-                x_value = getattr(x_value, attr)
+            try:
+                # 獲取x軸的值
+                x_value = obj
+                for attr in x_field.split('__'):
+                    x_value = getattr(x_value, attr)
 
-            # 獲取 y_value，支援關聯欄位
-            y_value = obj
-            for attr in y_field.split('__'):
-                y_value = getattr(y_value, attr)
+                # 獲取y軸的值並轉換為數值類型
+                y_value = obj
+                for attr in y_field.split('__'):
+                    y_value = getattr(y_value, attr)
+                try:
+                    y_value = float(y_value)
+                except (ValueError, TypeError):
+                    y_value = 0  # 或者根據需求處理無效數值
 
-            x_data.append(x_value)
-            y_data.append(y_value)
+                x_data.append(x_value)
+                y_data.append(y_value)
+            except AttributeError as e:
+                logger.error(f"Error getting attribute: {e}")
 
-        return JsonResponse({'x_data': x_data, 'y_data': y_data})
+        # 動態檢查模型是否具有'last_updated'字段
+        last_updated_field = None
+        field_names = [field.name for field in model._meta.get_fields()]
+        if 'last_updated' in field_names:
+            last_updated_field = 'last_updated'
+        elif 'created_at' in field_names:
+            last_updated_field = 'created_at'
+        else:
+            logger.warning(f"Model {table_name} does not have 'last_updated' or 'created_at' fields.")
+            last_updated_field = None
+
+        if last_updated_field:
+            last_updated_instance = queryset.order_by(f'-{last_updated_field}').first()
+            last_updated = getattr(last_updated_instance, last_updated_field) if last_updated_instance else None
+        else:
+            last_updated = None
+
+        logger.info(f"Returning x_data length: {len(x_data)}, y_data length: {len(y_data)}")
+        return JsonResponse({'x_data': x_data, 'y_data': y_data, 'last_updated': last_updated})
     except Exception as e:
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-
    
 def save_chart_as_image(fig):
     file_name = f"chart_{uuid.uuid4().hex}.png"
@@ -705,10 +720,10 @@ def get_table_fields(request, table_name):
         if not model:
             return JsonResponse({'error': '資料表不存在'}, status=400)
 
-        # 取得当前模型的欄位列表
+        # 取得當前模型的欄位列表
         fields = [field.name for field in model._meta.fields]
 
-        # 取得獲取關聯欄位（ForeignKey）
+        # 取得關聯欄位（ForeignKey）
         related_fields = {}
         for field in model._meta.fields:
             if isinstance(field, models.ForeignKey):
@@ -782,14 +797,14 @@ def get_chart_data(request, table_name):
 
 # API：儲存與更新圖表配置
 class ChartConfigurationViewSet(viewsets.ModelViewSet):
-    queryset = ChartConfiguration.objects.filter(is_deleted=False)  # 只返回未刪除的圖表
+    queryset = ChartConfiguration.objects.filter(is_deleted=False)
     serializer_class = ChartConfigurationSerializer
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['post'])
     def create_chart_action(self, request):
-        data = request.data.copy()  # 複製請求數據
-        data['user'] = request.user.id  # 手動設置 user 為當前登錄用戶
+        data = request.data.copy()
+        data['user'] = request.user.id
 
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
@@ -798,14 +813,14 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
         logger.error(f"Chart creation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['post'])
-    def update_chart_action(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='update-chart')
+    def update_chart(self, request, pk=None):
         chart_config = get_object_or_404(ChartConfiguration, pk=pk)
         serializer = self.get_serializer(chart_config, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        logger.error(f"Chart update failed: {serializer.errors}")  # 記錄錯誤        
+        logger.error(f"Chart update failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
@@ -817,7 +832,7 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             return Response({"message": "圖表已被刪除"}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
-    
+
     def retrieve(self, request, pk=None):
         try:
             chart_config = self.get_object()
@@ -959,12 +974,15 @@ class StoreComparisonChartDataAPIView(APIView):
 # 匯出 CSV
 @api_view(['POST'])
 def export_data(request):
-    data = request.data.get('chartConfig', {}).get('data', [])
+    table_name = request.data.get('chartConfig', {}).get('dataSource', '')
     format = request.data.get('format')
     chart_name = request.data.get('chartConfig', {}).get('name', 'chart')
+    
+    model = MODEL_MAPPING.get(table_name)
+    if not model:
+        return JsonResponse({"error": "資料表不存在"}, status=400)
 
-    if not data:
-        return JsonResponse({"error": "No data provided"}, status=400)
+    data = list(model.objects.values())  # 獲取整個資料表的所有資料
 
     if format == 'csv':
         response = export_to_csv(data, chart_name)

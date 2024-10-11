@@ -21,7 +21,11 @@
       <div class="charts">
         <!-- 渲染篩選後的圖表 -->
         <div v-for="chart in filteredCharts" :key="chart.id" class="chart-wrapper">
-          <ChartContainer :chartConfig="chart">
+          <ChartContainer 
+            :chartConfig="chart" 
+            @reload-charts="fetchCharts"
+            :isFrontend="false"
+          >
             <PlotlyChart :chartConfig="chart" />
           </ChartContainer>
         </div>
@@ -33,7 +37,9 @@
       v-if="showChartModal" 
       :isEditing="isEditing" 
       :chartId="selectedChartId" 
-      @close="closeChartModal" 
+      :fetchChartConfig="fetchChartConfigMethod"
+      @close="closeChartModal"
+      @reload-charts="fetchCharts"  
     />
 
     <!-- 預覽角色介面窗口 -->
@@ -69,6 +75,7 @@ export default {
     };
   },
   mounted() {
+    this.fetchCharts();
     this.filteredCharts = this.charts; // 預設顯示所有圖表
     axios.get('/api/backend/get-chart-configurations/')
     .then(response => {
@@ -87,6 +94,22 @@ export default {
     });
   },
   methods: {
+    fetchCharts() {
+      axios.get('/api/backend/get-chart-configurations/')
+        .then(response => {
+          this.charts = response.data.map(chart => ({
+            ...chart,
+            dataSource: chart.data_source, // 確保字段名稱一致
+            xAxisField: chart.x_axis_field,
+            yAxisField: chart.y_axis_field,
+            chartType: chart.chart_type,
+          }));
+          this.filteredCharts = this.charts; // 更新 filteredCharts
+        })
+        .catch(error => {
+          console.error('Error fetching chart configurations:', error);
+        });
+    },
     openChartModal(editing, chartId = null) {
       this.isEditing = editing;
       this.selectedChartId = chartId;

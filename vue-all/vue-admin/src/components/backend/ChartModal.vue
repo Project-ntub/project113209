@@ -14,8 +14,8 @@
           </div>
           <!-- 圖表類型 -->
           <div class="setting">
-            <label for="chart-style">圖表類型</label>
-            <select id="chart-style" v-model="chartData.style">
+            <label for="chart-type">圖表類型</label>
+            <select id="chart-type" v-model="chartData.chartType">
               <option value="bar">柱狀圖</option>
               <option value="line">折線圖</option>
               <option value="pie">餅圖</option>
@@ -25,13 +25,12 @@
           <!-- 資料來源 -->
           <div class="setting">
             <label for="data-source">資料來源</label>
-            <select id="data-source" v-model="chartData.dataSource">
+            <select id="data-source" v-model="chartData.dataSource" @change="fetchTableFields">
               <option v-for="source in dataSource" :key="source.value" :value="source.value">
                 {{ source.label }}
               </option>
             </select>
           </div>
-          <!-- X 軸和 Y 軸欄位 -->
           <!-- X 軸欄位選擇 -->
           <div class="setting">
             <label for="x-axis-field">X 軸欄位</label>
@@ -73,7 +72,7 @@
         <!-- 圖表預覽 -->
         <div class="chart-preview">
           <h3>預覽</h3>
-          <div id="chart-container"></div>
+          <PlotlyChart :chartConfig="chartData" /> <!-- 使用 PlotlyChart 組件進行渲染 -->
         </div>
       </div>
       <div class="chart-modal-footer">
@@ -86,9 +85,13 @@
 
 <script>
 import axios from 'axios';
-import Plotly from 'plotly.js-dist';
+// import Plotly from 'plotly.js-dist';
+import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 
 export default {
+  components: {
+    PlotlyChart
+  },
   props: {
     isEditing: Boolean,
     chartId: {
@@ -103,17 +106,18 @@ export default {
   data() {
     return {
       chartData: {
-        style: 'bar',
+        id: null,
+        chartType: 'bar', // 使用 chartType
         name: '',
         dataSource: '',
         xAxisField: '',
         yAxisField: '',
         filterConditions: '{}',
         x_data: [],
-        y_data: [], 
+        y_data: [],
         joinFields: []
       },
-      joinableFields: [], //可用關聯欄位
+      joinableFields: [],
       dataSource: [],
       tableFields: []
     };
@@ -121,18 +125,32 @@ export default {
   mounted() {
     this.fetchDataSources();
     if (this.isEditing && this.chartId) {
-      this.fetchChartConfig(this.chartId)
-        .then(config => {
-          if (config) {
-            this.chartData = {
-              ...this.chartData,
-              ...config
-            };
-            this.fetchTableFields();
+      axios.get(`/api/backend/charts/${this.chartId}/`)
+        .then(response => {
+          const config = response.data;
+          this.chartData = {
+            ...this.chartData,
+            id: config.id,
+            chartType: config.chartType, // 確保使用 chartType
+            name: config.name,
+            dataSource: config.dataSource,
+            xAxisField: config.xAxisField,
+            yAxisField: config.yAxisField,
+            filterConditions: JSON.stringify(config.filter_conditions || '{}'),
+          };
+          if (this.chartData.dataSource) {
+            this.$nextTick(() => {
+              this.fetchTableFields();
+            });
           }
+        })
+        .catch(error => {
+          console.error('獲取圖表配置出錯:', error);
+          alert('獲取圖表配置時出錯，請檢查後端日誌以獲取更多信息。');
         });
     }
   },
+
   methods: {
     fetchDataSources() {
       axios.get('/api/backend/data-sources/')
@@ -168,49 +186,27 @@ export default {
         console.error('過濾條件格式無效，使用預設值 {}');
       }
 
-      axios.get(`/api/backend/chart-data/${this.chartData.dataSource}/`, {
-        params: {
-          x_field: this.chartData.xAxisField,
-          y_field: this.chartData.yAxisField,
-          filter_conditions: JSON.stringify(filterConditions)
-        }
-      }).then(response => {
+      axios.post('/api/backend/dynamic-chart-data/', {
+        table_name: this.chartData.dataSource,
+        x_field: this.chartData.xAxisField,
+        y_field: this.chartData.yAxisField,
+        filter_conditions: filterConditions,
+        join_fields: this.chartData.joinFields
+      })
+      .then(response => {
         const { x_data, y_data } = response.data;
 
         if (x_data && y_data) {
           this.chartData.x_data = x_data;
           this.chartData.y_data = y_data;
-          this.renderChart();
+          // 不需要在 chartmodal.vue 渲染圖表，已由 PlotlyChart.vue 處理
         } else {
           console.error('x_data 和 y_data 不能為空');
         }
-      }).catch(error => {
+      })
+      .catch(error => {
         console.error('獲取圖表數據時出錯:', error);
       });
-    },
-    renderChart() {
-      const trace = {
-        x: this.chartData.x_data,
-        y: this.chartData.y_data,
-        type: this.chartData.style || 'bar'
-      };
-
-      const layout = {
-        title: this.chartData.name || '圖表預覽',
-        xaxis: { title: this.chartData.xAxisField || 'X 軸' },
-        yaxis: { title: this.chartData.yAxisField || 'Y 軸' }
-      };
-
-      const config = {
-        displaylogo: false, 
-        modeBarButtonsToRemove: [
-          'select2d',     
-          'lasso2d',      
-          'autoScale2d'
-        ]
-      };
-
-      Plotly.newPlot('chart-container', [trace], layout, config);
     },
     saveChart() {
       let filterConditions = {};
@@ -222,26 +218,39 @@ export default {
       }
 
       let chartConfig = {
-        chart_type: this.chartData.style,
+        chart_type: this.chartData.chartType, // 使用 chartType
         name: this.chartData.name || '未命名圖表',
         data_source: this.chartData.dataSource,
         x_axis_field: this.chartData.xAxisField,
         y_axis_field: this.chartData.yAxisField,
         filter_conditions: filterConditions,
-        x_data: this.chartData.x_data,
-        y_data: this.chartData.y_data
       };
 
-      axios.post('/api/backend/create-chart/', chartConfig)
-        .then(response => {
-          alert('圖表已成功創建！');
-          this.$emit('chart-saved', response.data);
-          this.closeModal();
-        })
-        .catch(error => {
-          const errorMsg = error.response?.data?.error || '發生未知錯誤';
-          alert(`創建圖表失敗: ${errorMsg}`);
-        });
+      if (this.isEditing) {
+        // 編輯模式，調用更新 API
+        axios.post(`/api/backend/update-chart/${this.chartId}/`, chartConfig)
+          .then(() => {
+            alert('圖表已成功更新！');
+            this.$emit('reload-charts');
+            this.closeModal();
+          })
+          .catch(error => {
+            const errorMsg = error.response?.data?.error || '發生未知錯誤';
+            alert(`更新圖表失敗: ${errorMsg}`);
+          });
+      } else {
+        // 創建模式，調用創建 API
+        axios.post('/api/backend/create-chart/', chartConfig)
+          .then(() => {
+            alert('圖表已成功創建！');
+            this.$emit('reload-charts');
+            this.closeModal();
+          })
+          .catch(error => {
+            const errorMsg = error.response?.data?.error || '發生未知錯誤';
+            alert(`創建圖表失敗: ${errorMsg}`);
+          });
+      }
     },
     closeModal() {
       this.$emit('close');
@@ -301,7 +310,6 @@ export default {
 .setting {
   margin-bottom: 15px;
 }
-.btn-preview,
 .btn-save,
 .btn-cancel {
   background-color: #007BFF;
