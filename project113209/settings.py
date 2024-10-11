@@ -41,13 +41,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # 確保放在 SessionMiddleware 之上
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_otp.middleware.OTPMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'app113209.middleware.allow_iframe.AllowIframeMiddleware',
 ]
 
@@ -115,12 +115,12 @@ LOGIN_URL = '/frontend/login/'
 LOGIN_REDIRECT_URL = '/frontend/home/'
 LOGOUT_REDIRECT_URL = '/frontend/login/'
 
-# 對於後台
+# 後台設定
 BACKEND_LOGIN_URL = '/backend/login/'
 BACKEND_LOGIN_REDIRECT_URL = '/backend/management/'
 BACKEND_LOGOUT_REDIRECT_URL = '/backend/login/'
 
-# 使用自定义的用户模型
+# 自定義用戶模型
 AUTH_USER_MODEL = 'app113209.User'
 
 # Logging Configuration
@@ -140,7 +140,7 @@ EMAIL_HOST_PASSWORD = 'evcajuubazrginrn'
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 30
-SESSION_COOKIE_SECURE = False  # 開發模式下應該設為 False
+SESSION_COOKIE_SECURE = False  # 開發模式下設置為 False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_NAME = 'sessionid'
@@ -159,7 +159,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-# Django REST framework configuration
+# Django REST Framework 設定
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
@@ -190,14 +190,14 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
-# CORS configuration
-CORS_ALLOW_ALL_ORIGINS = True  # 設置允許所有來源
-CORS_ALLOW_CREDENTIALS = True
+# CORS 配置
+CORS_ALLOW_ALL_ORIGINS = True  # 開發環境中允許所有來源
+CORS_ALLOW_CREDENTIALS = True  # 允許傳遞憑證
 
-# CSRF settings
+# CSRF 配置
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
-    "http://172.16.32.106:8080",  # 本機固定 IP
+    "http://192.168.1.100:8080",  # 本機固定 IP
     "http://192.168.168.87:8080",  # Bluestacks 固定 IP
     "http://192.168.168.109:8080"
 ]

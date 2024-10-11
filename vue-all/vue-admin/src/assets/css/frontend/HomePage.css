@@ -11,22 +11,19 @@ html, body {
   overflow: hidden;
 }
 
-/* 主容器樣式 */
 .home-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-left: 30px;
-  margin-top: 40px; /* 增加 margin-top 為 40px 讓內容下移更多 */
+  margin-top: 40px;
   transition: margin-left 0.3s ease;
   padding: 20px;
   overflow-y: auto;
   height: 100vh;
   min-height: 100vh;
-  padding-bottom: 200px; /* 增加底部填充以提供更多空間 */
 }
 
-/* 側邊欄樣式 */
 .sidebar {
   width: 40px;
   transition: width 0.3s ease;
@@ -46,7 +43,6 @@ html, body {
   margin-left: 160px;
 }
 
-/* 分店選擇區域 */
 .branch-selection {
   display: flex;
   align-items: center;
@@ -61,44 +57,32 @@ html, body {
 }
 
 .branch-selection select {
-  width: 100%; /* Full width for select */
-  max-width: 800px; /* Adjust max-width to fit */
+  width: 100%;
+  max-width: 800px;
   padding: 12px 15px;
   font-size: 16px;
   border-radius: 5px;
   border: 1px solid #ccc;
 }
 
-/* 圖表網格容器 */
 .chart-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px; /* 減少圖表間距 */
+  gap: 40px;
   justify-content: center;
   width: 100%;
-  flex-grow: 1;
 }
 
-/* 圖表容器 */
 .chart-container {
   width: 100%;
-  max-width: 300px; /* 減小最大寬度 */
-  height: 50px; /* 固定高度 */
-  transform: scale(0.7); /* 調整縮放比例 */
-  transform-origin: top left; /* 確保縮放的基點 */
+  max-width: 600px;
+  height: 400px;
   background-color: #f2f2f2;
   border-radius: 10px;
-  padding: 2px; /* 減少內邊距 */
-  margin-bottom: 30px; /* 調整底部邊距 */
+  padding: 20px;
+  margin-bottom: 30px;
 }
 
-/* 圖表內部標籤樣式 */
-.chart-label {
-  font-size: 8px; /* 減小字體大小 */
-  line-height: 1; /* 減少行高 */
-}
-
-/* 按鈕控制區域 */
 .chart-controls {
   display: flex;
   align-items: center;
@@ -109,8 +93,8 @@ html, body {
 }
 
 .chart-controls button {
-  padding: 10px 15px; /* 減少按鈕的內邊距 */
-  font-size: 14px; /* 調整字體大小 */
+  padding: 10px 15px;
+  font-size: 14px;
   border: none;
   border-radius: 10px;
   background-color: #3498db;
@@ -122,7 +106,6 @@ html, body {
   background-color: #2980b9;
 }
 
-/* 小螢幕調整 */
 @media (max-width: 768px) {
   .home-page {
     margin-left: 0;
@@ -143,20 +126,16 @@ html, body {
   }
 
   .chart-grid {
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
   }
 
   .chart-container {
-    max-width: 100%; /* 確保在小螢幕上全寬 */
-    height: 50px; /* 固定高度 */
-  }
-
-  .branch-selection select {
-    width: 100%;
+    max-width: 100%;
+    height: 300px;
   }
 }
 
-/* 平板裝置 */
 @media (min-width: 768px) and (max-width: 1024px) {
   .home-page {
     margin-left: 30px;
@@ -168,9 +147,9 @@ html, body {
   }
 
   .chart-container {
-    height: auto;
-    aspect-ratio: 4 / 3; /* 繼續保持適合的比例 */
-    padding: 15px;
+    max-width: 80%;
+    height: 350px;
+    aspect-ratio: 4 / 3;
   }
 
   .chart-controls button {
@@ -178,7 +157,6 @@ html, body {
   }
 }
 
-/* 電腦版裝置 */
 @media (min-width: 1024px) {
   .home-page {
     margin-left: 40px;
@@ -190,8 +168,8 @@ html, body {
   }
 
   .chart-container {
-    height: auto;
-    aspect-ratio: 4 / 3; /* 繼續保持適合的比例 */
-    margin-bottom: 150px; /* 保持底部間距 */
+    max-width: 600px;
+    height: 400px;
+    aspect-ratio: 4 / 3;
   }
 }

@@ -31,6 +31,7 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import axios from 'axios';
+import '@/assets/css/frontend/HomePage.css';
 
 export default {
   name: 'HomePage',
@@ -59,15 +60,12 @@ export default {
         xAxisField: chart.x_axis_field,
         yAxisField: chart.y_axis_field,
         chartType: chart.chart_type,
-        // 如果有其他字段需要转换，继续添加
       }));
-      this.filteredCharts = this.charts; // 更新 filteredCharts
     })
     .catch(error => {
       console.error('Error fetching chart configurations:', error);
     });
     
-    // 获取用户职位等信息
     await this.fetchUserPosition();
   },
   methods: {
@@ -101,7 +99,6 @@ export default {
     },
     setCurrentChart(chart) {
       const allowedCharts = this.permissions.map(perm => perm.permission_name);
-
       if (chart === 'all') {
         this.currentChart = 'all';
       } else if (allowedCharts.includes(chart)) {
@@ -113,5 +110,3 @@ export default {
   },
 };
 </script>
-
-<style scoped src="@/assets/css/frontend/HomePage.css"></style>

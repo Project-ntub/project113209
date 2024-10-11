@@ -6,12 +6,14 @@ body {
 }
 
 .container {
-    width: 90%;
-    margin: 20px auto;
-    background-color: #ffffff;
+    width: 100%; /* 設置更大的寬度 */
+    max-width: 1200px; /* 設置最大寬度限制 */
+    margin: 20px auto; /* 讓容器水平置中 */
     padding: 20px;
+    background-color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+    overflow-x: auto;
 }
 
 .pending-table {
