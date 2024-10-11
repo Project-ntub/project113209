@@ -11,8 +11,11 @@
           <div class="input-group">
             <label for="password">密碼</label>
             <div class="input-container">
-              <input type="password" id="password" v-model="password" required />
-              <i class="fas fa-eye toggle-password" @click="togglePasswordVisibility('password')"></i>
+              <input :type="passwordVisible ? 'text' : 'password'" id="password" v-model="password" required />
+              <i :class="passwordVisible ? 'fas fa-eye-slash' : 'fas fa-eye'" 
+                 class="toggle-password"
+                 @click="togglePasswordVisibility">
+              </i>
             </div>
           </div>
           <div class="additional-options">
@@ -31,6 +34,7 @@
   </div>
 </template>
 
+
 <script>
 import axios from 'axios';
 
@@ -40,48 +44,35 @@ export default {
       email: '',
       password: '',
       rememberMe: false,
-      error: '' // 新增 error 變量
+      error: '',
+      passwordVisible: false // 新增 passwordVisible 變數
     };
   },
   methods: {
     async handleLogin() {
       try {
-        // 向後端發送登入請求
         const response = await axios.post('/api/token/', {
           email: this.email,
           password: this.password,
           remember_me: this.rememberMe
         });
 
-        console.log('登入成功', response);
-
-        // 確認後端是否返回了 token
         if (response.data && response.data.access) {
-          // 儲存 frontend_token 到 localStorage
           localStorage.setItem('frontend_token', response.data.access);
-          
-          // 成功後跳轉至首頁
           this.$router.push('/frontend/home');
         } else {
           this.error = '登入失敗，無法取得 Token';
         }
       } catch (error) {
-        console.error('登入失敗', error.response);
-
-        // 處理錯誤信息
-        if (error.response && error.response.data) {
-          this.error = error.response.data.detail || '登入失敗，請檢查您的使用者名稱和密碼';
-        } else {
-          this.error = '登入失敗，請稍後再試';
-        }
+        this.error = error.response?.data?.detail || '登入失敗，請檢查您的使用者名稱和密碼';
       }
     },
-    togglePasswordVisibility(inputId) {
-      const passwordInput = document.getElementById(inputId);
-      passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+    togglePasswordVisibility() {
+      this.passwordVisible = !this.passwordVisible;
     }
   }
 };
 </script>
+
 
 <style src="@/assets/css/frontend/LoginPage.css"></style>
