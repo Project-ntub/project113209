@@ -26,12 +26,6 @@
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">個人資訊</span>
         </router-link>
 
-        <!-- 帳號設定
-        <router-link to="/frontend/accountsettings" class="sidebar-link">
-          <font-awesome-icon icon="cogs" class="icon" />
-          <span class="text" v-if="isSidebarOpen || !isSmallScreen">帳號設定</span>
-        </router-link> -->
-
         <!-- 登出 -->
         <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
           <font-awesome-icon icon="sign-out-alt" class="icon" />
@@ -69,8 +63,28 @@ export default {
       }
     },
     logout() {
-      alert("已登出");
+      // 清除 localStorage
+      window.localStorage.clear();
+
+      // 清除 sessionStorage
+      window.sessionStorage.clear();
+
+      // 清除所有 Cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.trim() + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      });
+
+      // 導向登入頁面
       this.$router.push('/frontend/login');
+
+      // 阻止返回上一頁
+      history.pushState(null, null, location.href);
+      window.onpopstate = function() {
+        history.go(1); // 強制前進，阻止返回
+      };
+
+      // 強制刷新頁面，確保狀態重置
+      location.reload();
     },
     async fetchUserData() {
       try {
