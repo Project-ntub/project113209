@@ -2,12 +2,11 @@
 .login-container {
   width: 100%;
   display: flex;
-  justify-content: flex-end; /* 使表單靠右 */
+  justify-content: flex-end;
   align-items: center;
   padding: 1rem;
 }
 
-/* 登入表單 */
 .login-form {
   background-color: white;
   padding: 2rem;
@@ -18,10 +17,9 @@
   max-width: 35rem;
   box-sizing: border-box;
   text-align: left;
-  margin-right: 2rem; /* 增加右側空白以確保右移 */
+  margin-right: 2rem;
 }
 
-/* 標題 */
 .login-form h2 {
   margin-bottom: 1.25rem;
   font-size: 1.75rem;
@@ -29,7 +27,6 @@
   text-align: center;
 }
 
-/* 表單輸入欄位 */
 .input-group {
   margin-bottom: 1rem;
 }
@@ -50,7 +47,6 @@
   box-sizing: border-box;
 }
 
-/* 密碼顯示切換圖標 */
 .input-container {
   position: relative;
 }
@@ -63,17 +59,21 @@
   cursor: pointer;
 }
 
-/* 額外選項 (記住我 & 忘記密碼) */
 .additional-options {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
   position: relative;
 }
 
 .additional-options label {
-  margin-right: auto; /* 確保「記住我」位於左側 */
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.additional-options span {
+  margin-right: auto;
 }
 
 .additional-options a {
@@ -81,16 +81,15 @@
   color: #007bff;
   text-decoration: none;
   position: absolute;
-  right: 0; /* 固定在右側 */
+  right: 0;
   top: 50%;
-  transform: translateY(-90%); /* 調整成 -90% 往上移 */
+  transform: translateY(-50%);
 }
 
 .additional-options a:hover {
   text-decoration: underline;
 }
 
-/* 登入按鈕 */
 .submit-button {
   width: 100%;
   padding: 1.5rem;
@@ -106,88 +105,57 @@
   background-color: #0056b3;
 }
 
-/* 登錄反饋訊息 */
-.feedback {
-  margin-top: 0.625rem;
-  color: red;
-  font-size: 0.875rem;
-  text-align: center;
+/* 切換按鈕樣式 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+  margin-right: 8px;
 }
 
-/* 註冊連結 */
-.login-form p {
-  margin-top: 1.25rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: #555;
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.login-form p a {
-  color: #007bff;
-  text-decoration: none;
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
 }
 
-.login-form p a:hover {
-  text-decoration: underline;
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
 }
 
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .login-form {
-    padding: 1.25rem;
-    margin: 0.3125rem;
-    max-width: 25rem;
-  }
-
-  .input-group input {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .submit-button {
-    padding: 1rem;
-    font-size: 1.25rem;
-  }
-
-  .additional-options a {
-    right: 0;
-    top: 50%;
-    transform: translateY(-60%);
-    position: absolute;
-  }
+input:checked + .slider {
+  background-color: #007bff;
 }
 
-@media (max-width: 480px) {
-  .login-form {
-    padding: 1rem;
-    margin: 0 auto;
-    max-width: 20rem;
-  }
+input:checked + .slider:before {
+  transform: translateX(14px);
+}
 
-  .input-group input {
-    padding: 0.375rem;
-    font-size: 0.75rem;
-  }
+.slider.round {
+  border-radius: 34px;
+}
 
-  .submit-button {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-
-  .additional-options {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .additional-options label,
-  .additional-options a {
-    font-size: 0.75rem;
-    margin-bottom: 0.3125rem;
-  }
-
-  .additional-options a {
-    position: static; /* 移除固定定位 */
-    transform: none; /* 取消垂直居中 */
-    margin-left: auto; /* 讓「忘記密碼」靠右 */
-  }
+.slider.round:before {
+  border-radius: 50%;
 }

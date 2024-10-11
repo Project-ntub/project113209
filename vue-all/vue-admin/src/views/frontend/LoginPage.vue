@@ -19,12 +19,14 @@
             </div>
           </div>
           <div class="additional-options">
-            <label>
-              <input type="checkbox" id="rememberMe" v-model="rememberMe" />
-              記住我
-            </label>
+              <label class="switch">
+            <input type="checkbox" id="rememberMe" v-model="rememberMe" />
+            <span class="slider round"></span>
+              </label>
+            <span>記住我</span>
             <router-link to="/frontend/forgot_password">忘記密碼?</router-link>
           </div>
+
           <input type="submit" value="登入" class="submit-button" />
           <div v-if="error" class="error">{{ error }}</div>
         </form>

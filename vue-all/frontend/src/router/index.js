@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { isAuthenticated } from '@/utils/auth'; // 確保這個文件存在並有這個函數
 import LoginPage from '@/views/LoginPage.vue';
 import RegisterPage from '@/views/RegisterPage.vue';
 import ForgetPasswordPage from '@/views/ForgetPasswordPage.vue';
