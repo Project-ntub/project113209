@@ -11,9 +11,12 @@
         <label for="password">密碼:</label>
         <input type="password" id="password" v-model="password" required />
       </div>
-      <div class="form-group checkbox-group">
-        <input type="checkbox" id="remember_me" v-model="rememberMe" />
-        <label for="remember_me">記住我</label>
+      <div class="additional-options">
+        <label class="switch">
+          <input type="checkbox" id="rememberMe" v-model="rememberMe" />
+          <span class="slider round"></span>
+        </label>
+        <span>記住我</span>
       </div>
       <button type="submit" class="btn-login">登入</button>
     </form>
@@ -21,14 +24,14 @@
       還未擁有帳號? <router-link to="/frontend/register">註冊</router-link>
     </p>
     <p>
-      忘記密碼? <router-link to="/backend/forgetpassword">重置密碼</router-link> <!-- 修改的地方 -->
+      忘記密碼? <router-link to="/backend/forgetpassword">重置密碼</router-link>
     </p>
     <p v-if="error">{{ error }}</p>
   </div>
 </template>
 
 <script>
-import axios from '@/axios'; // 使用配置好的 axios 实例
+import axios from '@/axios';
 
 export default {
   name: 'AppLogin',
@@ -40,7 +43,6 @@ export default {
       error: ''
     };
   },
-  
   methods: {
     async login() {
       try {
@@ -51,11 +53,8 @@ export default {
         });
         console.log('登入成功', response);
         localStorage.setItem('backend_token', response.data.access); // 儲存後台 token
-        
-        // 登入成功後，記錄歷史紀錄
         await this.recordLoginHistory();
-
-        this.$router.push('/backend/management'); // 跳轉至後台管理頁面
+        this.$router.push('/backend/management');
       } catch (error) {
         console.error('登入失敗', error.response);
         if (error.response && error.response.data) {
@@ -65,8 +64,6 @@ export default {
         }
       }
     },
-
-    // 方法用於記錄登入的歷史紀錄
     async recordLoginHistory() {
       try {
         const response = await axios.post('/backend/record-login-history/', {

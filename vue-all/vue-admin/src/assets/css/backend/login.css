@@ -1,11 +1,11 @@
-/* 擴展容器設置 */
+/* 容器設置 */
 .container {
   background-color: white;
-  padding: 35px; /* 加大內部間距 */
+  padding: 35px;
   border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* 增加陰影效果 */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   width: 100%;
-  max-width: 720px; /* 加寬容器 */
+  max-width: 720px;
   box-sizing: border-box;
   text-align: left;
   margin: 0 auto;
@@ -17,60 +17,103 @@
 
 h2 {
   margin-bottom: 22px;
-  font-size: 28px; /* 增大標題字體 */
+  font-size: 28px;
   color: #333;
   text-align: center;
 }
 
 .form-group {
-  margin-bottom: 16px; /* 增大表單組之間的間距 */
+  margin-bottom: 16px;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 6px;
-  font-weight: 600; /* 字體稍微加粗 */
-  font-size: 18px; /* 調整字體大小 */
+  font-weight: 600;
+  font-size: 18px;
   color: #333;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px; /* 增大輸入框內部間距 */
-  font-size: 17px; /* 調整輸入框字體 */
+  padding: 12px;
+  font-size: 17px;
   border: 1px solid #ccc;
-  border-radius: 6px; /* 更圓的邊角 */
+  border-radius: 6px;
   box-sizing: border-box;
 }
 
-/* 修改 checkbox-group */
-.checkbox-group {
+/* 切換按鈕樣式 */
+.additional-options {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 10px; /* 增加間距 */
-  margin-left: 140px; /* 調整對齊方式 */
+  margin-top: 10px;
 }
 
-.checkbox-group input[type="checkbox"] {
-  margin: 0;
-  padding: 0;
+.switch {
   position: relative;
-  vertical-align: middle;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+  margin-right: 8px;
 }
 
-.checkbox-group label {
-  font-size: 17px; /* 調整 checkbox 文字大小 */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #007bff;
+}
+
+input:checked + .slider:before {
+  transform: translateX(14px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.additional-options span {
+  font-size: 17px;
   color: #333;
-  margin: 0;
-  line-height: 1.6;
-  white-space: nowrap;
 }
 
+/* 登入按鈕 */
 .btn-login {
   width: 100%;
-  padding: 14px; /* 增大按鈕內部間距 */
-  font-size: 20px; /* 調整按鈕字體大小 */
+  padding: 14px;
+  font-size: 20px;
   color: white;
   background-color: #28a745;
   border: none;
@@ -83,9 +126,9 @@ h2 {
 }
 
 p {
-  margin-top: 20px; /* 增加段落上方間距 */
+  margin-top: 20px;
   text-align: center;
-  font-size: 15px; /* 調整段落字體大小 */
+  font-size: 15px;
   color: #555;
 }
 
@@ -104,29 +147,10 @@ p a:hover {
     max-width: 600px;
     padding: 30px;
   }
-
-  h2 {
-    font-size: 26px;
-  }
-
-  .form-group input {
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  .btn-login {
-    padding: 12px;
-    font-size: 18px;
-  }
-
-  p {
-    font-size: 14px;
-  }
-
-  .checkbox-group {
-    gap: 8px;
-    margin-left: 100px;
-  }
+  h2 { font-size: 26px; }
+  .form-group input { padding: 10px; font-size: 16px; }
+  .btn-login { padding: 12px; font-size: 18px; }
+  p { font-size: 14px; }
 }
 
 @media (max-width: 768px) {
@@ -134,29 +158,10 @@ p a:hover {
     max-width: 500px;
     padding: 25px;
   }
-
-  h2 {
-    font-size: 24px;
-  }
-
-  .form-group input {
-    padding: 9px;
-    font-size: 15px;
-  }
-
-  .btn-login {
-    padding: 10px;
-    font-size: 16px;
-  }
-
-  p {
-    font-size: 13px;
-  }
-
-  .checkbox-group {
-    gap: 6px;
-    margin-left: 80px;
-  }
+  h2 { font-size: 24px; }
+  .form-group input { padding: 9px; font-size: 15px; }
+  .btn-login { padding: 10px; font-size: 16px; }
+  p { font-size: 13px; }
 }
 
 @media (max-width: 480px) {
@@ -164,26 +169,8 @@ p a:hover {
     max-width: 400px;
     padding: 20px;
   }
-
-  h2 {
-    font-size: 22px;
-  }
-
-  .form-group input {
-    padding: 8px;
-    font-size: 14px;
-  }
-
-  .btn-login {
-    padding: 9px;
-    font-size: 15px;
-  }
-
-  p {
-    font-size: 12px;
-  }
-
-  .checkbox-group label {
-    font-size: 14px;
-  }
+  h2 { font-size: 22px; }
+  .form-group input { padding: 8px; font-size: 14px; }
+  .btn-login { padding: 9px; font-size: 15px; }
+  p { font-size: 12px; }
 }
