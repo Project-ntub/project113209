@@ -158,4 +158,4 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/backend/ModuleManagement.css"></style>
+<style src="@/assets/css/backend/ModuleManagement.css"></style>
