@@ -57,11 +57,18 @@ export default {
       selectedBranch: null,
       userPosition: null,
       permissions: [],
+      filteredCharts: [], // 新增用於存放過濾後的圖表
+      chartPermissionMap: {
+        'RevenueChart': '營業額',
+        'SalesCharts': '銷售額',
+        'InventoryChart': '庫存量',
+        // 可以根據需求添加更多的映射
+      },
     };
   },
-  mounted() {
+  async mounted() {
     this.fetchCharts();
-    this.fetchUserPosition();
+    await this.fetchUserPosition();
   },
   methods: {
     fetchCharts() {
@@ -74,7 +81,7 @@ export default {
             yAxisField: chart.y_axis_field,
             chartType: chart.chart_type,
           }));
-          this.filteredCharts = this.charts;
+          this.applyFilter(); // 根據當前的過濾類型更新 filteredCharts
         })
         .catch(error => {
           console.error('Error fetching chart configurations:', error);
@@ -102,8 +109,9 @@ export default {
     fetchPermissions() {
       axios.get('/api/backend/permissions/')
         .then(response => {
-          this.permissions = response.data.filter(perm => perm.can_view == 1);
-          console.log('Permissions:', this.permissions);
+          this.permissions = response.data.filter(perm => perm.can_view === 1);
+          this.applyFilter(); // 根據權限和過濾類型更新 filteredCharts
+          console.log('User permissions:', this.permissions);
         })
         .catch(error => {
           console.error('無法獲取權限:', error);
@@ -113,15 +121,31 @@ export default {
       const allowedCharts = this.permissions.map(perm => perm.permission_name);
 
       if (chart === 'all') {
-        this.filteredCharts = this.charts;
-      } else if (allowedCharts.includes(chart)) {
-        this.filteredCharts = this.charts.filter(c => c.chartType === chart);
+        this.currentChart = 'all';
+      } else if (this.chartPermissionMap[chart] && allowedCharts.includes(this.chartPermissionMap[chart])) {
+        this.currentChart = chart;
       } else {
         alert('您沒有檢視此圖表的權限');
+      }
+      this.applyFilter();
+    },
+    applyFilter() {
+      if (this.currentChart === 'all') {
+        this.filteredCharts = this.charts.filter(chart => {
+          // 檢查用戶是否有權限查看該圖表
+          return this.permissions.some(perm => perm.permission_name === chart.name && perm.can_view);
+        });
+      } else {
+        const permissionName = this.chartPermissionMap[this.currentChart];
+        this.filteredCharts = this.charts.filter(chart => {
+          return chart.name === permissionName &&
+                 this.permissions.some(perm => perm.permission_name === chart.name && perm.can_view);
+        });
       }
     },
   },
 };
 </script>
+
 
 <style scoped src="@/assets/css/frontend/HomePage.css"></style>

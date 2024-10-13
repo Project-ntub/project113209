@@ -8,9 +8,9 @@
           <div v-if="showMenu" class="menu">
             <template v-if="!isFrontend">
               <button @click="editChart">編輯圖表</button>
-              <button v-if="localCanDelete" @click="deleteChart">刪除圖表</button>
+              <button v-if="canExport" @click="deleteChart">刪除圖表</button>
             </template>
-            <div v-if="localCanExport" class="export-button">
+            <div v-if="canExport" class="export-button">
               <button @click="exportChart('csv')">匯出 CSV</button>
               <button @click="exportChart('excel')">匯出 Excel</button>
               <button @click="exportChart('pdf')">匯出 PDF</button>
@@ -64,13 +64,9 @@ export default {
       isZoomModalVisible: false,
       isEditModalVisible: false,
       localChartConfig: { ...this.chartConfig },
-      localCanExport: false,
-      localCanDelete: false,
     };
   },
   mounted() {
-    this.localCanExport = this.canExport;
-    this.localCanDelete = this.canDelete;
     this.fetchUserPermissions();
   },
   methods: {
@@ -110,32 +106,25 @@ export default {
     updateChartConfig(updatedConfig) {
       this.localChartConfig = updatedConfig;
     },
-    fetchUserPermissions() {
-      axios.get('/api/backend/permissions/')
-        .then(response => {
-          const permissions = response.data;
-          console.log('User permissions:', permissions);
-          this.localCanExport = permissions.some(perm => perm.can_export);
-          this.localCanDelete = permissions.some(perm => perm.can_delete);
-        })
-        .catch(error => {
-          console.error('無法獲取權限:', error);
-        });
-    },
     async exportChart(format) {
-      if (!this.localChartConfig.x_data || !this.localChartConfig.y_data) {
+      if (!this.localChartConfig.xAxisField || !this.localChartConfig.yAxisField) {
         alert('圖表配置無效，無法導出！');
         return;
       }
 
       try {
-        const response = await axios.post(`/api/backend/export-data-${format}/`, { chartConfig: this.localChartConfig }, { responseType: 'blob' });
+        const response = await axios.post('/api/backend/export-data/', {
+          chartConfig: this.localChartConfig, // 確保傳遞完整的 chartConfig
+          format: format
+        }, { responseType: 'blob' });
+
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
         document.body.appendChild(link);
         link.click();
+        link.remove();
       } catch (error) {
         console.error('匯出數據時出錯:', error);
         alert('匯出失敗，請檢查數據並重試。');
@@ -152,11 +141,11 @@ export default {
         const data = response.data;
 
         this.updateChartConfig({
-          chartType: data.chartType, // 使用 chartType
+          chartType: data.chart_type,
           name: data.name,
-          dataSource: data.dataSource,
-          xAxisField: data.xAxisField,
-          yAxisField: data.yAxisField,
+          dataSource: data.data_source,
+          xAxisField: data.x_axis_field,
+          yAxisField: data.y_axis_field,
           filterConditions: JSON.stringify(data.filter_conditions || '{}'),
           x_data: data.x_data || [],
           y_data: data.y_data || []
@@ -167,8 +156,22 @@ export default {
         alert('加載圖表配置時發生錯誤，請稍後再試');
         return null;
       }
-    }
-  }
+    },
+    fetchUserPermissions() {
+      axios.get('/api/backend/permissions/')
+        .then(response => {
+          const permissions = response.data;
+          console.log('User permissions:', permissions);
+          // 假設每個權限都有 can_export 和 can_delete 權限
+          const exportPermission = permissions.find(perm => perm.permission_name === this.localChartConfig.name);
+          this.canExport = exportPermission ? exportPermission.can_export : false;
+          this.canDelete = exportPermission ? exportPermission.can_delete : false;
+        })
+        .catch(error => {
+          console.error('無法獲取權限:', error);
+        });
+    },
+  },
 };
 </script>
 

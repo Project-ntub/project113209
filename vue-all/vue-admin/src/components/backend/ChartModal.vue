@@ -107,7 +107,7 @@ export default {
     return {
       chartData: {
         id: null,
-        chartType: 'bar', // 使用 chartType
+        chartType: 'bar',
         name: '',
         dataSource: '',
         xAxisField: '',
@@ -131,7 +131,7 @@ export default {
           this.chartData = {
             ...this.chartData,
             id: config.id,
-            chartType: config.chartType, // 確保使用 chartType
+            chartType: config.chartType,
             name: config.name,
             dataSource: config.dataSource,
             xAxisField: config.xAxisField,
@@ -150,6 +150,23 @@ export default {
         });
     }
   },
+  watch: {
+    // 監聽 dataSource, xAxisField, yAxisField 的變化
+    'chartData.dataSource'() {
+      this.fetchTableFields();
+    },
+    'chartData.xAxisField'() {
+      if (this.chartData.dataSource && this.chartData.yAxisField) {
+        this.fetchChartData();
+      }
+    },
+    'chartData.yAxisField'() {
+      if (this.chartData.dataSource && this.chartData.xAxisField) {
+        this.fetchChartData();
+      }
+    }
+  },
+
 
   methods: {
     fetchDataSources() {
@@ -167,6 +184,7 @@ export default {
           .then(response => {
             this.tableFields = response.data.fields;
             this.joinableFields = response.data.related_fields;
+            // 只在編輯模式下自動獲取數據
             if (this.isEditing && this.chartData.xAxisField && this.chartData.yAxisField) {
               this.$nextTick(() => {
                 this.fetchChartData();
@@ -178,7 +196,7 @@ export default {
           });
       }
     },
-    fetchChartData() {
+    async fetchChartData() {
       let filterConditions = {};
       try {
         filterConditions = JSON.parse(this.chartData.filterConditions || '{}');
@@ -186,27 +204,27 @@ export default {
         console.error('過濾條件格式無效，使用預設值 {}');
       }
 
-      axios.post('/api/backend/dynamic-chart-data/', {
-        table_name: this.chartData.dataSource,
-        x_field: this.chartData.xAxisField,
-        y_field: this.chartData.yAxisField,
-        filter_conditions: filterConditions,
-        join_fields: this.chartData.joinFields
-      })
-      .then(response => {
+      try {
+        const response = await axios.post('/api/backend/dynamic-chart-data/', {
+          table_name: this.chartData.dataSource,
+          x_field: this.chartData.xAxisField,
+          y_field: this.chartData.yAxisField,
+          filter_conditions: filterConditions,
+          join_fields: this.chartData.joinFields
+        });
         const { x_data, y_data } = response.data;
 
         if (x_data && y_data) {
           this.chartData.x_data = x_data;
           this.chartData.y_data = y_data;
-          // 不需要在 chartmodal.vue 渲染圖表，已由 PlotlyChart.vue 處理
+          console.log('成功獲取圖表數據:', x_data, y_data)
+          // 更新預覽數據
         } else {
           console.error('x_data 和 y_data 不能為空');
         }
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('獲取圖表數據時出錯:', error);
-      });
+      }
     },
     saveChart() {
       let filterConditions = {};

@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div class="dashboard-page">
     <TopNavbar title="儀表板管理" />
     <div class="dashboard-container">
@@ -14,8 +14,8 @@
 
       <!-- 新增圖表和預覽角色介面按鈕 -->
       <div class="button-group">
-        <button @click="openChartModal(false)">新增圖表</button>
-        <button @click="openPreviewModal">預覽角色介面</button>
+        <button v-if="canAddChart" @click="openChartModal(false)">新增圖表</button>
+        <!-- <button @click="openPreviewModal">預覽角色介面</button> -->
       </div>
 
       <div class="charts">
@@ -25,6 +25,8 @@
             :chartConfig="chart" 
             @reload-charts="fetchCharts"
             :isFrontend="false"
+            :canExport="chart.can_export"
+            :canDelete="chart.can_delete"
           >
             <PlotlyChart :chartConfig="chart" />
           </ChartContainer>
@@ -43,7 +45,7 @@
     />
 
     <!-- 預覽角色介面窗口 -->
-    <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" />
+    <!-- <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" /> -->
   </div>
 </template>
 
@@ -52,8 +54,9 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import Modal from '@/components/backend/ChartModal.vue';
-import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
+// import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
 import axios from 'axios';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'DashboardManager',
@@ -62,53 +65,93 @@ export default {
     PlotlyChart,
     ChartContainer,
     Modal,
-    UserInterfacePreviewModal,
+    // UserInterfacePreviewModal,
   },
   data() {
     return {
       charts: [],
       filteredCharts: [], // 用來存放篩選後的圖表
       showChartModal: false,
-      showPreviewModal: false,
+      // showPreviewModal: false,
       isEditing: false,
       selectedChartId: null,
+      filterType: 'all', // 新增一個用來追踪當前的過濾類型
+      chartPermissionMap: {
+        'sales': '銷售額',
+        'revenue': '營業額',
+        'inventory': '庫存量',
+        // 可以根據需求添加更多的映射
+      },
     };
+  },
+  computed: {
+    ...mapGetters(['getPermissions']),
+    canAddChart() {
+      return this.getPermissions.some(perm => perm.permission_name === '儀表板管理' && perm.can_add);
+    },
   },
   mounted() {
     this.fetchCharts();
-    this.filteredCharts = this.charts; // 預設顯示所有圖表
-    axios.get('/api/backend/get-chart-configurations/')
-    .then(response => {
-      this.charts = response.data.map(chart => ({
-        ...chart,
-        dataSource: chart.data_source,
-        xAxisField: chart.x_axis_field,
-        yAxisField: chart.y_axis_field,
-        chartType: chart.chart_type,
-        // 如果有其他字段需要转换，继续添加
-      }));
-      this.filteredCharts = this.charts; // 更新 filteredCharts
-    })
-    .catch(error => {
-      console.error('Error fetching chart configurations:', error);
-    });
   },
   methods: {
-    fetchCharts() {
-      axios.get('/api/backend/get-chart-configurations/')
-        .then(response => {
-          this.charts = response.data.map(chart => ({
-            ...chart,
-            dataSource: chart.data_source, // 確保字段名稱一致
-            xAxisField: chart.x_axis_field,
-            yAxisField: chart.y_axis_field,
-            chartType: chart.chart_type,
-          }));
-          this.filteredCharts = this.charts; // 更新 filteredCharts
-        })
-        .catch(error => {
-          console.error('Error fetching chart configurations:', error);
-        });
+    ...mapActions(['fetchPermissions']),
+    async fetchCharts() {
+      try {
+        // 確保權限已經被獲取
+        await this.fetchPermissions();
+
+        const response = await axios.get('/api/backend/get-chart-configurations/');
+        const chartConfigs = response.data.map(chart => ({
+          ...chart,
+          chartType: chart.chart_type.toLowerCase(), // 確保是小寫
+        }));
+
+        // 根據過濾條件選擇圖表
+        let filteredConfigs = chartConfigs;
+        if (this.filterType !== 'all') {
+          const permissionName = this.chartPermissionMap[this.filterType];
+          filteredConfigs = chartConfigs.filter(chart => chart.name === permissionName);
+        }
+
+        // 為每個圖表呼叫 dynamic-chart-data 並添加 x_data 和 y_data
+        const chartsWithData = await Promise.all(filteredConfigs.map(async (chart) => {
+          try {
+            const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
+              table_name: chart.data_source,
+              x_field: chart.x_axis_field,
+              y_field: chart.y_axis_field,
+              filter_conditions: JSON.parse(chart.filter_conditions || '{}'),
+              join_fields: chart.join_fields || []
+            });
+            return {
+              ...chart,
+              x_data: dataResponse.data.x_data,
+              y_data: dataResponse.data.y_data,
+              last_updated: dataResponse.data.last_updated,
+              can_export: this.hasPermission(chart.name, 'can_export'),
+              can_delete: this.hasPermission(chart.name, 'can_delete'),
+            };
+          } catch (error) {
+            console.error(`Error fetching data for chart ID ${chart.id}:`, error);
+            return {
+              ...chart,
+              x_data: [],
+              y_data: [],
+              last_updated: null,
+              error: '無法獲取數據',
+              can_export: false,
+              can_delete: false,
+            };
+          }
+        }));
+
+        this.charts = chartsWithData;
+        this.filteredCharts = chartsWithData; // 由於已經根據 filterType 過濾過
+
+        console.log('Fetched charts with data:', this.charts);
+      } catch (error) {
+        console.error('Error fetching chart configurations:', error);
+      }
     },
     openChartModal(editing, chartId = null) {
       this.isEditing = editing;
@@ -118,26 +161,51 @@ export default {
     closeChartModal() {
       this.showChartModal = false;
     },
-    openPreviewModal() {
-      this.showPreviewModal = true;
+    async showDashboard(type) {
+      this.filterType = type;
+      await this.fetchCharts();
     },
-    closePreviewModal() {
-      this.showPreviewModal = false;
-    },
-    showDashboard(type) {
-      if (type === 'all') {
-        this.filteredCharts = this.charts;
-      } else if (type === 'sales') {
-        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Sales'));
-      } else if (type === 'revenue') {
-        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Revenue'));
-      } else if (type === 'inventory') {
-        this.filteredCharts = this.charts.filter(chart => chart.name.includes('Inventory'));
+    async fetchChartConfigMethod(chartId) {
+      if (!chartId) {
+        console.error('chartId is undefined');
+        alert('無效的圖表 ID，無法加載圖表配置');
+        return null;
       }
+      try {
+        const response = await axios.get(`/api/backend/charts/${chartId}/`);
+        const data = response.data;
+
+        // 呼叫 dynamic-chart-data 以獲取 x_data 和 y_data
+        const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
+          table_name: data.data_source,
+          x_field: data.x_axis_field,
+          y_field: data.y_axis_field,
+          filter_conditions: JSON.parse(data.filter_conditions || '{}'),
+          join_fields: data.join_fields || []
+        });
+
+        const updatedConfig = {
+          ...data,
+          x_data: dataResponse.data.x_data,
+          y_data: dataResponse.data.y_data,
+          last_updated: dataResponse.data.last_updated,
+          can_export: this.hasPermission(data.name, 'can_export'),
+          can_delete: this.hasPermission(data.name, 'can_delete'),
+        };
+
+        return updatedConfig;
+      } catch (error) {
+        console.error('加載圖表配置時發生錯誤:', error);
+        alert('加載圖表配置時發生錯誤，請稍後再試');
+        return null;
+      }
+    },
+    hasPermission(permissionName, action) {
+      const permission = this.getPermissions.find(perm => perm.permission_name === permissionName);
+      return permission ? permission[action] : false;
     },
   },
 };
 </script>
 
-<!-- 引入分離的 CSS -->
 <style scoped src="@/assets/css/backend/Dashboard.css"></style>

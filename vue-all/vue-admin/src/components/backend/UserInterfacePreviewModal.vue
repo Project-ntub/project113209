@@ -58,9 +58,7 @@
   
   <script>
   import axios from 'axios';
-  import SalesChart from '@/Charts/SalesChart.vue';
-  import RevenueChart from '@/Charts/RevenueChart.vue';
-  import InventoryChart from '@/Charts/InventoryChart.vue';
+
   
   export default {
     name: 'UserInterfacePreviewModal',
@@ -78,11 +76,7 @@
         positions: []
       };
     },
-    components: {
-      SalesChart,
-      RevenueChart,
-      InventoryChart
-    },
+
     methods: {
       async fetchRolesOrPositions() {
         if (this.selectedDivision === 'department') {

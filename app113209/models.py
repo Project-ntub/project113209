@@ -85,7 +85,7 @@ class Module(models.Model):
 
 class RolePermission(models.Model):
     role = models.ForeignKey('Role', on_delete=models.CASCADE)
-    permission_name = models.CharField(max_length=100)
+    permission_name = models.CharField(max_length=100, unique=True)    
     can_add = models.BooleanField(default=False)
     can_query = models.BooleanField(default=False)
     can_view = models.BooleanField(default=False)
@@ -98,7 +98,7 @@ class RolePermission(models.Model):
 
     class Meta:
         db_table = 'role_permission'
-        unique_together = ('role', 'permission_name')
+        # unique_together = ('role', 'permission_name')
 
     def __str__(self):
         return self.permission_name
@@ -170,7 +170,7 @@ class Chart(models.Model):
 
 class ChartConfiguration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True, unique=True)
     chart_type = models.CharField(max_length=50)
     data_source = models.CharField(max_length=100)
     x_axis_field = models.CharField(max_length=100)

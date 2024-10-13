@@ -13,8 +13,10 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from django.db import models
+from django.db import IntegrityError
 from django.conf import settings
 from django.utils import timezone
+from django.utils.text import slugify
 from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
@@ -34,6 +36,17 @@ from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSeriali
 from app113209.utils import record_history
 
 logger = logging.getLogger(__name__)
+
+# 註冊字體
+font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'NotoSansTC-Regular.ttf')
+if os.path.exists(font_path):
+    try:
+        pdfmetrics.registerFont(TTFont('NotoSansTC', font_path))
+        logger.info("成功註冊字體 'NotoSansTC'")
+    except Exception as e:
+        logger.error(f"註冊字體 'NotoSansTC' 時出錯: {e}")
+else:
+    logger.error(f"字體檔案不存在於路徑: {font_path}")
 
 def login_view(request):
     user = authenticate(username=request.POST['username'], password=request.POST['password'])
@@ -518,10 +531,10 @@ def get_user_permissions(user_id):
     # 根據 user_id 查詢角色
     role_user = RoleUser.objects.filter(user_id=user_id).first()
     if not role_user:
-        return None
+        return RolePermission.objects.none()
     
     # 查詢該角色的所有權限
-    permissions = RolePermission.objects.filter(role_id=role_user.role_id)
+    permissions = RolePermission.objects.filter(role_id=role_user.role_id, is_deleted=False)
     return permissions
 
 
@@ -765,7 +778,7 @@ def get_chart_configuration(request):
         data.append({
             "id": config.id,
             "name": config.name,
-            "chart_type": config.chart_type,
+            "chart_type": config.chart_type.lower(),  # 確保是小寫
             "x_axis_field": config.x_axis_field,
             "y_axis_field": config.y_axis_field,
             "data_source": config.data_source
@@ -808,7 +821,23 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                chart_config = serializer.save()
+            except IntegrityError:
+                return Response({'error': '圖表名稱已存在，請選擇其他名稱'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 使用圖表的分類名稱作為 permission_name
+            permission_name = chart_config.name
+
+            # 自動為所有活動的角色添加權限，預設 can_view=True
+            active_roles = Role.objects.filter(is_active=True, is_deleted=False)
+            for role in active_roles:
+                RolePermission.objects.get_or_create(
+                    role=role,
+                    permission_name=permission_name,
+                    defaults={'can_view': True}
+                )
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         logger.error(f"Chart creation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -818,7 +847,20 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
         chart_config = get_object_or_404(ChartConfiguration, pk=pk)
         serializer = self.get_serializer(chart_config, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            old_name = chart_config.name
+            chart_config = serializer.save()
+            new_name = chart_config.name
+
+            if old_name != new_name:
+                old_permission_name = old_name
+                new_permission_name = new_name
+
+                # 更新所有相關角色的權限名稱
+                RolePermission.objects.filter(permission_name=old_permission_name).update(permission_name=new_permission_name)
+
+                # 記錄操作歷史
+                record_history(request.user, f"管理員 {request.user.username} 更新了圖表名稱從 '{old_name}' 到 '{new_name}'，並更新了相關權限名稱")
+
             return Response(serializer.data)
         logger.error(f"Chart update failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -829,9 +871,17 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             chart_config = get_object_or_404(ChartConfiguration, pk=pk)
             chart_config.is_deleted = True  # 標記為已刪除
             chart_config.save()
-            return Response({"message": "圖表已被刪除"}, status=200)
+
+            # 使用圖表的分類名稱作為 permission_name
+            permission_name = chart_config.name
+
+            # 標記相關權限為已刪除
+            RolePermission.objects.filter(permission_name=permission_name).update(is_deleted=True)
+
+            return Response({"message": "圖表已被刪除"}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": str(e)}, status=500)
+            logger.error(f"Error deleting chart: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def retrieve(self, request, pk=None):
         try:
@@ -839,7 +889,7 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(chart_config)
             return Response(serializer.data)
         except ChartConfiguration.DoesNotExist:
-            return Response({'error': 'Chart not found'}, status=404)
+            return Response({'error': 'Chart not found'}, status=status.HTTP_404_NOT_FOUND)
 
     # 恢復隱藏的圖表
     # @action(detail=True, methods=['post'])
@@ -974,67 +1024,100 @@ class StoreComparisonChartDataAPIView(APIView):
 # 匯出 CSV
 @api_view(['POST'])
 def export_data(request):
-    table_name = request.data.get('chartConfig', {}).get('dataSource', '')
+    chart_config = request.data.get('chartConfig', {})
+    table_name = chart_config.get('dataSource', '')
     format = request.data.get('format')
-    chart_name = request.data.get('chartConfig', {}).get('name', 'chart')
-    
+    chart_name = chart_config.get('name', 'chart')
+
+    x_field = chart_config.get('x_axis_field')
+    y_field = chart_config.get('y_axis_field')
+
+    if not table_name:
+        return JsonResponse({"error": "資料來源未指定"}, status=400)
+    if not x_field or not y_field:
+        return JsonResponse({"error": "x_axis_field 和 y_axis_field 是必填的"}, status=400)
+
     model = MODEL_MAPPING.get(table_name)
     if not model:
         return JsonResponse({"error": "資料表不存在"}, status=400)
 
-    data = list(model.objects.values())  # 獲取整個資料表的所有資料
+    # 僅獲取指定的字段
+    try:
+        data = list(model.objects.values(x_field, y_field))
+    except Exception as e:
+        logger.error(f"Error fetching fields {x_field}, {y_field} from {table_name}: {e}")
+        return JsonResponse({"error": f"無法獲取指定的欄位: {e}"}, status=400)
 
     if format == 'csv':
-        response = export_to_csv(data, chart_name)
+        response = export_to_csv(data, chart_name, x_field, y_field)
     elif format == 'excel':
-        response = export_to_excel(data, chart_name)
+        response = export_to_excel(data, chart_name, x_field, y_field)
     elif format == 'pdf':
-        response = export_to_pdf(data, chart_name)
+        response = export_to_pdf(data, chart_name, x_field, y_field)
     else:
         return JsonResponse({"error": "Unsupported format"}, status=400)
 
     return response
 
-def export_to_csv(data, chart_name):
+def export_to_csv(data, chart_name, x_field, y_field):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="{chart_name}.csv"'
     writer = csv.writer(response)
+    
+    # 寫入表頭
+    writer.writerow([x_field, y_field])
+    
     for row in data:
-        writer.writerow([row['x'], row['y']])
+        writer.writerow([row.get(x_field, ''), row.get(y_field, '')])
     return response
 
-def export_to_excel(data, chart_name):
+def export_to_excel(data, chart_name, x_field, y_field):
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
+    
+    # 寫入表頭
+    worksheet.write(0, 0, x_field)
+    worksheet.write(0, 1, y_field)
+    
     for index, row in enumerate(data, start=1):
-        worksheet.write(index, 0, row['x'])
-        worksheet.write(index, 1, row['y'])
+        worksheet.write(index, 0, row.get(x_field, ''))
+        worksheet.write(index, 1, row.get(y_field, ''))
     workbook.close()
     output.seek(0)
     response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{chart_name}.xlsx"'
     return response
 
-# 指定字體的路徑
-font_path = os.path.join(settings.BASE_DIR, 'static/fonts/NotoSansTC-Regular.ttf')
-pdfmetrics.registerFont(TTFont('NotoSansTC', font_path))
 
-def export_to_pdf(data, chart_name):
+
+def export_to_pdf(data, chart_name, x_field, y_field):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
+    p.setFont("NotoSansTC", 12)  # 使用已註冊的字體名稱
     p.drawString(100, 750, f"{chart_name}")
-    y_position = 730
+
+    # 寫入表頭
+    p.drawString(100, 730, f"{x_field} | {y_field}")
+    y_position = 710
     for row in data:
-        p.drawString(100, y_position, f"{row['x']} | {row['y']}")
+        x_val = row.get(x_field, '')
+        y_val = row.get(y_field, '')
+        p.drawString(100, y_position, f"{x_val} | {y_val}")
         y_position -= 20
+        if y_position < 50:  # 新增頁面
+            p.showPage()
+            p.setFont("NotoSansTC", 12)
+            p.drawString(100, 750, f"{chart_name} (續)")
+            p.drawString(100, 730, f"{x_field} | {y_field}")
+            y_position = 710
+
     p.showPage()
     p.save()
     buffer.seek(0)
     response = HttpResponse(buffer.read(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{chart_name}.pdf"'
     return response
-
 
 
 # 另一個資料庫的測試資料
