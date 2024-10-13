@@ -1,6 +1,8 @@
 <template>
-  <div :class="['home-page', { 'sidebar-open': isSidebarOpen }]">
+  <div class="home-page" :class="{ 'sidebar-open': isSidebarOpen }">
     <TopNavbar @trigger-export="exportChart" ref="topNavbar" />
+    
+    <!-- 分店選擇 -->
     <div v-if="userPosition === '經理'" class="branch-selection">
       <label for="branch-select">選擇分店:</label>
       <select id="branch-select" v-model="selectedBranch" @change="onBranchChange">
@@ -12,16 +14,22 @@
     <div v-else-if="userPosition === '店長'" class="branch-info">
       <p>當前分店: {{ branches[0]?.branch_name }}</p>
     </div>
+
+    <!-- 圖表控制按鈕區域 -->
     <div v-if="permissions.length > 0" class="chart-controls">
       <button v-if="permissions.find(perm => perm.permission_name === '營業額' && perm.can_view)" @click="setCurrentChart('RevenueChart')">營業額</button>
       <button v-if="permissions.find(perm => perm.permission_name === '銷售額' && perm.can_view)" @click="setCurrentChart('SalesCharts')">銷售額</button>
       <button v-if="permissions.find(perm => perm.permission_name === '庫存量' && perm.can_view)" @click="setCurrentChart('InventoryChart')">庫存量</button>
       <button @click="setCurrentChart('all')">顯示所有圖表</button>
     </div>
-    <div v-for="chart in charts" :key="chart.id" class="chart-grid">
-      <ChartContainer :chartConfig="chart">
-        <PlotlyChart :chartConfig="chart" />
-      </ChartContainer>
+
+    <!-- 圖表顯示區域 -->
+    <div class="charts">
+      <div v-for="chart in filteredCharts" :key="chart.id" class="chart-wrapper">
+        <ChartContainer :chartConfig="chart">
+          <PlotlyChart :chartConfig="chart" />
+        </ChartContainer>
+      </div>
     </div>
   </div>
 </template>
@@ -31,7 +39,6 @@ import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import axios from 'axios';
-import '@/assets/css/frontend/HomePage.css';
 
 export default {
   name: 'HomePage',
@@ -43,6 +50,7 @@ export default {
   data() {
     return {
       charts: [],
+      filteredCharts: [],
       isSidebarOpen: localStorage.getItem('sidebarOpen') === 'true',
       currentChart: 'all',
       branches: [],
@@ -51,24 +59,27 @@ export default {
       permissions: [],
     };
   },
-  async mounted() {
-    axios.get('/api/backend/get-chart-configurations/')
-    .then(response => {
-      this.charts = response.data.map(chart => ({
-        ...chart,
-        dataSource: chart.data_source,
-        xAxisField: chart.x_axis_field,
-        yAxisField: chart.y_axis_field,
-        chartType: chart.chart_type,
-      }));
-    })
-    .catch(error => {
-      console.error('Error fetching chart configurations:', error);
-    });
-    
-    await this.fetchUserPosition();
+  mounted() {
+    this.fetchCharts();
+    this.fetchUserPosition();
   },
   methods: {
+    fetchCharts() {
+      axios.get('/api/backend/get-chart-configurations/')
+        .then(response => {
+          this.charts = response.data.map(chart => ({
+            ...chart,
+            dataSource: chart.data_source,
+            xAxisField: chart.x_axis_field,
+            yAxisField: chart.y_axis_field,
+            chartType: chart.chart_type,
+          }));
+          this.filteredCharts = this.charts;
+        })
+        .catch(error => {
+          console.error('Error fetching chart configurations:', error);
+        });
+    },
     async fetchUserPosition() {
       try {
         const response = await axios.get('/api/frontend/profile/');
@@ -91,7 +102,8 @@ export default {
     fetchPermissions() {
       axios.get('/api/backend/permissions/')
         .then(response => {
-          this.permissions = response.data.filter(perm => perm.can_view === 1);
+          this.permissions = response.data.filter(perm => perm.can_view == 1);
+          console.log('Permissions:', this.permissions);
         })
         .catch(error => {
           console.error('無法獲取權限:', error);
@@ -99,10 +111,11 @@ export default {
     },
     setCurrentChart(chart) {
       const allowedCharts = this.permissions.map(perm => perm.permission_name);
+
       if (chart === 'all') {
-        this.currentChart = 'all';
+        this.filteredCharts = this.charts;
       } else if (allowedCharts.includes(chart)) {
-        this.currentChart = chart;
+        this.filteredCharts = this.charts.filter(c => c.chartType === chart);
       } else {
         alert('您沒有檢視此圖表的權限');
       }
@@ -110,3 +123,5 @@ export default {
   },
 };
 </script>
+
+<style scoped src="@/assets/css/frontend/HomePage.css"></style>

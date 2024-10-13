@@ -1,175 +1,72 @@
-/* 全域樣式重置 */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
 .home-page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-left: 30px;
-  margin-top: 40px;
-  transition: margin-left 0.3s ease;
-  padding: 20px;
-  overflow-y: auto;
   height: 100vh;
-  min-height: 100vh;
+  padding: 20px;
+  margin-top: 50px; /* 調整此處以向下移動 */
+  overflow-y: auto;
+  transition: margin-left 0.3s ease;
 }
 
-.sidebar {
-  width: 40px;
-  transition: width 0.3s ease;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background-color: #2c3e50;
-  overflow: hidden;
-}
-
-.sidebar.open {
-  width: 160px;
-}
-
-.sidebar.open + .home-page {
-  margin-left: 160px;
-}
-
-.branch-selection {
+.branch-selection, .chart-controls {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
   gap: 15px;
-  margin-bottom: 20px;
-  width: 100%;
 }
 
-.branch-selection label {
-  font-size: 18px;
-}
-
-.branch-selection select {
-  width: 100%;
-  max-width: 800px;
-  padding: 12px 15px;
-  font-size: 16px;
+button {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
   border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+select {
+  padding: 6px;
+  font-size: 14px;
+  border-radius: 4px;
   border: 1px solid #ccc;
 }
 
-.chart-grid {
+.charts {
   display: flex;
   flex-wrap: wrap;
-  gap: 40px;
+  gap: 15px;
   justify-content: center;
   width: 100%;
 }
 
-.chart-container {
-  width: 100%;
-  max-width: 600px;
-  height: 400px;
-  background-color: #f2f2f2;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 30px;
-}
-
-.chart-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: nowrap;
-  margin-bottom: 30px;
-  justify-content: center;
-}
-
-.chart-controls button {
-  padding: 10px 15px;
-  font-size: 14px;
-  border: none;
-  border-radius: 10px;
-  background-color: #3498db;
-  color: #fff;
-  cursor: pointer;
-}
-
-.chart-controls button:hover {
-  background-color: #2980b9;
+.chart-wrapper {
+  flex: 1 1 calc(50% - 20px);
+  min-width: 300px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
-  .home-page {
-    margin-left: 0;
-    padding: 8px;
-    overflow-x: auto;
-  }
-
-  .sidebar {
-    width: 0;
-  }
-
-  .sidebar.open {
-    width: 120px;
-  }
-
-  .sidebar.open + .home-page {
-    margin-left: 120px;
-  }
-
-  .chart-grid {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .chart-container {
-    max-width: 100%;
-    height: 300px;
+  .chart-wrapper {
+    flex: 1 1 100%;
   }
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
+@media (max-width: 576px) {
   .home-page {
-    margin-left: 30px;
-    padding: 15px;
-  }
-
-  .sidebar.open + .home-page {
-    margin-left: 140px;
-  }
-
-  .chart-container {
-    max-width: 80%;
-    height: 350px;
-    aspect-ratio: 4 / 3;
-  }
-
-  .chart-controls button {
-    max-width: 150px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .home-page {
-    margin-left: 40px;
-    padding: 25px;
-  }
-
-  .sidebar.open + .home-page {
-    margin-left: 160px;
-  }
-
-  .chart-container {
-    max-width: 600px;
-    height: 400px;
-    aspect-ratio: 4 / 3;
+    transform: scale(0.9);
   }
 }
