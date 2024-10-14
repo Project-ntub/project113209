@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div class="dashboard-page">
     <TopNavbar title="儀表板管理" />
     <div class="dashboard-container">
@@ -15,7 +15,6 @@
       <!-- 新增圖表和預覽角色介面按鈕 -->
       <div class="button-group">
         <button v-if="canAddChart" @click="openChartModal(false)">新增圖表</button>
-        <!-- <button @click="openPreviewModal">預覽角色介面</button> -->
       </div>
 
       <div class="charts">
@@ -27,9 +26,8 @@
             :isFrontend="false"
             :canExport="chart.can_export"
             :canDelete="chart.can_delete"
-          >
-            <PlotlyChart :chartConfig="chart" />
-          </ChartContainer>
+            :canEdit="chart.can_edit"
+          />
         </div>
       </div>
     </div>
@@ -43,18 +41,15 @@
       @close="closeChartModal"
       @reload-charts="fetchCharts"  
     />
-
-    <!-- 預覽角色介面窗口 -->
-    <!-- <UserInterfacePreviewModal v-if="showPreviewModal" @close="closePreviewModal" /> -->
   </div>
 </template>
 
+
 <script>
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
-import PlotlyChart from '@/components/backend/PlotlyChart.vue';
+// import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartContainer from '@/Charts/ChartContainer.vue';
 import Modal from '@/components/backend/ChartModal.vue';
-// import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue';
 import axios from 'axios';
 import { mapGetters, mapActions } from 'vuex';
 
@@ -62,74 +57,72 @@ export default {
   name: 'DashboardManager',
   components: {
     TopNavbar,
-    PlotlyChart,
+    // PlotlyChart,
     ChartContainer,
     Modal,
-    // UserInterfacePreviewModal,
   },
   data() {
     return {
       charts: [],
-      filteredCharts: [], // 用來存放篩選後的圖表
+      filteredCharts: [],
       showChartModal: false,
-      // showPreviewModal: false,
       isEditing: false,
       selectedChartId: null,
-      filterType: 'all', // 新增一個用來追踪當前的過濾類型
-      chartPermissionMap: {
-        'sales': '銷售額',
-        'revenue': '營業額',
-        'inventory': '庫存量',
-        // 可以根據需求添加更多的映射
-      },
+      filterType: 'all',
     };
   },
   computed: {
     ...mapGetters(['getPermissions']),
     canAddChart() {
-      return this.getPermissions.some(perm => perm.permission_name === '儀表板管理' && perm.can_add);
+      return Array.isArray(this.getPermissions) && this.getPermissions.some(perm => perm.permission_name === '儀表板管理' && perm.can_add);
     },
   },
   mounted() {
-    this.fetchCharts();
+    this.fetchCharts().then(() => {
+      this.applyFilter(); // 初始載入時應用過濾
+    });
   },
   methods: {
     ...mapActions(['fetchPermissions']),
     async fetchCharts() {
       try {
-        // 確保權限已經被獲取
         await this.fetchPermissions();
 
-        const response = await axios.get('/api/backend/get-chart-configurations/');
+        const response = await axios.get('/api/backend/charts/');
         const chartConfigs = response.data.map(chart => ({
           ...chart,
-          chartType: chart.chart_type.toLowerCase(), // 確保是小寫
+          chartType: chart.chartType ? chart.chartType.toLowerCase() : 'bar',
+          dataSource: chart.dataSource || '',
+          xAxisField: chart.xAxisField || '',
+          yAxisField: chart.yAxisField || '',
         }));
 
-        // 根據過濾條件選擇圖表
-        let filteredConfigs = chartConfigs;
-        if (this.filterType !== 'all') {
-          const permissionName = this.chartPermissionMap[this.filterType];
-          filteredConfigs = chartConfigs.filter(chart => chart.name === permissionName);
-        }
+        console.log('Fetched chart configurations:', chartConfigs);
 
-        // 為每個圖表呼叫 dynamic-chart-data 並添加 x_data 和 y_data
-        const chartsWithData = await Promise.all(filteredConfigs.map(async (chart) => {
+        const chartsWithData = await Promise.all(chartConfigs.map(async (chart) => {
           try {
+            const filterConditions = typeof chart.filter_conditions === 'string' 
+              ? JSON.parse(chart.filter_conditions || '{}') 
+              : chart.filter_conditions || {};
+
             const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
-              table_name: chart.data_source,
-              x_field: chart.x_axis_field,
-              y_field: chart.y_axis_field,
-              filter_conditions: JSON.parse(chart.filter_conditions || '{}'),
-              join_fields: chart.join_fields || []
+              table_name: chart.dataSource,
+              x_field: chart.xAxisField,
+              y_field: chart.yAxisField,
+              filter_conditions: filterConditions,
+              join_fields: chart.joinFields || []
             });
+
+            console.log(`Chart ID ${chart.id} data:`, dataResponse.data);
+
             return {
               ...chart,
               x_data: dataResponse.data.x_data,
               y_data: dataResponse.data.y_data,
               last_updated: dataResponse.data.last_updated,
-              can_export: this.hasPermission(chart.name, 'can_export'),
-              can_delete: this.hasPermission(chart.name, 'can_delete'),
+              can_export: chart.can_export,
+              can_delete: chart.can_delete,
+              can_edit: chart.can_edit,
             };
           } catch (error) {
             console.error(`Error fetching data for chart ID ${chart.id}:`, error);
@@ -141,14 +134,18 @@ export default {
               error: '無法獲取數據',
               can_export: false,
               can_delete: false,
+              can_edit: false,
             };
           }
         }));
 
-        this.charts = chartsWithData;
-        this.filteredCharts = chartsWithData; // 由於已經根據 filterType 過濾過
+        console.log('Charts with data:', chartsWithData);
 
-        console.log('Fetched charts with data:', this.charts);
+        this.charts = chartsWithData;
+        // 不再直接設置 filteredCharts
+
+        console.log('Charts count:', this.charts.length);
+        console.log('Charts:', this.charts);
       } catch (error) {
         console.error('Error fetching chart configurations:', error);
       }
@@ -164,6 +161,7 @@ export default {
     async showDashboard(type) {
       this.filterType = type;
       await this.fetchCharts();
+      this.applyFilter(); // 在 fetchCharts 之後應用過濾
     },
     async fetchChartConfigMethod(chartId) {
       if (!chartId) {
@@ -200,11 +198,56 @@ export default {
         return null;
       }
     },
+    getChartNameByType(type) {
+      const typeMap = {
+        'sales': '銷售',      // 修改為 "銷售"
+        'revenue': '營業',    // 修改為 "營業"
+        'inventory': '庫存',  // 修改為 "庫存"
+      };
+      return typeMap[type] || null;
+    },
+    applyFilter() {
+      console.log('Applying filter:', this.filterType);
+      if (this.filterType === 'all') {
+        this.filteredCharts = this.charts.filter(chart => {
+          const hasPermission = this.hasPermission(chart.name, 'can_view');
+          console.log(`Chart: ${chart.name}, Has Permission: ${hasPermission}`);
+          return hasPermission;
+        });
+      } else {
+        const expectedName = this.getChartNameByType(this.filterType);
+        if (!expectedName) {
+          console.error(`未知的 filterType: ${this.filterType}`);
+          this.filteredCharts = [];
+          return;
+        }
+        this.filteredCharts = this.charts.filter(chart => {
+          const isTypeMatch = chart.name.includes(expectedName); // 使用包含來匹配名稱
+          const hasPermission = this.hasPermission(chart.name, 'can_view');
+          console.log(`Chart: ${chart.name}, Type Match: ${isTypeMatch}, Has Permission: ${hasPermission}`);
+          return isTypeMatch && hasPermission;
+        });
+      }
+      console.log('Filtered charts after applyFilter:', this.filteredCharts);
+    },
     hasPermission(permissionName, action) {
       const permission = this.getPermissions.find(perm => perm.permission_name === permissionName);
       return permission ? permission[action] : false;
     },
+    slugify(text) {
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-') // 如果需要，可以保留或調整這部分
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    }
   },
+  watch: {
+    filterType() { // 修改為監聽 filterType
+      this.applyFilter();
+    }
+  }
 };
 </script>
 

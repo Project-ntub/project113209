@@ -1,3 +1,4 @@
+<!-- src/components/backend/ChartModal.vue -->
 <template>
   <div class="chart-modal-container">
     <div class="chart-modal">
@@ -85,7 +86,6 @@
 
 <script>
 import axios from 'axios';
-// import Plotly from 'plotly.js-dist';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 
 export default {
@@ -131,7 +131,7 @@ export default {
           this.chartData = {
             ...this.chartData,
             id: config.id,
-            chartType: config.chartType,
+            chartType: config.chartType, // 確保設置 chartType
             name: config.name,
             dataSource: config.dataSource,
             xAxisField: config.xAxisField,
@@ -236,7 +236,7 @@ export default {
       }
 
       let chartConfig = {
-        chart_type: this.chartData.chartType, // 使用 chartType
+        chart_type: this.chartData.chartType, // 使用 snake_case
         name: this.chartData.name || '未命名圖表',
         data_source: this.chartData.dataSource,
         x_axis_field: this.chartData.xAxisField,
@@ -258,7 +258,7 @@ export default {
           });
       } else {
         // 創建模式，調用創建 API
-        axios.post('/api/backend/create-chart/', chartConfig)
+        axios.post('/api/backend/chartconfiguration/create_chart_action/', chartConfig)
           .then(() => {
             alert('圖表已成功創建！');
             this.$emit('reload-charts');

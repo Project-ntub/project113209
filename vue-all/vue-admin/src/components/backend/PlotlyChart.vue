@@ -1,3 +1,4 @@
+<!-- src/components/backend/PlotlyChart.vue -->
 <template> 
   <div ref="chart" class="plotly-chart" @click.stop></div>
   <div class="last-updated">最後更新時間: {{ lastUpdated }}</div>
@@ -17,7 +18,17 @@ export default {
     this.renderChart();
     window.addEventListener('resize', this.renderChart);
   },
-  beforeUnmount() { // 將 beforeDestroy 替換為 beforeUnmount
+  watch: {
+    chartConfig: {
+      handler(newConfig) {
+        this.lastUpdated = newConfig.last_updated ? new Date(newConfig.last_updated).toLocaleString() : new Date().toLocaleString();
+        this.renderChart();
+      },
+      immediate: true,
+      deep: true
+    }
+  },
+  beforeUnmount() {
     window.removeEventListener('resize', this.renderChart);
   },
   methods: {
@@ -33,34 +44,34 @@ export default {
       console.log('y_data:', this.chartConfig.y_data);
 
       if (!this.chartConfig.x_data || !this.chartConfig.y_data) {
-        console.error('x_data 或 y_data 缺失，無法渲染圖表。');
-        return;
+          console.error('x_data 或 y_data 缺失，無法渲染圖表。');
+          return;
       }
 
       let trace;
       if (this.chartConfig.chartType === 'pie') {
-        trace = {
-          labels: this.chartConfig.x_data,
-          values: this.chartConfig.y_data,
-          type: 'pie',
-        };
+          trace = {
+              labels: this.chartConfig.x_data,
+              values: this.chartConfig.y_data,
+              type: 'pie',
+          };
       } else {
-        trace = {
-          x: this.chartConfig.x_data,
-          y: this.chartConfig.y_data,
-          type: this.chartConfig.chartType || 'bar'
-        };
+          trace = {
+              x: this.chartConfig.x_data,
+              y: this.chartConfig.y_data,
+              type: this.chartConfig.chartType || 'bar'
+          };
       }
 
       const layout = {
         title: this.chartConfig.name || '圖表',
         xaxis: { 
-          title: this.chartConfig.xAxisField || 'X 軸',
+          title: this.chartConfig.xAxisField || 'X 軸', // 使用駝峰命名
           tickangle: -90,
           automargin: true
         },
         yaxis: { 
-          title: this.chartConfig.yAxisField || 'Y 軸'
+          title: this.chartConfig.yAxisField || 'Y 軸' // 使用駝峰命名
         },
         autosize: true,
       };
@@ -75,17 +86,13 @@ export default {
         ]
       };
 
-      Plotly.newPlot(chartEl, [trace], layout, config);
-    }
-  },
-  watch: {
-    chartConfig: {
-      handler(newConfig) {
-        this.lastUpdated = newConfig.last_updated ? new Date(newConfig.last_updated).toLocaleString() : new Date().toLocaleString();
-        this.renderChart();
-      },
-      immediate: true,
-      deep: true
+      Plotly.newPlot(chartEl, [trace], layout, config)
+        .then(() => {
+          console.log('Plotly chart rendered successfully.');
+        })
+        .catch(error => {
+          console.error('Error rendering Plotly chart:', error);
+        });
     }
   }
 };

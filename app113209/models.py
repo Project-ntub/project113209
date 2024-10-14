@@ -323,26 +323,26 @@ class TEST_Sales(models.Model):
         return f"Sale ID: {self.sale_id}, Branch: {branch_name}, Product: {product_name}"
 
 
-# 測試用庫存模型
 class TEST_Inventory(models.Model):
-    product = models.ForeignKey('TEST_Products', on_delete=models.CASCADE, db_column='product_id')
-    warehouse_id = models.CharField(max_length=50)
-    warehouse_name = models.CharField(max_length=200, null=True, blank=True)
+    id = models.AutoField(primary_key=True)  # 新增自動遞增主鍵
     product_name = models.CharField(max_length=200, null=True, blank=True)
+    warehouse_id = models.CharField(max_length=50, null=True)
+    warehouse_name = models.CharField(max_length=200, null=True, blank=True)
     stock_quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     last_update = models.DateTimeField(auto_now=True)
+    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, null=True, db_column='product_id')
 
     class Meta:
         db_table = 'TEST_Inventory'
 
     def __str__(self):
-        return f"{self.product_name} - {self.warehouse_name}"
-
+        return f"Inventory {self.id} - {self.product_name} in {self.warehouse_name}"
 
 class TEST_Revenue(models.Model):
-    branch = models.ForeignKey('Branch', on_delete=models.CASCADE, db_column='branch_id')
-    branch_name = models.CharField(max_length=100)
-    product = models.ForeignKey('TEST_Products', on_delete=models.CASCADE, db_column='product_id')
+    id = models.AutoField(primary_key=True)  # 新增自動遞增主鍵
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True, db_column='branch_id')
+    branch_name = models.CharField(max_length=100, null=True)
+    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, null=True, db_column='product_id')
     revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     discount_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     net_revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
@@ -350,15 +350,12 @@ class TEST_Revenue(models.Model):
     tax_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     final_revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     last_update = models.DateTimeField(auto_now=True)
- 
+
     class Meta:
         db_table = 'TEST_Revenue'
-        unique_together = (('branch_id', 'product_id'),)
-
 
     def __str__(self):
-        return f"Revenue for Branch {self.branch_name} - Product {self.product_id}"
-
+        return f"Revenue {self.id} for Branch {self.branch_name} - Product {self.product.product_id}"
 
 
 # 另外一個資料庫的圖表

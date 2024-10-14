@@ -100,7 +100,7 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # 確保圖表名稱不為空
         if not data.get('name'):
-            raise serializers.ValidationError({'n ame': '此欄位不能為空.'})
+            raise serializers.ValidationError({'name': '此欄位不能為空.'})  # 修正 'n ame' 為 'name'
         
         # 確保數據來源不為空
         if not data.get('data_source'):
@@ -121,7 +121,7 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
             except json.JSONDecodeError:
                 raise serializers.ValidationError("Filter conditions must be valid JSON.")
         return data
-
+    
 class UserPreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPreferences

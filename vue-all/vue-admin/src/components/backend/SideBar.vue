@@ -15,10 +15,10 @@
           <span class="icon">👤</span>
           <span class="text">個人資料</span>
         </router-link>
-        <router-link to="/backend/preferences" class="sidebar-link">
+        <!-- <router-link to="/backend/preferences" class="sidebar-link">
           <span class="icon">⚙️</span>
           <span class="text">個人偏好</span>
-        </router-link>
+        </router-link> -->
       </div>
       <!-- General links -->
       <router-link to="/backend/dashboard" class="sidebar-link">

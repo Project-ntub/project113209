@@ -1,19 +1,22 @@
+<!-- src/Charts/ChartContainer.vue -->
 <template>
   <div>
     <div class="chart-container">
       <div class="chart-header">
         <div class="menu-button">
           <button class="menu-icon" @click="toggleMenu">⋮</button>
-          <button class="zoom-icon" @click="openZoomModal"><i class="fas fa-search-plus"></i></button>
+          <button class="zoom-icon" @click="openZoomModal">
+            <font-awesome-icon icon="search-plus" />
+          </button>
           <div v-if="showMenu" class="menu">
-            <template v-if="!isFrontend">
-              <button @click="editChart">編輯圖表</button>
-              <button v-if="canExport" @click="deleteChart">刪除圖表</button>
-            </template>
-            <div v-if="canExport" class="export-button">
-              <button @click="exportChart('csv')">匯出 CSV</button>
-              <button @click="exportChart('excel')">匯出 Excel</button>
-              <button @click="exportChart('pdf')">匯出 PDF</button>
+            <div v-if="!isFrontend">
+                <button v-if="localCanEdit" @click="editChart">編輯圖表</button>
+                <button v-if="localCanDelete" @click="deleteChart">刪除圖表</button>
+            </div>
+            <div v-if="localCanExport" class="export-button">
+                <button @click="exportChart('csv')">匯出 CSV</button>
+                <button @click="exportChart('excel')">匯出 Excel</button>
+                <button @click="exportChart('pdf')">匯出 PDF</button>
             </div>
           </div>
         </div>
@@ -46,6 +49,7 @@
 import axios from 'axios';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartModal from '@/components/backend/ChartModal.vue';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -56,7 +60,8 @@ export default {
     chartConfig: Object,
     isFrontend: Boolean,
     canExport: Boolean,
-    canDelete: Boolean
+    canDelete: Boolean,
+    canEdit: Boolean // 新增 canEdit prop
   },
   data() {
     return {
@@ -64,10 +69,13 @@ export default {
       isZoomModalVisible: false,
       isEditModalVisible: false,
       localChartConfig: { ...this.chartConfig },
+      localCanExport: this.canExport,
+      localCanDelete: this.canDelete,
+      localCanEdit: this.canEdit, // 新增本地 canEdit
     };
   },
-  mounted() {
-    this.fetchUserPermissions();
+  computed: {
+    ...mapGetters(['getPermissions']),
   },
   methods: {
     toggleMenu() {
@@ -108,26 +116,33 @@ export default {
     },
     async exportChart(format) {
       if (!this.localChartConfig.xAxisField || !this.localChartConfig.yAxisField) {
-        alert('圖表配置無效，無法導出！');
-        return;
+          alert('圖表配置無效，無法導出！');
+          return;
       }
 
       try {
-        const response = await axios.post('/api/backend/export-data/', {
-          chartConfig: this.localChartConfig, // 確保傳遞完整的 chartConfig
-          format: format
-        }, { responseType: 'blob' });
+          const response = await axios.post('/api/backend/export-data/', {
+              chartConfig: {
+                  chart_type: this.localChartConfig.chartType,
+                  name: this.localChartConfig.name,
+                  data_source: this.localChartConfig.dataSource,
+                  x_axis_field: this.localChartConfig.xAxisField,
+                  y_axis_field: this.localChartConfig.yAxisField,
+                  filter_conditions: this.localChartConfig.filter_conditions,
+              },
+              format: format
+          }, { responseType: 'blob' });
 
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
       } catch (error) {
-        console.error('匯出數據時出錯:', error);
-        alert('匯出失敗，請檢查數據並重試。');
+          console.error('匯出數據時出錯:', error);
+          alert('匯出失敗，請檢查數據並重試。');
       }
     },
     async fetchChartConfigMethod(chartId) {
@@ -140,37 +155,46 @@ export default {
         const response = await axios.get(`/api/backend/charts/${chartId}/`);
         const data = response.data;
 
-        this.updateChartConfig({
-          chartType: data.chart_type,
-          name: data.name,
-          dataSource: data.data_source,
-          xAxisField: data.x_axis_field,
-          yAxisField: data.y_axis_field,
-          filterConditions: JSON.stringify(data.filter_conditions || '{}'),
-          x_data: data.x_data || [],
-          y_data: data.y_data || []
+        // 呼叫 dynamic-chart-data 以獲取 x_data 和 y_data
+        const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
+          table_name: data.data_source,
+          x_field: data.x_axis_field,
+          y_field: data.y_axis_field,
+          filter_conditions: JSON.parse(data.filter_conditions || '{}'),
+          join_fields: data.join_fields || []
         });
-        return data;
+
+        const updatedConfig = {
+          ...data,
+          chartType: data.chart_type ? data.chart_type.toLowerCase() : 'bar', // 添加 chartType
+          x_data: dataResponse.data.x_data,
+          y_data: dataResponse.data.y_data,
+          last_updated: dataResponse.data.last_updated,
+          can_export: this.hasPermission(data.name, 'can_export'),
+          can_delete: this.hasPermission(data.name, 'can_delete'),
+          can_edit: this.hasPermission(data.name, 'can_edit'),
+        };
+
+        return updatedConfig;
       } catch (error) {
         console.error('加載圖表配置時發生錯誤:', error);
         alert('加載圖表配置時發生錯誤，請稍後再試');
         return null;
       }
     },
-    fetchUserPermissions() {
-      axios.get('/api/backend/permissions/')
-        .then(response => {
-          const permissions = response.data;
-          console.log('User permissions:', permissions);
-          // 假設每個權限都有 can_export 和 can_delete 權限
-          const exportPermission = permissions.find(perm => perm.permission_name === this.localChartConfig.name);
-          this.canExport = exportPermission ? exportPermission.can_export : false;
-          this.canDelete = exportPermission ? exportPermission.can_delete : false;
-        })
-        .catch(error => {
-          console.error('無法獲取權限:', error);
-        });
+    hasPermission(permissionName, action) {
+      // 直接使用後端返回的 permission_name，不使用 slugify 或添加前綴
+      const permission = this.getPermissions.find(perm => perm.permission_name === permissionName);
+      return permission ? permission[action] : false;
     },
+    slugify(text) {
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')       // 移除不必要的字符
+        .replace(/--+/g, '-')          // 移除重複的連字符
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    }
   },
 };
 </script>
@@ -270,12 +294,13 @@ export default {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
   border: none;
   font-size: 2rem;
   cursor: pointer;
   border-radius: 50%;
   padding: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0,3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 </style>

@@ -1,3 +1,4 @@
+<!-- src/components/PersonalPreference.vue -->
 <template>
   <div class="personal-preference-container">
     <h1>個人偏好管理</h1>
@@ -72,6 +73,7 @@ export default {
       axios.put(`/api/backend/user_preferences/update/${preference.id}/`, preference)
         .then(() => {
           alert('偏好設置已保存'); // 保存成功後提示用戶
+          this.$emit('preference-updated', preference); // 發射事件
         })
         .catch(error => {
           console.error('保存偏好設置時出錯:', error);

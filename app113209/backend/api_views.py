@@ -18,6 +18,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import F, Sum
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
@@ -33,7 +35,7 @@ from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSeriali
                                    RolePermissionSerializer, UserHistorySerializer,
                                    ChartConfigurationSerializer, SalesDataSerializer,
                                    RevenueDataSerializer, InventoryDataSerializer, UserPreferencesSerializer)
-from app113209.utils import record_history
+from app113209.utils import record_history, update_permission_name
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +110,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     def delete(self, request, *args, **kwargs):
-       # 檢查當前用戶是否有用戶管理的 can_edit 權限
         permissions = get_user_permissions(request.user.id)
         user_management_permission = permissions.filter(permission_name='用戶管理').first()
 
@@ -116,6 +117,21 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': '您沒有權限刪除此用戶'}, status=status.HTTP_403_FORBIDDEN)
         
         instance = self.get_object()
+
+        # 檢查用戶是否是系統管理員
+        is_system_admin = RolePermission.objects.filter(
+            permission_name=slugify("用戶管理", allow_unicode=True),
+            can_view=True,
+            is_deleted=False
+        ).exists()
+
+        if is_system_admin:
+            # 檢查是否是最後一個系統管理員
+            admin_users = User.objects.filter(roles__id=1, is_deleted=False)
+            if admin_users.count() <= 1:
+                return Response({'error': '至少需要一個系統管理員，無法刪除此用戶'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 標記用戶為已刪除
         instance.is_deleted = True
         instance.save()
         record_history(request.user, f"管理員 {request.user.username} 刪除了用戶 {instance.username}")
@@ -346,6 +362,12 @@ class RoleViewSet(viewsets.ModelViewSet):
 
         instance.save()
 
+        # 檢查系統管理員角色是否仍有用戶
+        if instance.id == 1:
+            admin_users = User.objects.filter(roles__id=1, is_deleted=False)
+            if admin_users.count() < 1:
+                return Response({'error': '系統管理員角色至少需要一個用戶'}, status=status.HTTP_400_BAD_REQUEST)
+
         # 記錄更新角色的操作
         record_history(request.user, f"管理員 {request.user.username} 更新了角色 {instance.name}")
 
@@ -382,23 +404,24 @@ class RoleViewSet(viewsets.ModelViewSet):
         return queryset.prefetch_related('users')
     
     def delete(self, request, *args, **kwargs):
-        # 檢查當前用戶是否有角色管理的 can_delete 權限
         permissions = get_user_permissions(request.user.id)
         role_management_permission = permissions.filter(permission_name='角色管理').first()
 
         if not role_management_permission or not role_management_permission.can_delete:
             return Response({'error': '您沒有權限刪除角色'}, status=status.HTTP_403_FORBIDDEN)
-
-        # 允許刪除角色，執行原有邏輯
+        
         role = self.get_object()
+
+        # 如果刪除的是系統管理員角色，檢查是否有其他用戶
+        if role.id == 1:
+            admin_users = User.objects.filter(roles__id=1, is_deleted=False)
+            if admin_users.count() <= 1:
+                return Response({'error': '至少需要一個系統管理員，無法刪除此角色'}, status=status.HTTP_400_BAD_REQUEST)
+
         role.is_deleted = True
         role.save()
-
-        # 記錄刪除角色的操作
         record_history(request.user, f"管理員 {request.user.username} 刪除了角色 {role.name}")
-
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 
 class RolePermissionViewSet(viewsets.ModelViewSet):
@@ -584,6 +607,12 @@ def update_user_preference(request, id):
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@receiver(m2m_changed, sender=RoleUser)
+def prevent_last_admin_removal(sender, instance, action, reverse, model, pk_set, **kwargs):
+    if instance.id == 1 and action in ['pre_remove', 'pre_clear']:
+        admin_users = instance.users.exclude(pk__in=pk_set)
+        if not admin_users.exists():
+            raise IntegrityError('至少需要一個系統管理員，無法移除最後一個系統管理員。')
 
 # 圖表
 # 返回可用的資料表列表
@@ -622,6 +651,14 @@ def dynamic_chart_data(request):
         logger.error(f"Model for table {table_name} not found in MODEL_MAPPING")
         return JsonResponse({'error': '資料表不存在'}, status=400)
 
+    # 驗證 x_field 和 y_field
+    if not validate_lookup(model, x_field):
+        logger.error(f"x_field {x_field} does not exist in model {table_name}")
+        return JsonResponse({'error': f"x_field {x_field} 不存在於資料表 {table_name}"}, status=400)
+    if not validate_lookup(model, y_field):
+        logger.error(f"y_field {y_field} does not exist in model {table_name}")
+        return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
+
     try:
         queryset = model.objects.all()
 
@@ -630,39 +667,22 @@ def dynamic_chart_data(request):
             logger.info(f"Using join_fields with fields: {join_fields}")
             queryset = queryset.select_related(*join_fields)
 
-        x_data = []
-        y_data = []
-        for obj in queryset:
-            try:
-                # 獲取x軸的值
-                x_value = obj
-                for attr in x_field.split('__'):
-                    x_value = getattr(x_value, attr)
+        # 處理過濾條件
+        filter_conditions = request.data.get('filter_conditions', {})
+        if isinstance(filter_conditions, dict) and filter_conditions:
+            queryset = queryset.filter(**filter_conditions)
 
-                # 獲取y軸的值並轉換為數值類型
-                y_value = obj
-                for attr in y_field.split('__'):
-                    y_value = getattr(y_value, attr)
-                try:
-                    y_value = float(y_value)
-                except (ValueError, TypeError):
-                    y_value = 0  # 或者根據需求處理無效數值
+        # 聚合數據：按 x_field 分組並聚合 y_field
+        aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
+        x_data = [item[x_field] for item in aggregated_data]
+        y_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
 
-                x_data.append(x_value)
-                y_data.append(y_value)
-            except AttributeError as e:
-                logger.error(f"Error getting attribute: {e}")
-
-        # 動態檢查模型是否具有'last_updated'字段
-        last_updated_field = None
-        field_names = [field.name for field in model._meta.get_fields()]
-        if 'last_updated' in field_names:
-            last_updated_field = 'last_updated'
-        elif 'created_at' in field_names:
-            last_updated_field = 'created_at'
-        else:
-            logger.warning(f"Model {table_name} does not have 'last_updated' or 'created_at' fields.")
-            last_updated_field = None
+        # 獲取最後更新時間
+        last_updated_field = 'last_update' if hasattr(model, 'last_update') else (
+            'last_updated' if hasattr(model, 'last_updated') else (
+                'created_at' if hasattr(model, 'created_at') else None
+            )
+        )
 
         if last_updated_field:
             last_updated_instance = queryset.order_by(f'-{last_updated_field}').first()
@@ -675,7 +695,7 @@ def dynamic_chart_data(request):
     except Exception as e:
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-   
+
 def save_chart_as_image(fig):
     file_name = f"chart_{uuid.uuid4().hex}.png"
     file_path = os.path.join(settings.MEDIA_ROOT, file_name)
@@ -814,6 +834,36 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
     serializer_class = ChartConfigurationSerializer
     permission_classes = [IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        # 獲取用戶的所有權限名稱，其中 can_view=True
+        permission_names = RolePermission.objects.filter(
+            role__roleuser__user=request.user,
+            can_view=True,
+            is_deleted=False
+        ).values_list('permission_name', flat=True)
+
+        # 獲取所有圖表配置
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        # 篩選用戶有權查看的圖表（使用 allow_unicode=True 的 slugify）
+        visible_charts = [chart for chart in data if slugify(chart['name'], allow_unicode=True) in permission_names]
+
+        # 為每個可見圖表添加其他權限信息
+        for chart in visible_charts:
+            permission_name = slugify(chart['name'], allow_unicode=True)
+            role_permissions = RolePermission.objects.filter(
+                permission_name=permission_name,
+                role__roleuser__user=request.user,
+                is_deleted=False
+            )
+            chart['can_edit'] = role_permissions.filter(can_edit=True).exists()
+            chart['can_delete'] = role_permissions.filter(can_delete=True).exists()
+            chart['can_export'] = role_permissions.filter(can_export=True).exists()
+
+        return Response(visible_charts)
+
     @action(detail=False, methods=['post'])
     def create_chart_action(self, request):
         data = request.data.copy()
@@ -826,8 +876,8 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             except IntegrityError:
                 return Response({'error': '圖表名稱已存在，請選擇其他名稱'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # 使用圖表的分類名稱作為 permission_name
-            permission_name = chart_config.name
+            # 使用 allow_unicode=True 的 slugify
+            permission_name = slugify(chart_config.name, allow_unicode=True)
 
             # 自動為所有活動的角色添加權限，預設 can_view=True
             active_roles = Role.objects.filter(is_active=True, is_deleted=False)
@@ -852,16 +902,32 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             new_name = chart_config.name
 
             if old_name != new_name:
-                old_permission_name = old_name
-                new_permission_name = new_name
-
-                # 更新所有相關角色的權限名稱
-                RolePermission.objects.filter(permission_name=old_permission_name).update(permission_name=new_permission_name)
+                # 移除 "chart_" 前綴
+                update_permission_name(old_name, new_name)
 
                 # 記錄操作歷史
                 record_history(request.user, f"管理員 {request.user.username} 更新了圖表名稱從 '{old_name}' 到 '{new_name}'，並更新了相關權限名稱")
 
-            return Response(serializer.data)
+            # 添加權限信息
+            data = serializer.data
+            permission_name = slugify(new_name, allow_unicode=True)
+            data['can_edit'] = RolePermission.objects.filter(
+                permission_name=permission_name,
+                role__roleuser__user=request.user,
+                can_edit=True
+            ).exists()
+            data['can_delete'] = RolePermission.objects.filter(
+                permission_name=permission_name,
+                role__roleuser__user=request.user,
+                can_delete=True
+            ).exists()
+            data['can_export'] = RolePermission.objects.filter(
+                permission_name=permission_name,
+                role__roleuser__user=request.user,
+                can_export=True
+            ).exists()
+
+            return Response(data)
         logger.error(f"Chart update failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -872,10 +938,8 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             chart_config.is_deleted = True  # 標記為已刪除
             chart_config.save()
 
-            # 使用圖表的分類名稱作為 permission_name
-            permission_name = chart_config.name
-
-            # 標記相關權限為已刪除
+            # 使用 utils.py 中的函數來更新權限名稱
+            permission_name = slugify(chart_config.name, allow_unicode=True)
             RolePermission.objects.filter(permission_name=permission_name).update(is_deleted=True)
 
             return Response({"message": "圖表已被刪除"}, status=status.HTTP_200_OK)
@@ -1004,46 +1068,58 @@ class StoreComparisonChartDataAPIView(APIView):
         data = list(revenue_data)
         return JsonResponse(data, safe=False)
     
-# @api_view(['POST'])
-# def generate_chart_image(request):
-#     # 從請求中獲取數據
-#     chart_type = request.data.get('chart_type')
-#     x_data = request.data.get('x_data')
-#     y_data = request.data.get('y_data')
+def validate_lookup(model, lookup):
+    """
+    驗證給定的查詢欄位路徑是否在模型中存在。
 
-#     # 動態生成文件名
-#     file_name = f"chart_{uuid.uuid4().hex}.png"
-#     file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+    Args:
+        model (models.Model): Django 模型類。
+        lookup (str): 查詢欄位路徑，例如 'product__category'。
 
-#     # 呼叫生成圖表函數
-#     save_chart_as_image(chart_type, x_data, y_data, file_path)
-
-#     # 返回生成的圖片路徑
-#     return JsonResponse({'image_path': f"{settings.MEDIA_URL}{file_name}"})
+    Returns:
+        bool: 如果查詢路徑存在，返回 True，否則返回 False。
+    """
+    parts = lookup.split('__')
+    current_model = model
+    for part in parts:
+        try:
+            field = current_model._meta.get_field(part)
+            if isinstance(field, models.ForeignKey):
+                current_model = field.related_model
+        except models.FieldDoesNotExist:
+            return False
+    return True
 
 # 匯出 CSV
 @api_view(['POST'])
 def export_data(request):
+    logger.info("Received export request")
     chart_config = request.data.get('chartConfig', {})
-    table_name = chart_config.get('dataSource', '')
+    table_name = chart_config.get('data_source', '')
     format = request.data.get('format')
     chart_name = chart_config.get('name', 'chart')
 
     x_field = chart_config.get('x_axis_field')
     y_field = chart_config.get('y_axis_field')
 
+    logger.debug(f"Exporting chart: {chart_name}, table: {table_name}, x_field: {x_field}, y_field: {y_field}, format: {format}")
+
     if not table_name:
+        logger.error("資料來源未指定")
         return JsonResponse({"error": "資料來源未指定"}, status=400)
     if not x_field or not y_field:
+        logger.error("x_axis_field 和 y_axis_field 是必填的")
         return JsonResponse({"error": "x_axis_field 和 y_axis_field 是必填的"}, status=400)
 
     model = MODEL_MAPPING.get(table_name)
     if not model:
+        logger.error(f"資料表不存在: {table_name}")
         return JsonResponse({"error": "資料表不存在"}, status=400)
 
     # 僅獲取指定的字段
     try:
         data = list(model.objects.values(x_field, y_field))
+        logger.debug(f"Fetched data for export: {len(data)} records")
     except Exception as e:
         logger.error(f"Error fetching fields {x_field}, {y_field} from {table_name}: {e}")
         return JsonResponse({"error": f"無法獲取指定的欄位: {e}"}, status=400)
@@ -1055,8 +1131,10 @@ def export_data(request):
     elif format == 'pdf':
         response = export_to_pdf(data, chart_name, x_field, y_field)
     else:
+        logger.error(f"Unsupported format: {format}")
         return JsonResponse({"error": "Unsupported format"}, status=400)
 
+    logger.info(f"Export successful for chart: {chart_name} in format: {format}")
     return response
 
 def export_to_csv(data, chart_name, x_field, y_field):
