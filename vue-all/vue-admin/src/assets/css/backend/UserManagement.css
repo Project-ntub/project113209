@@ -7,19 +7,19 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   transition: margin-left 0.3s ease, width 0.3s ease;
-  padding-bottom: 40px;
-  min-height: 100vh; /* 設置最小高度，讓容器占滿整個視窗 */
+  padding-bottom: 80px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .table-container {
-  max-height: 600px; /* 調整最大高度，使表格範圍更廣 */
+  max-height: 600px;
   overflow-y: auto;
   margin-bottom: 30px;
-  background-color: #fff; /* 背景色為白色，確保表格在白色區域顯示 */
-  padding: 10px; /* 表格的內部間距 */
+  background-color: #fff;
+  padding: 10px;
 }
 
 .user-table {
@@ -48,7 +48,6 @@
   background-color: #ddd;
 }
 
-/* 增加表格下方白色範圍 */
 .extra-space {
   height: 100px;
   background-color: #ffffff;

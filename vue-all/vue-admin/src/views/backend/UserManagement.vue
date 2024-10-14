@@ -84,22 +84,20 @@ export default {
   },
   data() {
     return {
-      permissions: [], // 當前用戶的權限
-      sortBy: 'name', // 預設排序方式
-      departmentFilter: 'all', // 部門過濾
-      query: '', // 搜尋框內容
-      users: [], // 用戶資料
-      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部'], // 靜態部門清單
+      permissions: [],
+      sortBy: 'name',
+      departmentFilter: 'all',
+      query: '',
+      users: [],
+      departments: ['銷售部', '人力資源部', '資訊部', '業務部', '財務部'],
     };
   },
   computed: {
     filteredUsers() {
       let filtered = this.users;
-
       if (this.departmentFilter !== 'all') {
         filtered = filtered.filter(user => user.department_id === this.departmentFilter);
       }
-
       if (this.query) {
         const queryLowerCase = this.query.toLowerCase();
         filtered = filtered.filter(user =>
@@ -108,7 +106,6 @@ export default {
           user.phone.toLowerCase().includes(queryLowerCase)
         );
       }
-
       return filtered.sort((a, b) => {
         if (this.sortBy === 'name') {
           return a.username.localeCompare(b.username);
@@ -179,4 +176,5 @@ export default {
   }
 };
 </script>
+
 <style scoped src="@/assets/css/backend/UserManagement.css"></style>
