@@ -14,6 +14,7 @@ body {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   padding: 1.5rem;
+  padding-bottom: 4rem; /* 增加底部填充 */
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
@@ -49,6 +50,7 @@ body {
   overflow-y: auto;
   max-height: 60vh;
   margin-top: 1.5rem;
+  padding-bottom: 4rem; /* 增加底部填充 */
 }
 
 .role-table {
