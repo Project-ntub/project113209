@@ -36,11 +36,9 @@
           <div class="setting">
             <label for="x-axis-field">X 軸欄位</label>
             <select id="x-axis-field" v-model="chartData.xAxisField">
-              <!-- 當前模型的欄位 -->
               <option v-for="field in tableFields" :key="field" :value="field">
                 {{ field }}
               </option>
-              <!-- 關聯模型的欄位 -->
               <optgroup v-for="(relatedField, key) in joinableFields" :key="key" :label="`關聯欄位：${key}`">
                 <option v-for="field in relatedField.fields" :key="field" :value="`${key}__${field}`">
                   {{ field }}
@@ -131,7 +129,7 @@ export default {
           this.chartData = {
             ...this.chartData,
             id: config.id,
-            chartType: config.chartType, // 確保設置 chartType
+            chartType: config.chartType,
             name: config.name,
             dataSource: config.dataSource,
             xAxisField: config.xAxisField,
@@ -151,7 +149,6 @@ export default {
     }
   },
   watch: {
-    // 監聽 dataSource, xAxisField, yAxisField 的變化
     'chartData.dataSource'() {
       this.fetchTableFields();
     },
@@ -166,8 +163,6 @@ export default {
       }
     }
   },
-
-
   methods: {
     fetchDataSources() {
       axios.get('/api/backend/data-sources/')
@@ -184,7 +179,6 @@ export default {
           .then(response => {
             this.tableFields = response.data.fields;
             this.joinableFields = response.data.related_fields;
-            // 只在編輯模式下自動獲取數據
             if (this.isEditing && this.chartData.xAxisField && this.chartData.yAxisField) {
               this.$nextTick(() => {
                 this.fetchChartData();
@@ -213,12 +207,9 @@ export default {
           join_fields: this.chartData.joinFields
         });
         const { x_data, y_data } = response.data;
-
         if (x_data && y_data) {
           this.chartData.x_data = x_data;
           this.chartData.y_data = y_data;
-          console.log('成功獲取圖表數據:', x_data, y_data)
-          // 更新預覽數據
         } else {
           console.error('x_data 和 y_data 不能為空');
         }
@@ -236,7 +227,7 @@ export default {
       }
 
       let chartConfig = {
-        chart_type: this.chartData.chartType, // 使用 snake_case
+        chart_type: this.chartData.chartType,
         name: this.chartData.name || '未命名圖表',
         data_source: this.chartData.dataSource,
         x_axis_field: this.chartData.xAxisField,
@@ -245,7 +236,6 @@ export default {
       };
 
       if (this.isEditing) {
-        // 編輯模式，調用更新 API
         axios.post(`/api/backend/update-chart/${this.chartId}/`, chartConfig)
           .then(() => {
             alert('圖表已成功更新！');
@@ -257,7 +247,6 @@ export default {
             alert(`更新圖表失敗: ${errorMsg}`);
           });
       } else {
-        // 創建模式，調用創建 API
         axios.post('/api/backend/chartconfiguration/create_chart_action/', chartConfig)
           .then(() => {
             alert('圖表已成功創建！');
@@ -289,25 +278,33 @@ export default {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+  overflow-y: auto;
 }
+
 .chart-modal {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
   width: 80%;
   max-width: 600px;
+  max-height: 90vh; /* 限制最大高度 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
+
 .chart-modal-header,
 .chart-modal-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .chart-modal-body {
   display: flex;
+  flex-direction: column;
   gap: 20px;
 }
+
 .chart-settings {
   flex: 1;
 }
@@ -317,17 +314,13 @@ export default {
   border: 1px solid #ccc;
   padding: 10px;
   height: 500px;
-  width: 100%
-}
-
-#chart-container {
   width: 100%;
-  height: 100%;
 }
 
 .setting {
   margin-bottom: 15px;
 }
+
 .btn-save,
 .btn-cancel {
   background-color: #007BFF;
@@ -337,6 +330,7 @@ export default {
   border-radius: 5px;
   cursor: pointer;
 }
+
 .close-btn {
   background: none;
   border: none;
