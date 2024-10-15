@@ -3,7 +3,6 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
-  font-size: 18px; /* 調整字體大小 */
 }
 
 .main-container {
@@ -35,15 +34,7 @@ body {
   cursor: pointer;
   background-color: #6c757d;
   color: white;
-  font-size: 1.25rem; /* 增大按鈕字體大小 */
-}
-
-.header button.active {
-  background-color: #007bff;
-}
-
-.header button:hover {
-  background-color: #5a6268;
+  font-size: 1.25rem;
 }
 
 .table-container {
@@ -56,12 +47,11 @@ body {
 .role-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 1rem; /* 調整字體大小 */
 }
 
 .role-table th, .role-table td {
   border: 1px solid #ddd;
-  padding: 0.75rem; /* 增加表格內邊距 */
+  padding: 1rem;
   text-align: left;
 }
 
@@ -78,15 +68,13 @@ body {
 }
 
 .permissions-btn, .delete-btn {
-  padding: 1.25vw 2.5vw;
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   color: white;
-  font-size: 1.4rem; /* 增加按鈕字體 */
-  margin: 1.25vw;
-  max-width: 22vw;
-  min-width: 120px;
+  font-size: 1rem;
+  margin: 0.25rem;
 }
 
 .permissions-btn {
@@ -108,8 +96,8 @@ body {
 .switch {
   position: relative;
   display: inline-block;
-  width: 2.25rem; /* 調整開關寬度 */
-  height: 1.25rem; /* 調整開關高度 */
+  width: 2.25rem;
+  height: 1.25rem;
 }
 
 .switch input {
@@ -133,7 +121,7 @@ body {
 .slider:before {
   position: absolute;
   content: "";
-  height: 1rem; /* 調整滑塊 */
+  height: 1rem;
   width: 1rem;
   left: 0.1rem;
   bottom: 0.1rem;
@@ -147,28 +135,29 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(1.25rem); /* 調整滑塊的位移 */
+  transform: translateX(1.25rem);
 }
 
-@media (max-width: 768px) {
-  .container {
-    max-width: 100vw; /* 在小螢幕上設置最大寬度為100vw */
-  }
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+}
 
-  .header {
-    flex-direction: row;
-    justify-content: space-around;
-  }
-
-  .header button, .header h2 {
-    width: auto;
-    max-width: 100%;
-    margin: 10px;
-  }
-
-  .permissions-btn, .delete-btn {
-    width: 100%;
-    max-width: 100%;
-    margin: 10px 0;
-  }
+.centered-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 600px;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 20px;
+  z-index: 1051;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
