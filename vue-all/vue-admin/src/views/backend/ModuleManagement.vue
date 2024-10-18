@@ -31,20 +31,16 @@
 
     <!-- 彈出式表單 (新增模組) -->
     <div v-if="showCreateModuleModal" class="modal">
-      <div class="modal-content">
         <span class="close" @click="closeCreateModuleModal">&times;</span>
-        <h2>新增模組</h2>
         <ModuleForm @close="closeCreateModuleModal" @create="createModule" />
-      </div>
+      
     </div>
 
     <!-- 彈出式表單 (編輯模組) -->
     <div v-if="showEditModuleModal" class="modal">
-      <div class="modal-content">
         <span class="close" @click="closeEditModuleModal">&times;</span>
-        <h2>編輯模組</h2>
         <ModuleForm :moduleId="editModuleId" :moduleName="editModuleName" @close="closeEditModuleModal" @edit="editModule" />
-      </div>
+      
     </div>
   </div>
 </template>

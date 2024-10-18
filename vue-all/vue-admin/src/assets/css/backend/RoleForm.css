@@ -8,10 +8,10 @@ body {
 }
 
 .container {
-  max-width: 600px; /* 進一步減少 max-width */
-  margin: 100px auto 20px; /* 調整 margin，縮小間距 */
+  max-width: 600px;
+  margin: 100px auto 20px;
   background-color: #ffffff;
-  padding: 3px; /* 減少 padding */
+  padding: 3px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -20,26 +20,26 @@ body {
   top: 0;
   background-color: white;
   z-index: 1;
-  padding-bottom: 2px; /* 減少 header 的 padding */
+  padding-bottom: 2px;
   border-bottom: 1px solid #ddd;
 }
 
 .scroll-container {
-  max-height: 300px; /* 縮小 max-height */
-  overflow-y: auto;
+  height: 70vh; /* 設定為視窗高度的 70% */
+  overflow-y: auto; /* 僅允許內部滾動 */
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 2px; /* 減少表格頂部的 margin */
+  margin-top: 2px;
 }
 
 th, td {
-  padding: 1px; /* 繼續減少表格內部的 padding */
+  padding: 1px;
   border: 1px solid #ddd;
   text-align: center;
-  font-size: 8px; /* 進一步減少字體大小 */
+  font-size: 8px;
 }
 
 th {
@@ -48,7 +48,7 @@ th {
 }
 
 td input[type="checkbox"] {
-  transform: scale(0.6); /* 縮小 checkbox 的大小 */
+  transform: scale(0.6);
   margin: 0;
   display: inline-block;
 }
@@ -59,16 +59,7 @@ td .checkbox-container {
   align-items: center;
 }
 
-.btn {
-  padding: 2px 3px; /* 減少按鈕內部的 padding */
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  background-color: #6c757d;
-  color: white;
-  margin-right: 1px; /* 繼續減少按鈕之間的 margin */
-  font-size: 8px; /* 減小按鈕字體 */
-}
+
 
 .btn:hover {
   background-color: #5a6268;
@@ -88,19 +79,19 @@ td .checkbox-container {
 .member-item {
   display: flex;
   align-items: center;
-  margin-bottom: 1px; /* 減少項目之間的距離 */
+  margin-bottom: 1px;
 }
 
 .member-item select {
   flex-grow: 1;
   padding: 1px;
-  font-size: 8px; /* 減小字體 */
+  font-size: 8px;
 }
 
 .member-item button {
   margin-left: 2px;
-  padding: 1px; /* 縮小按鈕 padding */
-  font-size: 8px; /* 縮小按鈕字體 */
+  padding: 1px;
+  font-size: 8px;
 }
 
 @media (max-width: 1024px) {
@@ -109,17 +100,17 @@ td .checkbox-container {
   }
 
   table {
-    font-size: 7px; /* 縮小表格字體 */
+    font-size: 7px;
   }
 
   th, td {
     padding: 1px;
   }
 
-.btn {
-  padding: 3px 6px; /* 減少內邊距以縮小按鈕 */
-  font-size: 10px; /* 減小字體大小以匹配按鈕大小 */
-}
+  .btn {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
 
   .member-item {
     flex-direction: column;
@@ -144,7 +135,7 @@ td .checkbox-container {
   }
 
   table {
-    font-size: 6px; /* 繼續縮小表格字體 */
+    font-size: 6px;
   }
 
   th, td {
@@ -179,7 +170,7 @@ td .checkbox-container {
   }
 
   table {
-    font-size: 5px; /* 縮小表格字體 */
+    font-size: 5px;
   }
 
   th, td {
