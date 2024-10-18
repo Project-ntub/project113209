@@ -4,17 +4,17 @@
   align-items: center;
   height: 100vh;
   padding: 20px;
-  margin-top: 50px; /* 調整此處以向下移動 */
+  margin-top: 50px;
   overflow-y: auto;
-  transition: margin-left 0.3s ease;
+  padding-bottom: 100px; /* 增加底部空白 */
 }
 
-.branch-selection, .chart-controls {
+.top-controls {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 10px; /* 調整下拉選單和按鈕之間的距離 */
   margin-bottom: 15px;
-  gap: 15px;
 }
 
 button {
@@ -25,7 +25,6 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -55,18 +54,11 @@ select {
   border-radius: 5px;
   padding: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  position: relative;
-  box-sizing: border-box;
+  margin-bottom: 25px; /* 增加下方空白 */
 }
 
 @media (max-width: 768px) {
   .chart-wrapper {
     flex: 1 1 100%;
-  }
-}
-
-@media (max-width: 576px) {
-  .home-page {
-    transform: scale(0.9);
   }
 }
