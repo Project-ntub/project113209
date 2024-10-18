@@ -88,11 +88,10 @@ export default {
     async handleLogout() {
       try {
         // 發送登出請求到後端
-        await axios.get('/backend/logout/');
+        await axios.post('/api/backend/logout/');
 
         // 清除前端的 localStorage 和 sessionStorage
-        localStorage.removeItem('frontend_token');
-        localStorage.removeItem('backend_token');
+        localStorage.removeItem('token');
 
         // 防止使用返回按鈕回到已登入頁面
         history.replaceState(null, null, '/backend/login');

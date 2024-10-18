@@ -62,7 +62,14 @@ export default {
         this.logout();
       }
     },
-    logout() {
+    async logout() {
+      try {
+        // 發送登出請求到後端
+        await axios.post('/api/backend/logout/');
+      } catch (error) {
+        console.error('登出失敗', error);
+      }
+
       // 清除 localStorage
       window.localStorage.clear();
 

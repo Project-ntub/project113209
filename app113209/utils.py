@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 def record_history(user, action_desc):
     try:
-        # 在創建歷史記錄之前檢查用戶是否存在
         if User.objects.filter(id=user.id).exists():
             UserHistory.objects.create(
                 user_id=user.id,

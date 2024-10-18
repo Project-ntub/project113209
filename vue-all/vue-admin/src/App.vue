@@ -1,6 +1,5 @@
-<!-- src\App.vue -->
 <template>
-  <div id="app" :class="{ shifted: isSidebarActive }">
+  <div :class="['home-page', fontSizeClass, { shifted: isSidebarActive }]">
     <TopNavbar v-if="!isBackend && showTopNavbar" />
     <SidebarPage v-if="!isBackend && !$route.meta.hideSidebar" />
     <SidebarBackend 
@@ -9,7 +8,7 @@
       @toggleSidebar="toggleSidebar" 
     />
     <div class="main-content" :class="{ shifted: isSidebarActive }">
-      <router-view />
+      <router-view @preference-updated="updateFontSize" />
     </div>
   </div>
 </template>
@@ -18,6 +17,7 @@
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
 import SidebarPage from '@/components/frontend/SidebarPage.vue';
 import SidebarBackend from '@/components/backend/SideBar.vue';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'App',
@@ -26,23 +26,35 @@ export default {
     SidebarPage,
     SidebarBackend
   },
-  data() {
-    return {
-      isSidebarActive: false
-    };
-  },
   computed: {
+    ...mapGetters(['isBackend', 'getFontSize']),
     isBackend() {
       return this.$route.path.startsWith('/backend');
     },
     showTopNavbar() {
       return !this.isBackend && !this.$route.meta.hideNavbar;
+    },
+    fontSizeClass() { // 根據 Vuex 的字體大小狀態返回相應的類
+      return `font-size-${this.getFontSize}`;
     }
   },
+  data() {
+    return {
+      isSidebarActive: false
+    };
+  },
   methods: {
+    ...mapActions(['fetchPreferences', 'updateFontSize', 'fetchPermissions']),
     toggleSidebar() {
       this.isSidebarActive = !this.isSidebarActive;
+    },
+    handlePreferenceUpdate(preference) { // 接收偏好更新事件
+      this.updateFontSize(preference.fontsize);
     }
+  },
+  created() {
+    this.fetchPreferences(); // 載入用戶偏好設定
+    this.fetchPermissions(); // 確保在應用創建時獲取權限
   }
 };
 </script>
@@ -51,6 +63,37 @@ export default {
 <style src="./assets/css/global.css"></style>
 
 <style>
+:root {
+  --font-size: 16px; /* 預設字體大小 */
+}
+
+.font-size-small {
+  --font-size: 12px;
+}
+
+.font-size-medium {
+  --font-size: 16px;
+}
+
+.font-size-large {
+  --font-size: 20px;
+}
+
+/* 使用 CSS 變量設置字體大小 */
+body {
+  font-size: var(--font-size);
+}
+
+/* 確保所有其他元素使用相對字體大小 */
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1.5em;
+}
+
+p, span, a, button, select, input {
+  font-size: 1em;
+}
+
+/* 其他樣式保持不變 */
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

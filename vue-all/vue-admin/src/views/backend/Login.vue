@@ -32,6 +32,7 @@
 
 <script>
 import axios from '@/axios';
+import { mapActions } from 'vuex';
 
 export default {
   name: 'AppLogin',
@@ -44,6 +45,7 @@ export default {
     };
   },
   methods: {
+    ...mapActions(['setToken', 'setUser', 'fetchPermissions', 'fetchPreference']),
     async login() {
       try {
         const response = await axios.post('/api/token/', {
@@ -52,26 +54,16 @@ export default {
           remember_me: this.rememberMe
         });
         console.log('登入成功', response);
-        localStorage.setItem('backend_token', response.data.access); // 儲存後台 token
-        await this.recordLoginHistory();
+        // 儲存 backend_token 而不是 token
+        localStorage.setItem('backend_token', response.data.access);
+        // 同時更新 Vuex store
+        this.setToken(response.data.access);
+        await this.fetchPermissions();
+        await this.fetchPreference();
         this.$router.push('/backend/management');
       } catch (error) {
         console.error('登入失敗', error.response);
-        if (error.response && error.response.data) {
-          this.error = error.response.data.detail || '登入失敗，請檢查您的使用者名稱和密碼';
-        } else {
-          this.error = '登入失敗，請稍後再試';
-        }
-      }
-    },
-    async recordLoginHistory() {
-      try {
-        const response = await axios.post('/backend/record-login-history/', {
-          action: '登入成功',
-        });
-        console.log('歷史紀錄已保存', response);
-      } catch (error) {
-        console.error('無法保存歷史紀錄', error.response);
+        this.error = error.response.data.detail || '登入失敗，請檢查您的使用者名稱和密碼';
       }
     }
   }

@@ -1,3 +1,5 @@
+// axios.js
+
 import axios from 'axios';
 
 // 使用固定 IP 作為 baseURL
@@ -6,14 +8,21 @@ const baseURL = process.env.VUE_APP_API_URL || `http://${window.location.hostnam
 // 設置 Axios 的基本配置
 axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
-axios.defaults.headers.common['X-CSRFToken'] = getCookie('csrftoken');
 
 // 請求攔截器
 axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  if (config.url.startsWith('/api/backend/')) {
+    const token = localStorage.getItem('backend_token'); // 後台 token
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+  } else if (config.url.startsWith('/api/frontend/')) {
+    const token = localStorage.getItem('frontend_token'); // 前台 token
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
+
   const csrfToken = getCookie('csrftoken');
   if (csrfToken) {
     config.headers['X-CSRFToken'] = csrfToken;

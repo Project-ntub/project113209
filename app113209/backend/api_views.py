@@ -25,9 +25,11 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import viewsets, status, generics
 from rest_framework.views import APIView
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from app113209.models import (User, Module, Role, RoleUser, RolePermission, UserHistory, 
                              UserPreferences, ChartConfiguration, TEST_Inventory, 
                              TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores, Branch)
@@ -38,6 +40,22 @@ from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSeriali
 from app113209.utils import record_history, update_permission_name
 
 logger = logging.getLogger(__name__)
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        # 記錄登入歷史
+        user = self.user
+        record_history(user, '登入成功')
+        user.last_login = timezone.now()
+        user.save()
+
+        return data
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 # 註冊字體
 font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', 'NotoSansTC-Regular.ttf')
@@ -51,18 +69,26 @@ else:
     logger.error(f"字體檔案不存在於路徑: {font_path}")
 
 def login_view(request):
-    user = authenticate(username=request.POST['username'], password=request.POST['password'])
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    user = authenticate(username=username, password=password)
     if user:
-        user.last_login = timezone.now()
-        user.save()
         login(request, user)
+        record_history(user, '用戶登入')
+        logger.info(f"User {username} logged in at {timezone.now()}")
         return JsonResponse({'message': 'Login successful'})
+    logger.warning(f"Failed login attempt for username: {username}")
     return JsonResponse({'error': 'Invalid credentials'}, status=400)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def logout_view(request):
-    logout(request)
-    return JsonResponse({'message': '成功登出'}, status=200)
-
+    try:
+        record_history(request.user, '登出成功')
+        return Response({'message': '成功登出'}, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"登出時出錯: {e}")
+        return Response({'error': '登出失敗'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.filter(is_deleted=False, is_active=True)
@@ -109,7 +135,7 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
     
-    def delete(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs):
         permissions = get_user_permissions(request.user.id)
         user_management_permission = permissions.filter(permission_name='用戶管理').first()
 
@@ -196,13 +222,30 @@ class UserProfileView(APIView):
             return Response({'message': 'Profile updated successfully'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class UserPreferencesViewSet(viewsets.ModelViewSet):
+    serializer_class = UserPreferencesSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # 僅返回當前用戶的偏好設定
+        return UserPreferences.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # 確保偏好設定關聯到當前用戶
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        # 確保更新的是當前用戶的偏好設定
+        serializer.save(user=self.request.user)
+
 class UserPermissionViewSet(viewsets.ModelViewSet):
-    queryset = RolePermission.objects.all()  # 添加這行
+    queryset = RolePermission.objects.all()
     serializer_class = RolePermissionSerializer
     permission_classes = [IsAuthenticated]
 
     def list(self, request):
         user = request.user
+        logger.debug(f"Fetching permissions for user: {user.username} (ID: {user.id})")
 
         # 透過 RoleUser 查詢用戶的角色及其相關的權限
         permissions = RolePermission.objects.filter(
@@ -210,9 +253,9 @@ class UserPermissionViewSet(viewsets.ModelViewSet):
             is_deleted=False
         ).values('permission_name', 'can_add', 'can_query', 'can_view', 'can_edit', 'can_delete', 'can_export')
 
+        logger.debug(f"Permissions fetched: {permissions}")
         return Response(list(permissions))
-
-
+    
 # 待審核
 class PendingUserViewSet(viewsets.ViewSet):
     queryset = User.objects.filter(is_active=False, is_approved=False)
@@ -551,15 +594,15 @@ class RolePermissionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIV
     serializer_class = RolePermissionSerializer
 
 def get_user_permissions(user_id):
-    # 根據 user_id 查詢角色
-    role_user = RoleUser.objects.filter(user_id=user_id).first()
-    if not role_user:
+    role_users = RoleUser.objects.filter(user_id=user_id)
+    if not role_users.exists():
         return RolePermission.objects.none()
     
-    # 查詢該角色的所有權限
-    permissions = RolePermission.objects.filter(role_id=role_user.role_id, is_deleted=False)
+    permissions = RolePermission.objects.filter(
+        role__in=role_users.values_list('role_id', flat=True),
+        is_deleted=False
+    ).distinct()
     return permissions
-
 
 class ModuleListCreateView(generics.ListCreateAPIView):
     queryset = Module.objects.all()
@@ -587,25 +630,25 @@ class UserHistoryListView(APIView):
         return Response({"message": "Record added successfully", "record_id": new_record.id}, status=status.HTTP_201_CREATED)
 
 
-# 查詢當前登入用戶的偏好
-@api_view(['GET'])
-def get_user_preferences(request):
-    if request.user.is_authenticated:  # 確保用戶已登入
-        preferences = UserPreferences.objects.filter(user=request.user)
-        serializer = UserPreferencesSerializer(preferences, many=True)
-        return Response(serializer.data)
-    else:
-        return Response({"error": "用戶未登入"}, status=status.HTTP_401_UNAUTHORIZED)
+# # 查詢當前登入用戶的偏好
+# @api_view(['GET'])
+# def get_user_preferences(request):
+#     if request.user.is_authenticated:  # 確保用戶已登入
+#         preferences = UserPreferences.objects.filter(user=request.user)
+#         serializer = UserPreferencesSerializer(preferences, many=True)
+#         return Response(serializer.data)
+#     else:
+#         return Response({"error": "用戶未登入"}, status=status.HTTP_401_UNAUTHORIZED)
 
-# 更新用戶偏好
-@api_view(['PUT'])
-def update_user_preference(request, id):
-    preference = get_object_or_404(UserPreferences, id=id)
-    serializer = UserPreferencesSerializer(preference, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# # 更新用戶偏好
+# @api_view(['PUT'])
+# def update_user_preference(request, id):
+#     preference = get_object_or_404(UserPreferences, id=id)
+#     serializer = UserPreferencesSerializer(preference, data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @receiver(m2m_changed, sender=RoleUser)
 def prevent_last_admin_removal(sender, instance, action, reverse, model, pk_set, **kwargs):

@@ -1,82 +1,106 @@
-<!-- src/components/PersonalPreference.vue -->
-<template>
+<template> 
   <div class="personal-preference-container">
     <h1>個人偏好管理</h1>
-    <table class="preferences-table">
-      <thead>
-        <tr>
-          <th>字體大小</th>
-          <th>通知</th>
-          <th>自動登入</th>
-          <th>是否驗證</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="preference in preferences" :key="preference.id">
-          <td>
-            <!-- 字體大小選擇 -->
-            <select v-model="preference.fontsize">
-              <option value="small">小</option>
-              <option value="medium">中</option>
-              <option value="large">大</option>
-            </select>
-          </td>
-          <td>
-            <select v-model="preference.notificationSettings">
-              <option :value="true">啟用</option>
-              <option :value="false">不啟用</option>
-            </select>
-          </td>
-          <td>
-            <select v-model="preference.autoLogin">
-              <option :value="true">啟用</option>
-              <option :value="false">不啟用</option>
-            </select>
-          </td>
-          <td>{{ preference.authentication ? '已驗證' : '未驗證' }}</td>
-          <td>
-            <button class="save-btn" @click="savePreference(preference)">保存</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="loading">載入中...</div>
+    <div v-else>
+      <table class="preferences-table">
+        <thead>
+          <tr>
+            <th>編號</th>
+            <th>用戶</th>
+            <th>字體大小</th>
+            <th>通知</th>
+            <th>是否驗證</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="preference">
+            <td>{{ preference.id }}</td>
+            <td>{{ preference.user_id }}</td>
+            <td>
+              <!-- 字體大小選擇 -->
+              <select v-model="preference.fontsize">
+                <option value="small">小</option>
+                <option value="medium">中</option>
+                <option value="large">大</option>
+              </select>
+            </td>
+            <td>
+              <select v-model="preference.notificationSettings">
+                <option :value="true">啟用</option>
+                <option :value="false">不啟用</option>
+              </select>
+            </td>
+            <td>{{ preference.authentication ? '已驗證' : '未驗證' }}</td>
+            <td>
+              <button class="save-btn" @click="savePreference(preference)" :disabled="loading">
+                {{ loading ? '保存中...' : '保存' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'PersonalPreference',
+  computed: {
+    ...mapGetters(['preference']), // 獲取單一偏好
+  },
   data() {
     return {
-      preferences: [] // 存儲用戶偏好數據
+      loading: true, // 新增 loading 狀態
+      fontSizeMapping: { // 字體大小對應表
+        small: '12px',
+        medium: '16px',
+        large: '20px'
+      },
     };
   },
   created() {
-    this.loadPreferences(); // 初始化時載入偏好設置
+    this.loadPreference(); // 初始化時載入偏好設置
   },
   methods: {
+    ...mapActions(['fetchPreference', 'updateFontSize']), // 映射 Vuex actions
     // 載入當前登入用戶的偏好設置
-    loadPreferences() {
-      axios.get('/api/backend/user_preferences/')  // 後端自動返回當前登入用戶的偏好設置
-        .then(response => {
-          this.preferences = response.data; // 將API返回的偏好設置保存到本地
+    loadPreference() {
+      this.fetchPreference()
+        .then(() => {
+          this.loading = false;
+          // 更新字體大小
+          this.updateFontSize(this.preference.fontsize);
         })
-        .catch(error => {
-          console.error('載入偏好設置時出錯:', error);
+        .catch(() => {
+          this.loading = false;
         });
     },
     // 保存偏好設置
     savePreference(preference) {
-      axios.put(`/api/backend/user_preferences/update/${preference.id}/`, preference)
+      this.loading = true;
+      
+      // 將字體大小保存到 localStorage
+      if (this.fontSizeMapping[preference.fontsize]) {
+        localStorage.setItem('user-fontsize', preference.fontsize);
+      }
+
+      // 保存其他偏好設置
+      axios.put(`/api/backend/user_preferences/${preference.id}/`, preference)
         .then(() => {
-          alert('偏好設置已保存'); // 保存成功後提示用戶
-          this.$emit('preference-updated', preference); // 發射事件
+          alert('偏好設置已保存');
+          this.updateFontSize(preference.fontsize); // 更新 Vuex 中的字體大小
+          this.loading = false;
         })
         .catch(error => {
           console.error('保存偏好設置時出錯:', error);
+          alert('保存偏好設置時出錯，請稍後再試。');
+          this.loading = false;
         });
     }
   }
@@ -88,10 +112,10 @@ export default {
   max-width: 1000px; /* 增加最大寬度 */
   margin: 0 auto;
   text-align: center;
-  padding: 60px; /* 增加內部填充 */
-  background: linear-gradient(135deg, #f0f8ff, #fae3d9); /* 使用漸層背景 */
+  padding: 40px;
+  background: linear-gradient(135deg, #f0f8ff, #fae3d9);
   border-radius: 15px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); /* 增加陰影效果 */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
@@ -142,7 +166,6 @@ select {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px; /* 增加字體大小 */
   transition: background-color 0.3s ease; /* 添加平滑的背景顏色變化效果 */
 }
 

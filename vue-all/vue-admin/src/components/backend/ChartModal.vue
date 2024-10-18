@@ -258,8 +258,8 @@ export default {
           });
       } else {
         // 創建模式，調用創建 API
-        axios.post('/api/backend/chartconfiguration/create_chart_action/', chartConfig)
-          .then(() => {
+        axios.post('/api/backend/create-chart/', chartConfig)
+        .then(() => {
             alert('圖表已成功創建！');
             this.$emit('reload-charts');
             this.closeModal();

@@ -1,3 +1,4 @@
+<!-- src/views/backend/UserManagement.vue -->
 <template>
   <TopNavbar title="用戶管理" />
   <div class="container">
@@ -23,7 +24,7 @@
       <button @click="applyFilters" class="search-btn">搜尋</button>
 
       <!-- 待審核按鈕，與搜尋欄一體化 -->
-      <button class="pending-approval-btn" v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_add)" @click="navigateToPendingList">
+      <button class="pending-approval-btn" v-if="hasAddPermission" @click="navigateToPendingList">
         待審核
       </button>
     </div>
@@ -54,15 +55,15 @@
             <td>{{ formatDate(user.last_login) }}</td>
             <td>
               <!-- 編輯按鈕 -->
-              <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_edit)" @click="navigateToEditUser(user.id)" class="edit-btn">
+              <button v-if="hasEditPermission" @click="navigateToEditUser(user.id)" class="edit-btn">
                 編輯
               </button>
               <!-- 刪除按鈕 -->
-              <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_delete)" @click="deleteUser(user.id)" class="delete-btn">
+              <button v-if="hasDeletePermission" @click="deleteUser(user.id)" class="delete-btn">
                 刪除
               </button>
               <!-- 分配角色按鈕 -->
-              <button v-if="permissions.find(perm => perm.permission_name === '用戶管理' && perm.can_edit)" class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">
+              <button v-if="hasEditPermission" class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">
                 分配角色
               </button>
             </td>
@@ -76,6 +77,7 @@
 <script>
 import axios from '@/axios';
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'UserManagement',
@@ -84,7 +86,6 @@ export default {
   },
   data() {
     return {
-      permissions: [],
       sortBy: 'name',
       departmentFilter: 'all',
       query: '',
@@ -93,11 +94,14 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['getPermissions']),
     filteredUsers() {
       let filtered = this.users;
+
       if (this.departmentFilter !== 'all') {
         filtered = filtered.filter(user => user.department_id === this.departmentFilter);
       }
+
       if (this.query) {
         const queryLowerCase = this.query.toLowerCase();
         filtered = filtered.filter(user =>
@@ -106,6 +110,7 @@ export default {
           user.phone.toLowerCase().includes(queryLowerCase)
         );
       }
+
       return filtered.sort((a, b) => {
         if (this.sortBy === 'name') {
           return a.username.localeCompare(b.username);
@@ -118,37 +123,36 @@ export default {
         } else if (this.sortBy === 'creation-time') {
           return new Date(a.date_joined) - new Date(b.date_joined);
         } else if (this.sortBy === 'last-login') {
-          return new Date(a.last_login) - new Date(b.last_login);
+          const dateA = a.last_login ? new Date(a.last_login) : new Date(0);
+          const dateB = b.last_login ? new Date(b.last_login) : new Date(0);
+          return dateB - dateA;
         }
         return 0;
       });
     },
+    hasAddPermission() {
+      const hasPermission = this.getPermissions.some(
+        perm => perm.permission_name === '用戶管理' && perm.can_add
+      );
+      console.log(`hasAddPermission: ${hasPermission}`);
+      return hasPermission;
+    },
+    hasEditPermission() {
+      const hasPermission = this.getPermissions.some(
+        perm => perm.permission_name === '用戶管理' && perm.can_edit
+      );
+      console.log(`hasEditPermission: ${hasPermission}`);
+      return hasPermission;
+    },
+    hasDeletePermission() {
+      const hasPermission = this.getPermissions.some(
+        perm => perm.permission_name === '用戶管理' && perm.can_delete
+      );
+      console.log(`hasDeletePermission: ${hasPermission}`);
+      return hasPermission;
+    }
   },
   methods: {
-    fetchUserPermissions() {
-      axios.get('/api/backend/permissions/')
-        .then(response => {
-          this.permissions = response.data;
-        })
-        .catch(error => {
-          console.error('Error fetching permissions:', error);
-        });
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleString();
-    },
-    applyFilters() {
-      console.log('Filters applied');
-    },
-    navigateToPendingList() {
-      this.$router.push('/backend/pending_list');
-    },
-    navigateToEditUser(userId) {
-      this.$router.push(`/backend/edit_user/${userId}`);
-    },
-    navigateToAssignRole(userId) {
-      this.$router.push(`/backend/assign_role/${userId}`);
-    },
     fetchUsers() {
       axios.get('/api/backend/users/')
         .then(response => {
@@ -168,13 +172,32 @@ export default {
             console.error('Error deleting user:', error);
           });
       }
+    },
+    navigateToPendingList() {
+      this.$router.push('/backend/pending_list');
+    },
+    navigateToEditUser(userId) {
+      this.$router.push(`/backend/edit_user/${userId}`);
+    },
+    navigateToAssignRole(userId) {
+      this.$router.push(`/backend/assign_role/${userId}`);
+    },
+    formatDate(date) {
+      if (!date) {
+        return '從未登入';
+      }
+      return new Date(date).toLocaleString();
+    },
+    applyFilters() {
+      console.log('Filters applied');
     }
   },
   mounted() {
     this.fetchUsers();
-    this.fetchUserPermissions();
-  }
+    console.log('User Permissions:', this.getPermissions); // 添加日誌
+  },
 };
 </script>
+
 
 <style scoped src="@/assets/css/backend/UserManagement.css"></style>

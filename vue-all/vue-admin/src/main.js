@@ -19,6 +19,9 @@ app.component('font-awesome-icon', FontAwesomeIcon);
 library.add(fas); // 將所有 Font Awesome 的圖標加入庫
 app.use(VueCookies); // 註冊 vue-cookies 插件
 
+store.dispatch('initializeStore');
+
+
 // 設置 Axios 攔截器來攜帶 token 和 CSRF token
 axios.interceptors.request.use(config => {
   const token = window.location.pathname.startsWith('/backend') ? 

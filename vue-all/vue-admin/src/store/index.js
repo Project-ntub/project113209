@@ -1,49 +1,107 @@
-// src/store/index.js
+// store/index.js
 import { createStore } from 'vuex';
 import axios from 'axios';
 
 const store = createStore({
   state: {
-    token: null,
-    user: null,
-    permissions: [], // 新增 permissions 狀態
+    frontend_token: localStorage.getItem('frontend_token') || null,
+    backend_token: localStorage.getItem('backend_token') || null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
+    permissions: [],
+    fontSize: 'medium',
+    preference: {},
   },
   getters: {
-    getToken(state) {
-      return state.token;
+    getFrontendToken(state) {
+      return state.frontend_token;
+    },
+    getBackendToken(state) {
+      return state.backend_token;
     },
     getUser(state) {
       return state.user;
     },
-    getPermissions(state) { // 新增 getPermissions getter
-      return state.permissions;
+    getPermissions: state => state.permissions,
+    getFontSize(state) {
+      return state.fontSize;
+    },
+    preference(state) {
+      return state.preference;
     },
   },
   mutations: {
-    setToken(state, token) {
-      state.token = token;
+    setFrontendToken(state, token) {
+      state.frontend_token = token;
+      localStorage.setItem('frontend_token', token);
+    },
+    setBackendToken(state, token) {
+      state.backend_token = token;
+      localStorage.setItem('backend_token', token);
     },
     setUser(state, user) {
       state.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
     },
-    SET_PERMISSIONS(state, permissions) { // 新增 SET_PERMISSIONS mutation
+    SET_PERMISSIONS(state, permissions) {
       state.permissions = permissions;
+    },
+    setFontSize(state, size) {
+      state.fontSize = size;
+    },
+    SET_PREFERENCE(state, preference) {
+      state.preference = preference;
+      state.fontSize = preference.fontsize;
+    },
+    clearAuth(state) {
+      state.frontend_token = null;
+      state.backend_token = null;
+      state.user = null;
+      state.permissions = [];
+      state.preference = {};
+      localStorage.removeItem('frontend_token');
+      localStorage.removeItem('backend_token');
+      localStorage.removeItem('user');
     },
   },
   actions: {
-    setToken({ commit }, token) {
-      commit('setToken', token);
+    setFrontendToken({ commit }, token) {
+      commit('setFrontendToken', token);
+    },
+    setBackendToken({ commit }, token) {
+      commit('setBackendToken', token);
     },
     setUser({ commit }, user) {
       commit('setUser', user);
     },
-    async fetchPermissions({ commit }) { // 新增 fetchPermissions action
+    clearAuth({ commit }) {
+      commit('clearAuth');
+    },
+    async fetchPermissions({ commit }) {
       try {
         const response = await axios.get('/api/backend/permissions/');
         commit('SET_PERMISSIONS', response.data);
       } catch (error) {
         console.error('無法獲取權限:', error);
-        commit('SET_PERMISSIONS', []); // 在錯誤時設置為空陣列
+        commit('SET_PERMISSIONS', []);
+      }
+    },
+    async fetchPreference({ commit }) {
+      try {
+        const response = await axios.get('/api/backend/user_preferences/');
+        if (response.data.length > 0) {
+          commit('SET_PREFERENCE', response.data[0]);
+        }
+      } catch (error) {
+        console.error('無法獲取用戶偏好設定:', error);
+      }
+    },
+    updateFontSize({ commit }, size) {
+      commit('setFontSize', size);
+    },
+    initializeStore({ dispatch }) {
+      if (localStorage.getItem('backend_token')) {
+        dispatch('fetchPermissions');
+        dispatch('fetchPreference');
       }
     },
   },

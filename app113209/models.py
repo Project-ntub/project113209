@@ -1,4 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.db.models.signals import post_save, m2m_changed
+from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.db import models
 import pyotp
@@ -204,7 +206,7 @@ class ChartConfiguration(models.Model):
 #         return f"{self.object_repr} (Action: {self.action_flag}) at {self.action_time}"
 
 class UserHistory(models.Model):
-    id = models.AutoField(primary_key=True, default=1)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='histories')
     action = models.CharField(max_length=500)  # Increased the length for action descriptions
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -237,6 +239,11 @@ class UserPreferences(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Preferences"
+
+@receiver(post_save, sender=User)
+def create_user_preferences(sender, instance, created, **kwargs):
+    if created:
+        UserPreferences.objects.create(user=instance)
     
 
 #frontend

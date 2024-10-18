@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
 from . import api_views
 # from .api_views import get_revenue_data, get_sales_data, get_stock_data
 router = DefaultRouter()
@@ -13,15 +14,19 @@ router.register(r'role_permissions', api_views.RolePermissionViewSet)
 router.register(r'pending-users', api_views.PendingUserViewSet, basename='pending-user')
 router.register(r'permissions', api_views.UserPermissionViewSet, basename='user-permissions')
 router.register(r'charts', api_views.ChartConfigurationViewSet, basename='chart-configuration')
+router.register(r'user_preferences', api_views.UserPreferencesViewSet, basename='user_preferences')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('token/', api_views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('logout/', api_views.logout_view, name='logout'),
     path('pending-users/', api_views.PendingUserViewSet.as_view({'get': 'list'}), name='pending-users-list'),
     path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
     path('create_role/', api_views.RoleViewSet.as_view({'post': 'create'}), name='create_role'),
     path('create_module/', api_views.ModuleViewSet.as_view({'post': 'create'}), name='create_module'),
     path('toggle_role_status/<int:pk>/', api_views.RoleViewSet.as_view({'post': 'toggle_status'}), name='toggle_role_status'),
-    path('delete_user/<int:pk>/', api_views.UserViewSet.as_view({'post': 'delete'}), name='delete_user'),
+    path('delete_user/<int:pk>/', api_views.UserViewSet.as_view({'delete': 'destroy'}), name='delete_user'),
     path('delete_role/<int:pk>/', api_views.RoleViewSet.as_view({'post': 'delete'}), name='delete_role'),
     path('delete_module/<int:module_id>/', api_views.ModuleViewSet.as_view({'post': 'delete_module'}), name='delete_module'),
     path('get_modules/', api_views.ModuleViewSet.as_view({'get': 'get_modules'}), name='get_modules'),
@@ -40,8 +45,6 @@ urlpatterns = [
     # 與用戶相關的視圖
     path('profile/', api_views.UserProfileView.as_view(), name='user-profile'),
     path('user_history/', api_views.UserHistoryListView.as_view(), name='user-history-list'),
-    path('user_preferences/', api_views.get_user_preferences, name='get_user_preferences'),  # 查詢當前用戶偏好
-    path('user_preferences/update/<int:id>/', api_views.update_user_preference, name='update_user_preference'),  # 更新偏好
     # path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),
     path('departments/', api_views.UserViewSet.as_view({'get': 'get_departments'}), name='get_departments'),
     path('get_positions_by_department/<str:department_id>/', api_views.UserViewSet.as_view({'get': 'get_positions_by_department'}), name='get_positions_by_department'),
