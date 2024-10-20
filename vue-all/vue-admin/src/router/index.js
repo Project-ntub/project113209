@@ -79,7 +79,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const frontendToken = localStorage.getItem('frontend_token'); 
-  const backendToken = localStorage.getItem('backend_token');    // 後台 token
+  const backendToken = localStorage.getItem('backend_token'); // 後台 token
 
   // 前台路由邏輯
   if (to.path.startsWith('/frontend')) {
@@ -94,15 +94,11 @@ router.beforeEach((to, from, next) => {
     // 允許訪問不需要登入的頁面，如後台登入、註冊、忘記密碼
     if (!backendToken && to.name !== 'BackendLogin' && to.name !== 'BackendRegister' && to.name !== 'BackendForgetPassword') {
       return next({ name: 'BackendLogin' });
-    } else {
-      return next({ name: 'FrontendLogin' });
     }
+    // 不再有 else 區塊，允許正常導航
   }
 
   next();
 });
-
-
-
 
 export default router;
