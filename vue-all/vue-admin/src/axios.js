@@ -1,5 +1,4 @@
-// axios.js
-
+// src/axios.js
 import axios from 'axios';
 
 // 使用固定 IP 作為 baseURL

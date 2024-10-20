@@ -1,3 +1,4 @@
+<!-- frontend/loginpage.vue -->
 <template>
   <div class="content" id="content">
     <div class="login-container">
@@ -19,10 +20,10 @@
             </div>
           </div>
           <div class="additional-options">
-              <label class="switch">
-            <input type="checkbox" id="rememberMe" v-model="rememberMe" />
-            <span class="slider round"></span>
-              </label>
+            <label class="switch">
+              <input type="checkbox" id="rememberMe" v-model="rememberMe" />
+              <span class="slider round"></span>
+            </label>
             <span>記住我</span>
             <router-link to="/frontend/forgot_password">忘記密碼?</router-link>
           </div>
@@ -36,9 +37,9 @@
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
+import { mapActions } from 'vuex';
 
 export default {
   data() {
@@ -51,16 +52,28 @@ export default {
     };
   },
   methods: {
+    ...mapActions(['setFrontendToken', 'fetchPermissions', 'fetchPreference']),
     async handleLogin() {
       try {
         const response = await axios.post('/api/token/', {
           email: this.email,
           password: this.password,
-          remember_me: this.rememberMe
+          remember_me: this.rememberMe,
+          user_type: 'frontend'  // 明確指定 user_type 為 frontend
         });
 
         if (response.data && response.data.access) {
           localStorage.setItem('frontend_token', response.data.access);
+          if (this.rememberMe) {
+            localStorage.setItem('refresh_token', response.data.refresh);
+          } else {
+            sessionStorage.setItem('refresh_token', response.data.refresh);
+          }
+
+          // 更新 Vuex store
+          this.setFrontendToken(response.data.access);
+          await this.fetchPermissions();
+          await this.fetchPreference();
           this.$router.push('/frontend/home');
         } else {
           this.error = '登入失敗，無法取得 Token';
@@ -75,6 +88,5 @@ export default {
   }
 };
 </script>
-
 
 <style src="@/assets/css/frontend/LoginPage.css"></style>

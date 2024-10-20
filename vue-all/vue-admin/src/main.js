@@ -24,9 +24,10 @@ store.dispatch('initializeStore');
 
 // 設置 Axios 攔截器來攜帶 token 和 CSRF token
 axios.interceptors.request.use(config => {
-  const token = window.location.pathname.startsWith('/backend') ? 
-                localStorage.getItem('backend_token') : 
-                localStorage.getItem('frontend_token');  
+  const isBackend = window.location.pathname.startsWith('/backend');
+  const token = isBackend 
+                ? localStorage.getItem('backend_token') || sessionStorage.getItem('backend_token') 
+                : localStorage.getItem('frontend_token') || sessionStorage.getItem('frontend_token');
   const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
 
   if (token) {

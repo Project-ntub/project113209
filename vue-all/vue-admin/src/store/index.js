@@ -61,6 +61,8 @@ const store = createStore({
       localStorage.removeItem('frontend_token');
       localStorage.removeItem('backend_token');
       localStorage.removeItem('user');
+      localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('refresh_token');
     },
   },
   actions: {
@@ -99,7 +101,13 @@ const store = createStore({
       commit('setFontSize', size);
     },
     initializeStore({ dispatch }) {
-      if (localStorage.getItem('backend_token')) {
+      // 初始化後台 Token
+      if (localStorage.getItem('backend_token') || sessionStorage.getItem('backend_token')) {
+        dispatch('fetchPermissions');
+        dispatch('fetchPreference');
+      }
+      // 初始化前台 Token
+      if (localStorage.getItem('frontend_token') || sessionStorage.getItem('frontend_token')) {
         dispatch('fetchPermissions');
         dispatch('fetchPreference');
       }

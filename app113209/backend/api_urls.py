@@ -18,8 +18,8 @@ router.register(r'user_preferences', api_views.UserPreferencesViewSet, basename=
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('token/', api_views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('token/', api_views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout/', api_views.logout_view, name='logout'),
     path('pending-users/', api_views.PendingUserViewSet.as_view({'get': 'list'}), name='pending-users-list'),
     path('approve-user/<int:pk>/', api_views.PendingUserViewSet.as_view({'post': 'approve_user'}), name='approve-user'),

@@ -53,8 +53,12 @@ export default {
     }
   },
   created() {
-    this.fetchPreferences(); // 載入用戶偏好設定
-    this.fetchPermissions(); // 確保在應用創建時獲取權限
+    const accessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    if (accessToken) {
+      this.setToken(accessToken);
+      this.fetchPermissions();
+      this.fetchPreference();
+    }
   }
 };
 </script>

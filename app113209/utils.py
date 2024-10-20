@@ -8,19 +8,18 @@ from django.utils.text import slugify
 logger = logging.getLogger(__name__)
 
 
-def record_history(user, action_desc):
+def record_history(user, action, device_brand=None, device_type=None, operation_result=True):
     try:
-        if User.objects.filter(id=user.id).exists():
-            UserHistory.objects.create(
-                user_id=user.id,
-                action=action_desc,
-                timestamp=timezone.now()
-            )
-            logger.info(f"History record created for user {user.username} with action: {action_desc}")
-        else:
-            logger.warning(f"User with ID {user.id} does not exist.")
+        UserHistory.objects.create(
+            user=user,
+            action=action,
+            device_brand=device_brand,
+            device_type=device_type,
+            operation_result=operation_result,
+        )
+        logger.debug(f"Recorded history for user {user.email}: {action}")
     except Exception as e:
-        logger.error(f"Error creating history record for user {user.id}: {e}")
+        logger.error(f"Error recording history for user {user.email}: {e}")
 
 def update_permission_name(old_name, new_name):
     """

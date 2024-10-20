@@ -14,7 +14,7 @@
 
       <!-- 新增圖表和預覽角色介面按鈕 -->
       <div class="button-group">
-        <button @click="openChartModal(false)">新增圖表</button>
+        <button v-if="canAddChart" @click="openChartModal(false)">新增圖表</button>
         <!-- <button @click="openPreviewModal">預覽角色介面</button> -->
       </div>
 

@@ -1,3 +1,4 @@
+<!-- backend/login.vue -->
 <template>
   <div class="container">
     <h2>登入</h2>
@@ -21,7 +22,7 @@
       <button type="submit" class="btn-login">登入</button>
     </form>
     <p>
-      還未擁有帳號? <router-link to="/frontend/register">註冊</router-link>
+      還未擁有帳號? <router-link to="/backend/register">註冊</router-link>
     </p>
     <p>
       忘記密碼? <router-link to="/backend/forgetpassword">重置密碼</router-link>
@@ -45,19 +46,26 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['setToken', 'setUser', 'fetchPermissions', 'fetchPreference']),
+    ...mapActions(['setBackendToken', 'fetchPermissions', 'fetchPreference']),
     async login() {
       try {
         const response = await axios.post('/api/token/', {
           email: this.email,
           password: this.password,
-          remember_me: this.rememberMe
+          remember_me: this.rememberMe,
+          user_type: 'backend'  // 明確指定 user_type 為 backend
         });
         console.log('登入成功', response);
         // 儲存 backend_token 而不是 token
         localStorage.setItem('backend_token', response.data.access);
+        if (this.rememberMe) {
+          localStorage.setItem('refresh_token', response.data.refresh);
+        } else {
+          sessionStorage.setItem('refresh_token', response.data.refresh);
+        }
+
         // 同時更新 Vuex store
-        this.setToken(response.data.access);
+        this.setBackendToken(response.data.access);
         await this.fetchPermissions();
         await this.fetchPreference();
         this.$router.push('/backend/management');

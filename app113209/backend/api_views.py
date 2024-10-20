@@ -8,6 +8,7 @@ import xlsxwriter
 import plotly.graph_objects as go
 from io import BytesIO
 from openpyxl import Workbook
+from datetime import timedelta
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
@@ -23,11 +24,12 @@ from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status, generics, serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from app113209.models import (User, Module, Role, RoleUser, RolePermission, UserHistory, 
@@ -42,15 +44,47 @@ from app113209.utils import record_history, update_permission_name
 logger = logging.getLogger(__name__)
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-
     def validate(self, attrs):
+        logger.debug(f"Received attrs: {attrs}")
+        email = attrs.get('email')
+        password = attrs.get('password')
+        user_type = attrs.get('user_type', 'frontend')  # 默認為 frontend
+
+        user = authenticate(request=self.context.get('request'), email=email, password=password)
+
+        if not user:
+            logger.error(f"Authentication failed for email: {email}")
+            raise serializers.ValidationError('無效的電子郵件或密碼')
+
         data = super().validate(attrs)
 
-        # 記錄登入歷史
-        user = self.user
-        record_history(user, '登入成功')
-        user.last_login = timezone.now()
-        user.save()
+        remember_me = attrs.get('remember_me', False)
+
+        refresh = self.get_token(self.user)
+
+        if remember_me:
+            refresh.set_exp(lifetime=timedelta(days=30))
+        else: 
+            refresh.set_exp(lifetime=timedelta(hours=1))
+
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+
+        # 記錄用戶登入歷史
+        try:
+            action_description = '前台登入成功' if user_type == 'frontend' else '後台登入成功'
+            record_history(user, action_description)
+            logger.debug(f"Recorded history for user {user.username}: {action_description}")
+        except Exception as e:
+            logger.error(f"Error recording history for user {user.username}: {e}")
+
+        # 更新 last_login
+        try:
+            user.last_login = timezone.now()
+            user.save()
+            logger.debug(f"Updated last_login for user {user.username} to {user.last_login}")
+        except Exception as e:
+            logger.error(f"Error updating last_login for user {user.username}: {e}")
 
         return data
 
