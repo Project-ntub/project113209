@@ -78,13 +78,13 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const frontendToken = localStorage.getItem('frontend_token');  // 前台 token
+  const frontendToken = localStorage.getItem('frontend_token'); 
   const backendToken = localStorage.getItem('backend_token');    // 後台 token
 
   // 前台路由邏輯
   if (to.path.startsWith('/frontend')) {
-    if (!frontendToken && to.name !== 'FrontendLogin') {
-      // 如果沒有前台 token，且路徑不是登入頁，則跳轉到前台登入頁
+    // 允許訪問不需要登入的頁面，如登入、註冊、忘記密碼
+    if (!frontendToken && to.name !== 'FrontendLogin' && to.name !== 'FrontendRegister' && to.name !== 'FrontendForgetPassword') {
       return next({ name: 'FrontendLogin' });
     }
   }

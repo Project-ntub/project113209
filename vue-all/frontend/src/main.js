@@ -4,18 +4,15 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import router from './router';
-import axios from 'axios';  // 引入 Axios
+import axios from 'axios';  
 
-// 将所有图标添加到库中
 library.add(fas);
 
-// 创建 Vue 应用
 const app = createApp(App);
 
-// 注册 FontAwesomeIcon 组件
 app.component('font-awesome-icon', FontAwesomeIcon);
 
-// 设置 Axios 攔截器，用來自動攜帶 token 並處理 refresh token
+// 設置 Axios 攔截器，攜帶 token
 axios.interceptors.request.use(
   config => {
     const token = localStorage.getItem('access_token');
@@ -29,38 +26,46 @@ axios.interceptors.request.use(
   }
 );
 
+// 設置 Axios 攔截器，處理 403 錯誤並自動刷新 token
 axios.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
 
-    // 如果返回 403，且 token 尚未刷新過
-    if (error.response.status === 403 && !originalRequest._retry) {
+    // 如果回應是 403 且 token 尚未刷新過
+    if (error.response && error.response.status === 403 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
-          refresh: refreshToken
-        });
+        if (refreshToken) {
+          // 發送刷新 token 的請求
+          const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
+            refresh: refreshToken
+          });
 
-        // 成功获取新的 access token
-        const newAccessToken = response.data.access;
-        localStorage.setItem('access_token', newAccessToken);
+          // 成功獲取新的 access token
+          const newAccessToken = response.data.access;
+          localStorage.setItem('access_token', newAccessToken);
 
-        // 更新 Authorization header 並重試請求
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-        return axios(originalRequest);
+          // 更新 Authorization header 並重試原始請求
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          return axios(originalRequest);
+        }
       } catch (refreshError) {
         console.error('Error refreshing token:', refreshError);
+
+        // 如果刷新失敗，清除 token 並重定向到登入頁面
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
+    
+    // 其他錯誤處理
     return Promise.reject(error);
   }
 );
 
-// 使用 router
 app.use(router);
-
-// 挂载应用
 app.mount('#app');
