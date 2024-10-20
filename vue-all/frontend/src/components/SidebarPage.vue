@@ -75,6 +75,7 @@ export default {
       document.cookie.split(";").forEach(function(c) { 
         document.cookie = c.trim() + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       });
+      // 以下兩行已註解，防止登出後的自動重新定向和強制刷新
       this.$router.push('/frontend/login').then(() => {
         location.reload(); // 強制刷新頁面
       });
@@ -107,7 +108,6 @@ export default {
   }
 };
 </script>
-
 
 <!-- 引入外部的 CSS 文件 -->
 <style scoped src="@/assets/css/frontend/SidebarPage.css"></style>

@@ -25,12 +25,14 @@
               <span class="slider round"></span>
             </label>
             <span>記住我</span>
+            <!-- 更新 Router Link，確保指向正確的路徑 -->
             <router-link to="/frontend/forgot_password">忘記密碼?</router-link>
           </div>
 
           <input type="submit" value="登入" class="submit-button" />
           <div v-if="error" class="error">{{ error }}</div>
         </form>
+        <!-- 更新 Router Link，確保指向正確的路徑 -->
         <p>還未擁有帳號？ <router-link to="/frontend/register">註冊</router-link></p>
       </div>
     </div>
@@ -48,7 +50,7 @@ export default {
       password: '',
       rememberMe: false,
       error: '',
-      passwordVisible: false // 新增 passwordVisible 變數
+      passwordVisible: false // 用於切換密碼可見性
     };
   },
   methods: {

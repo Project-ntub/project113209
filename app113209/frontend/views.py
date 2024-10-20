@@ -115,7 +115,7 @@ def user_preferences_view(request):
 
 
 
-# 发送验证码
+# 發送驗證碼
 @method_decorator(csrf_exempt, name='dispatch')
 class SendVerificationCodeView(View):
     def post(self, request, *args, **kwargs):
@@ -181,7 +181,7 @@ def export_excel(request):
     response.write(output.getvalue())
     return response
 
-# 注册
+# 註冊
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -246,7 +246,7 @@ class FrontendRegisterView(View):
         response.set_cookie('csrftoken', csrf_token)
         return response
 
-# 登录视图
+# 登入
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 class FrontendLoginView(View):
@@ -262,7 +262,7 @@ class FrontendLoginView(View):
             if user is not None:
                 login(request, user)
 
-                # 打印用户的所有信息到终端
+                #用戶訊息
                 print("\n===== 用户信息开始 =====")
                 print("用户名:", user.username)
                 print("电子邮件:", user.email)
@@ -277,7 +277,7 @@ class FrontendLoginView(View):
                 print("加入日期:", user.date_joined)
                 print("===== 用户信息结束 =====\n")
 
-                # 返回登录成功的响应
+                # 返回登入成功
                 return JsonResponse({
                     'success': True,
                     'message': '登录成功',
@@ -285,10 +285,9 @@ class FrontendLoginView(View):
                     'branch_id': user.branch_id
                 }, status=200)
             else:
-                return JsonResponse({'success': False, 'message': '登录失败，请检查您的电子邮件和密码'}, status=400)
                 return JsonResponse({'success': False, 'message': '登入失敗，請檢查您的電子郵件和密碼'}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': '无效的数据格式'}, status=400)
+            return JsonResponse({'success': False, 'message': '資料格式無效'}, status=400)
 
 
 
@@ -333,7 +332,7 @@ def history_detail(request, id):
 def check_login_status(request):
     return JsonResponse({'loggedIn': request.user.is_authenticated})
 
-# 首页视图
+# 首頁
 class HomePageView(TemplateView):
     template_name = "frontend/home.html"
 # View for ManagerHome
@@ -344,7 +343,6 @@ class ManagerHomeView(TemplateView):
 class BranchManagerHomeView(TemplateView):
     template_name = "frontend/branch_manager_home.html"
 # 忘記密碼
-# 忘记密码视图
 @method_decorator(csrf_exempt, name='dispatch')
 class ForgotPasswordView(View):
     def post(self, request, *args, **kwargs):
@@ -380,7 +378,7 @@ class ForgotPasswordView(View):
         csrf_token = get_token(request)
         return JsonResponse({'csrfToken': csrf_token})
 
-# 重置密码视图
+# 重置密碼
 @method_decorator(csrf_exempt, name='dispatch')
 class ResetPasswordView(View):
     def validate_password_strength(self, password):

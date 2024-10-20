@@ -78,14 +78,21 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.meta.requiresAuth;
-  const isBackend = to.path.startsWith('/backend');
-  const token = isBackend 
-                ? localStorage.getItem('backend_token') || sessionStorage.getItem('backend_token') 
-                : localStorage.getItem('frontend_token') || sessionStorage.getItem('frontend_token');
+  const frontendToken = localStorage.getItem('frontend_token'); 
+  const backendToken = localStorage.getItem('backend_token');    // 後台 token
 
-  if (requiresAuth && !token) {
-    if (isBackend) {
+  // 前台路由邏輯
+  if (to.path.startsWith('/frontend')) {
+    // 允許訪問不需要登入的頁面，如登入、註冊、忘記密碼
+    if (!frontendToken && to.name !== 'FrontendLogin' && to.name !== 'FrontendRegister' && to.name !== 'FrontendForgetPassword') {
+      return next({ name: 'FrontendLogin' });
+    }
+  }
+
+  // 後台路由邏輯
+  if (to.path.startsWith('/backend')) {
+    // 允許訪問不需要登入的頁面，如後台登入、註冊、忘記密碼
+    if (!backendToken && to.name !== 'BackendLogin' && to.name !== 'BackendRegister' && to.name !== 'BackendForgetPassword') {
       return next({ name: 'BackendLogin' });
     } else {
       return next({ name: 'FrontendLogin' });
@@ -94,5 +101,8 @@ router.beforeEach((to, from, next) => {
 
   next();
 });
+
+
+
 
 export default router;

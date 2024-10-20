@@ -162,7 +162,7 @@ def approve_user(request, user_id):
         send_mail(
             '您的帳號已啟用',
             '恭喜！您的帳號已經被管理員審核並啟用。',
-            'leewesley527@gmail.com',a
+            'leewesley527@gmail.com',
             [user.email],
             fail_silently=False,
         )
