@@ -15,10 +15,22 @@ app.component('font-awesome-icon', FontAwesomeIcon);
 // 設置 Axios 攔截器，攜帶 token
 axios.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    // 確定這不是不需要 token 的請求，例如註冊或忘記密碼
+    const isAuthRequest = config.url.includes('register') || config.url.includes('forgot-password') || config.url.includes('login');
+    
+    if (!isAuthRequest) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
+
+    // 設置 CSRF token，如果存在的話
+    const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+    if (csrfToken) {
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
+
     return config;
   },
   error => {
@@ -57,7 +69,7 @@ axios.interceptors.response.use(
         // 如果刷新失敗，清除 token 並重定向到登入頁面
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        window.location.href = '/frontend/login'; // 改為前台登入頁面
         return Promise.reject(refreshError);
       }
     }

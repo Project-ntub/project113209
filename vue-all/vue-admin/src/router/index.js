@@ -91,14 +91,15 @@ router.beforeEach((to, from, next) => {
 
   // 後台路由邏輯
   if (to.path.startsWith('/backend')) {
-    if (!backendToken && to.name !== 'BackendLogin') {
-      // 如果沒有後台 token，且路徑不是登入頁，則跳轉到後台登入頁
+    // 允許訪問不需要登入的頁面，如後台登入、註冊、忘記密碼
+    if (!backendToken && to.name !== 'BackendLogin' && to.name !== 'BackendRegister' && to.name !== 'BackendForgetPassword') {
       return next({ name: 'BackendLogin' });
     }
   }
 
   next();
 });
+
 
 
 
