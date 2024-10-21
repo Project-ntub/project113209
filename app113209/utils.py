@@ -29,6 +29,7 @@ def update_permission_name(old_name, new_name):
         old_name (str): 圖表的舊名稱。
         new_name (str): 圖表的新名稱。
     """
-    old_permission_name = slugify(f"chart_{old_name}")
-    new_permission_name = slugify(f"chart_{new_name}")
+    old_permission_name = slugify(old_name, allow_unicode=True)
+    new_permission_name = slugify(new_name, allow_unicode=True)
+
     RolePermission.objects.filter(permission_name=old_permission_name).update(permission_name=new_permission_name)

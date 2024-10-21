@@ -1,10 +1,10 @@
 <template>
   <TopNavbar title="角色管理" />
   <div class="main-container">
-    <div v-if="showCreateRoleModal || showEditRoleModal" class="modal-backdrop" @click="closeAllModals"></div>
+    <!-- <div v-if="showCreateRoleModal || showEditRoleModal" class="modal-backdrop" @click="closeAllModals"></div> -->
 
     <div class="header">
-      <button id="add-role-btn" class="btn add-role-btn" v-if="permissions.find(perm => perm.permission_name === '角色管理' && perm.can_add)" @click="openCreateRoleModal">
+      <button id="add-role-btn" class="btn add-role-btn" v-if="permissions.find(perm => perm.permission_name === '角色管理' && perm.can_add)" @click="navigateToCreateRole">
         新增角色
       </button>
       <button class="btn" @click="navigateToRoleManagement">角色</button>
@@ -45,7 +45,7 @@
             </td>
             <td>{{ role.module_name ? role.module_name : '未知模組' }}</td>
             <td>
-              <button class="permissions-btn" v-if="permissions.find(perm => perm.permission_name === '角色管理' && perm.can_edit)" @click="openEditRoleModal(role.id)">編輯角色</button>
+              <button class="permissions-btn" v-if="permissions.find(perm => perm.permission_name === '角色管理' && perm.can_edit)" @click="navigateToEditRole(role.id)">編輯角色</button>
               <button class="delete-btn" v-if="permissions.find(perm => perm.permission_name === '角色管理' && perm.can_delete)" @click="deleteRole(role.id)">刪除</button>
             </td>
           </tr>
@@ -53,27 +53,27 @@
       </table>
     </div>
 
-    <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal" class="centered-modal">
+    <!-- <RoleModal :isVisible="showCreateRoleModal" @close="closeCreateRoleModal" class="centered-modal">
       <RoleForm @role-saved="fetchRoles" @close="closeCreateRoleModal" />
     </RoleModal>
     <RoleModal :isVisible="showEditRoleModal" @close="closeEditRoleModal" class="centered-modal">
       <RoleForm :roleId="editingRoleId" @role-saved="fetchRoles" @close="closeEditRoleModal" />
-    </RoleModal>
+    </RoleModal> -->
   </div>
 </template>
 
 <script>
 import axios from '@/axios';
 import TopNavbar from '@/components/frontend/TopNavbar.vue';
-import RoleModal from '@/components/backend/RoleModal.vue';
-import RoleForm from '@/components/backend/RoleForm.vue';
+// import RoleModal from '@/components/backend/RoleModal.vue';
+// import RoleForm from '@/components/backend/RoleForm.vue';
 
 export default {
   name: 'RoleManagement',
   components: {
     TopNavbar,
-    RoleModal,
-    RoleForm
+    // RoleModal,
+    // RoleForm
   },
   data() {
     return {
@@ -129,20 +129,26 @@ export default {
       this.showCreateRoleModal = false;
       this.showEditRoleModal = false;
     },
-    openCreateRoleModal() {
-      this.showCreateRoleModal = true;
+    navigateToCreateRole() {
+      this.$router.push('/backend/role-management/create');
     },
-    closeCreateRoleModal() {
-      this.showCreateRoleModal = false;
+    navigateToEditRole(roleId) {
+      this.$router.push(`/backend/role-management/edit/${roleId}`);
     },
-    openEditRoleModal(roleId) {
-      this.editingRoleId = roleId;
-      this.showEditRoleModal = true;
-    },
-    closeEditRoleModal() {
-      this.showEditRoleModal = false;
-      this.editingRoleId = null;
-    },
+    // openCreateRoleModal() {
+    //   this.showCreateRoleModal = true;
+    // },
+    // closeCreateRoleModal() {
+    //   this.showCreateRoleModal = false;
+    // },
+    // openEditRoleModal(roleId) {
+    //   this.editingRoleId = roleId;
+    //   this.showEditRoleModal = true;
+    // },
+    // closeEditRoleModal() {
+    //   this.showEditRoleModal = false;
+    //   this.editingRoleId = null;
+    // },
     toggleStatus(roleId, isActive) {
       axios.post(`/api/backend/toggle_role_status/${roleId}/`, { is_active: isActive })
         .then(response => {

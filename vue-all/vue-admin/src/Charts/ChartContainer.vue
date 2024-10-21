@@ -41,6 +41,7 @@
       :chartId="localChartConfig.id" 
       :fetchChartConfig="fetchChartConfigMethod"
       @close="closeEditModal" 
+      
     />
   </div>
 </template>
@@ -69,13 +70,23 @@ export default {
       isZoomModalVisible: false,
       isEditModalVisible: false,
       localChartConfig: { ...this.chartConfig },
-      localCanExport: this.canExport,
-      localCanDelete: this.canDelete,
-      localCanEdit: this.canEdit, // 新增本地 canEdit
+      // 删除以下三行，避免与 computed 中的同名属性冲突
+      // localCanExport: this.canExport,
+      // localCanDelete: this.canDelete,
+      // localCanEdit: this.canEdit,
     };
   },
   computed: {
     ...mapGetters(['getPermissions']),
+    localCanEdit() {
+      return this.hasPermission(this.localChartConfig.name, 'can_edit');
+    },
+    localCanDelete() {
+      return this.hasPermission(this.localChartConfig.name, 'can_delete');
+    },
+    localCanExport() {
+      return this.hasPermission(this.localChartConfig.name, 'can_export');
+    },
   },
   methods: {
     toggleMenu() {
@@ -96,18 +107,19 @@ export default {
     },
     async deleteChart() {
       if (!this.localChartConfig.id) {
-        alert('圖表ID無效，無法刪除');
+        alert('图表ID无效，无法删除');
         return;
       }
-      const confirmation = confirm('確定要隱藏此圖表嗎？');
+      const confirmation = confirm('确定要隐藏此图表吗？');
       if (confirmation) {
         try {
           await axios.post(`/api/backend/delete-chart/${this.localChartConfig.id}/`);
-          alert('圖表已被隱藏');
-          this.$emit('reload-charts');
+          alert('图表已被删除');
+          await this.$store.dispatch('fetchPermissions'); // 刷新权限
+          this.$emit('reload-charts'); // 发出事件
         } catch (error) {
-          console.error('隱藏圖表時出錯:', error);
-          alert('隱藏失敗，請稍後再試。');
+          console.error('隐藏图表时出错:', error);
+          alert('隐藏失败，请稍后再试。');
         }
       }
     },
@@ -115,47 +127,43 @@ export default {
       this.localChartConfig = updatedConfig;
     },
     async exportChart(format) {
-      if (!this.localChartConfig.xAxisField || !this.localChartConfig.yAxisField) {
-          alert('圖表配置無效，無法導出！');
-          return;
-      }
-
       try {
-          const response = await axios.post('/api/backend/export-data/', {
-              chartConfig: {
-                  chart_type: this.localChartConfig.chartType,
-                  name: this.localChartConfig.name,
-                  data_source: this.localChartConfig.dataSource,
-                  x_axis_field: this.localChartConfig.xAxisField,
-                  y_axis_field: this.localChartConfig.yAxisField,
-                  filter_conditions: this.localChartConfig.filter_conditions,
-              },
-              format: format
-          }, { responseType: 'blob' });
+        const response = await axios.post('/api/backend/export-data/', {
+          chartConfig: {
+            chart_type: this.localChartConfig.chartType,
+            name: this.localChartConfig.name,
+            data_source: this.localChartConfig.dataSource,
+            x_axis_field: this.localChartConfig.xAxisField,
+            y_axis_field: this.localChartConfig.yAxisField,
+            filter_conditions: this.localChartConfig.filter_conditions,
+          },
+          format: format,
+          export_all: true  // 新增此行，设置为导出全部字段
+        }, { responseType: 'blob' });
 
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
       } catch (error) {
-          console.error('匯出數據時出錯:', error);
-          alert('匯出失敗，請檢查數據並重試。');
+        console.error('导出数据时出错:', error);
+        alert('导出失败，请检查数据并重试。');
       }
     },
     async fetchChartConfigMethod(chartId) {
       if (!chartId) {
         console.error('chartId is undefined');
-        alert('無效的圖表 ID，無法加載圖表配置');
+        alert('无效的图表 ID，无法加载图表配置');
         return null;
       }
       try {
         const response = await axios.get(`/api/backend/charts/${chartId}/`);
         const data = response.data;
 
-        // 呼叫 dynamic-chart-data 以獲取 x_data 和 y_data
+        // 调用 dynamic-chart-data 以获取 x_data 和 y_data
         const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
           table_name: data.data_source,
           x_field: data.x_axis_field,
@@ -169,7 +177,7 @@ export default {
           chartType: data.chart_type ? data.chart_type.toLowerCase() : 'bar', // 添加 chartType
           x_data: dataResponse.data.x_data,
           y_data: dataResponse.data.y_data,
-          last_updated: dataResponse.data.last_updated,
+          last_updated: dataResponse.data.last_updated ? new Date(dataResponse.data.last_updated) : null,
           can_export: this.hasPermission(data.name, 'can_export'),
           can_delete: this.hasPermission(data.name, 'can_delete'),
           can_edit: this.hasPermission(data.name, 'can_edit'),
@@ -177,13 +185,12 @@ export default {
 
         return updatedConfig;
       } catch (error) {
-        console.error('加載圖表配置時發生錯誤:', error);
-        alert('加載圖表配置時發生錯誤，請稍後再試');
+        console.error('加载图表配置时发生错误:', error);
+        alert('加载图表配置时发生错误，请稍后再试');
         return null;
       }
     },
     hasPermission(permissionName, action) {
-      // 直接使用後端返回的 permission_name，不使用 slugify 或添加前綴
       const permission = this.getPermissions.find(perm => perm.permission_name === permissionName);
       return permission ? permission[action] : false;
     },
@@ -191,7 +198,7 @@ export default {
       return text.toString().toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w-]+/g, '')       // 移除不必要的字符
-        .replace(/--+/g, '-')          // 移除重複的連字符
+        .replace(/--+/g, '-')          // 移除重复的连字符
         .replace(/^-+/, '')
         .replace(/-+$/, '');
     }

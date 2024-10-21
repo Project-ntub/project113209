@@ -312,10 +312,10 @@ class TEST_Products(models.Model):
 # 測試用銷售模型
 class TEST_Sales(models.Model):
     sale_id = models.CharField(max_length=50, primary_key=True)
-    quantity = models.IntegerField()  # 修改為 IntegerField
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)  # 修改為 DecimalField
     sale_price = models.DecimalField(max_digits=10, decimal_places=2)  # 修改為 DecimalField
-    sale_date = models.DateField()  # 修改為 DateField
-    total_amount = models.DecimalField(max_digits=20, decimal_places=2)  # 修改為 DecimalField
+    sale_date = models.DateTimeField()  # 修改為 DateTimeField 或 DateField
+    total_amount = models.DecimalField(max_digits=20, decimal_places=2)
     created_at = models.DateTimeField(auto_now=True)
     product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, null=True, db_column='product_id')
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True, db_column='branch_id')
@@ -331,16 +331,24 @@ class TEST_Sales(models.Model):
 
 
 class TEST_Inventory(models.Model):
-    id = models.AutoField(primary_key=True)  # 新增自動遞增主鍵
+    id = models.AutoField(primary_key=True)  # 自動遞增主鍵
     product_name = models.CharField(max_length=200, null=True, blank=True)
-    warehouse_id = models.CharField(max_length=50, null=True)
+    warehouse_id = models.CharField(max_length=50)  # NOT NULL, 預設 null=False
     warehouse_name = models.CharField(max_length=200, null=True, blank=True)
     stock_quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     last_update = models.DateTimeField(auto_now=True)
-    product = models.ForeignKey(TEST_Products, on_delete=models.CASCADE, null=True, db_column='product_id')
+    product = models.ForeignKey(
+        TEST_Products,
+        on_delete=models.CASCADE,
+        db_column='product_id',  # 指定資料庫中的欄位名稱
+        related_name='inventories'  # 可選，便於反向查詢
+    )
+    unit = models.CharField(max_length=50, null=True, blank=True)  # 新增的 unit 欄位
 
     class Meta:
         db_table = 'TEST_Inventory'
+        verbose_name = 'Inventory'
+        verbose_name_plural = 'Inventories'
 
     def __str__(self):
         return f"Inventory {self.id} - {self.product_name} in {self.warehouse_name}"

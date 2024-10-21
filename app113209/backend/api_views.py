@@ -13,6 +13,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from django.apps import apps
 from django.db import models
 from django.db import IntegrityError
 from django.conf import settings
@@ -23,6 +24,7 @@ from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse
+from django.core.exceptions import FieldDoesNotExist
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import viewsets, status, generics, serializers
 from rest_framework.views import APIView
@@ -721,7 +723,15 @@ def dynamic_chart_data(request):
     x_field = request.data.get('x_field')
     y_field = request.data.get('y_field')
     join_fields = request.data.get('join_fields', [])
-    logger.info(f"Fetching data from {table_name} with x_field={x_field} and y_field={y_field}")
+    filter_conditions = request.data.get('filter_conditions', {})
+    ordering = request.data.get('ordering', None)
+    limit = request.data.get('limit', None)
+
+    logger.info(f"Fetching data from {table_name} with x_field={x_field}, y_field={y_field}, filters={filter_conditions}, ordering={ordering}, limit={limit}")
+
+    if not table_name:
+        logger.error("table_name 未提供")
+        return JsonResponse({'error': 'table_name 未提供'}, status=400)
 
     model = MODEL_MAPPING.get(table_name)
     if not model:
@@ -745,9 +755,22 @@ def dynamic_chart_data(request):
             queryset = queryset.select_related(*join_fields)
 
         # 處理過濾條件
-        filter_conditions = request.data.get('filter_conditions', {})
         if isinstance(filter_conditions, dict) and filter_conditions:
-            queryset = queryset.filter(**filter_conditions)
+            for key, value in filter_conditions.items():
+                if isinstance(value, dict):
+                    for op, val in value.items():
+                        filter_key = f"{key}__{op}"
+                        queryset = queryset.filter(**{filter_key: val})
+                else:
+                    queryset = queryset.filter(**{key: value})
+
+        # 處理排序
+        if ordering:
+            queryset = queryset.order_by(*ordering)
+
+        # 處理限制（如前10）
+        if isinstance(limit, int):
+            queryset = queryset[:limit]
 
         # 聚合數據：按 x_field 分組並聚合 y_field
         aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
@@ -772,6 +795,61 @@ def dynamic_chart_data(request):
     except Exception as e:
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def get_table_fields_metadata(request, table_name):
+    """
+    返回指定資料表的欄位元數據，包括欄位名稱、類型及選項（如果有）。
+    """
+    try:
+        model = MODEL_MAPPING.get(table_name)
+        if not model:
+            return Response({'error': '資料表不存在'}, status=400)
+        
+        fields_metadata = []
+        for field in model._meta.get_fields():
+            if field.auto_created and not field.concrete:
+                continue  # 跳過自動生成的反向關聯字段
+            field_info = {
+                'name': field.name,
+                'type': field.get_internal_type(),
+                'verbose_name': field.verbose_name,
+                'choices': field.choices if hasattr(field, 'choices') else None,
+                'related_model': field.related_model.__name__ if field.is_relation else None
+            }
+            fields_metadata.append(field_info)
+        
+        return Response({'fields': fields_metadata})
+    except Exception as e:
+        logger.error(f"Error fetching table metadata for {table_name}: {e}")
+        return Response({'error': '無法獲取欄位資訊'}, status=500)
+    
+@api_view(['GET'])
+def get_options(request, related_model):
+    """
+    返回指定相關模型的選項，通常用於 SelectFilter 或 CheckboxFilter 組件。
+    """
+    try:
+        model = apps.get_model(app_label='app113209', model_name=related_model)
+        if not model:
+            return Response({'error': '相關模型不存在'}, status=400)
+        
+        # 假設我們要返回該模型的所有實例的某個字段作為選項
+        # 根據具體需求調整
+        # 例如，假設我們要返回 TEST_Products 的 product_id 和 product_name
+        if related_model == 'TEST_Products':
+            options = model.objects.values('product_id', 'product_name')
+            options = [{'value': item['product_id'], 'label': item['product_name']} for item in options]
+        elif related_model == 'Branch':  # 假設有 Branch 模型
+            options = model.objects.values('branch_id', 'branch_name')
+            options = [{'value': item['branch_id'], 'label': item['branch_name']} for item in options]
+        else:
+            options = []
+
+        return Response({'options': options})
+    except Exception as e:
+        logger.error(f"Error fetching options for model {related_model}: {e}")
+        return Response({'error': '無法獲取選項'}, status=500)
 
 def save_chart_as_image(fig):
     file_name = f"chart_{uuid.uuid4().hex}.png"
@@ -1025,12 +1103,12 @@ class ChartConfigurationViewSet(viewsets.ModelViewSet):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def retrieve(self, request, pk=None):
-        try:
-            chart_config = self.get_object()
-            serializer = self.get_serializer(chart_config)
-            return Response(serializer.data)
-        except ChartConfiguration.DoesNotExist:
-            return Response({'error': 'Chart not found'}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                chart_config = self.get_object()
+                serializer = self.get_serializer(chart_config)
+                return Response(serializer.data)
+            except ChartConfiguration.DoesNotExist:
+                return Response({'error': 'Chart not found'}, status=status.HTTP_404_NOT_FOUND)
 
     # 恢復隱藏的圖表
     # @action(detail=True, methods=['post'])
@@ -1163,7 +1241,7 @@ def validate_lookup(model, lookup):
             field = current_model._meta.get_field(part)
             if isinstance(field, models.ForeignKey):
                 current_model = field.related_model
-        except models.FieldDoesNotExist:
+        except FieldDoesNotExist:
             return False
     return True
 
@@ -1173,98 +1251,102 @@ def export_data(request):
     logger.info("Received export request")
     chart_config = request.data.get('chartConfig', {})
     table_name = chart_config.get('data_source', '')
+    export_all = request.data.get('export_all', False)  # 新增參數判斷是否匯出所有字段
     format = request.data.get('format')
     chart_name = chart_config.get('name', 'chart')
 
     x_field = chart_config.get('x_axis_field')
     y_field = chart_config.get('y_axis_field')
 
-    logger.debug(f"Exporting chart: {chart_name}, table: {table_name}, x_field: {x_field}, y_field: {y_field}, format: {format}")
+    logger.debug(f"Exporting chart: {chart_name}, table: {table_name}, x_field: {x_field}, y_field: {y_field}, format: {format}, export_all: {export_all}")
 
     if not table_name:
         logger.error("資料來源未指定")
         return JsonResponse({"error": "資料來源未指定"}, status=400)
-    if not x_field or not y_field:
-        logger.error("x_axis_field 和 y_axis_field 是必填的")
-        return JsonResponse({"error": "x_axis_field 和 y_axis_field 是必填的"}, status=400)
 
     model = MODEL_MAPPING.get(table_name)
     if not model:
         logger.error(f"資料表不存在: {table_name}")
         return JsonResponse({"error": "資料表不存在"}, status=400)
 
-    # 僅獲取指定的字段
-    try:
-        data = list(model.objects.values(x_field, y_field))
-        logger.debug(f"Fetched data for export: {len(data)} records")
-    except Exception as e:
-        logger.error(f"Error fetching fields {x_field}, {y_field} from {table_name}: {e}")
-        return JsonResponse({"error": f"無法獲取指定的欄位: {e}"}, status=400)
-
-    if format == 'csv':
-        response = export_to_csv(data, chart_name, x_field, y_field)
-    elif format == 'excel':
-        response = export_to_excel(data, chart_name, x_field, y_field)
-    elif format == 'pdf':
-        response = export_to_pdf(data, chart_name, x_field, y_field)
+    # 決定要匯出的字段
+    if export_all:
+        fields = [field.name for field in model._meta.fields]
     else:
-        logger.error(f"Unsupported format: {format}")
-        return JsonResponse({"error": "Unsupported format"}, status=400)
+        if not x_field or not y_field:
+            logger.error("x_axis_field 和 y_axis_field 是必填的")
+            return JsonResponse({"error": "x_axis_field 和 y_axis_field 是必填的"}, status=400)
+        fields = [x_field, y_field]
 
-    logger.info(f"Export successful for chart: {chart_name} in format: {format}")
-    return response
+    try:
+        data = list(model.objects.values(*fields))
+        logger.debug(f"Fetched data for export: {len(data)} records")
 
-def export_to_csv(data, chart_name, x_field, y_field):
+        if format == 'csv':
+            response = export_to_csv(data, chart_name, fields)
+        elif format == 'excel':
+            response = export_to_excel(data, chart_name, fields)
+        elif format == 'pdf':
+            response = export_to_pdf(data, chart_name, fields)
+        else:
+            logger.error(f"Unsupported format: {format}")
+            return JsonResponse({"error": "Unsupported format"}, status=400)
+
+        logger.info(f"Export successful for chart: {chart_name} in format: {format}")
+        return response
+    except Exception as e:
+        logger.error(f"Error in export_data: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+def export_to_csv(data, chart_name, fields):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="{chart_name}.csv"'
     writer = csv.writer(response)
     
     # 寫入表頭
-    writer.writerow([x_field, y_field])
+    writer.writerow(fields)
     
     for row in data:
-        writer.writerow([row.get(x_field, ''), row.get(y_field, '')])
+        writer.writerow([row.get(field, '') for field in fields])
     return response
 
-def export_to_excel(data, chart_name, x_field, y_field):
+def export_to_excel(data, chart_name, fields):
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet()
     
     # 寫入表頭
-    worksheet.write(0, 0, x_field)
-    worksheet.write(0, 1, y_field)
+    for col, field in enumerate(fields):
+        worksheet.write(0, col, field)
     
-    for index, row in enumerate(data, start=1):
-        worksheet.write(index, 0, row.get(x_field, ''))
-        worksheet.write(index, 1, row.get(y_field, ''))
+    for row_idx, row in enumerate(data, start=1):
+        for col_idx, field in enumerate(fields):
+            worksheet.write(row_idx, col_idx, row.get(field, ''))
     workbook.close()
     output.seek(0)
     response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{chart_name}.xlsx"'
     return response
 
-
-
-def export_to_pdf(data, chart_name, x_field, y_field):
+def export_to_pdf(data, chart_name, fields):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     p.setFont("NotoSansTC", 12)  # 使用已註冊的字體名稱
     p.drawString(100, 750, f"{chart_name}")
 
     # 寫入表頭
-    p.drawString(100, 730, f"{x_field} | {y_field}")
+    header = " | ".join(fields)
+    p.drawString(100, 730, header)
     y_position = 710
     for row in data:
-        x_val = row.get(x_field, '')
-        y_val = row.get(y_field, '')
-        p.drawString(100, y_position, f"{x_val} | {y_val}")
+        row_data = " | ".join([str(row.get(field, '')) for field in fields])
+        p.drawString(100, y_position, row_data)
         y_position -= 20
         if y_position < 50:  # 新增頁面
             p.showPage()
             p.setFont("NotoSansTC", 12)
             p.drawString(100, 750, f"{chart_name} (續)")
-            p.drawString(100, 730, f"{x_field} | {y_field}")
+            p.drawString(100, 730, header)
             y_position = 710
 
     p.showPage()

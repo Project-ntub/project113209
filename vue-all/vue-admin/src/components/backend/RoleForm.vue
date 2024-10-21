@@ -1,6 +1,5 @@
 <template>
-  <div class="container">
-    <h2>{{ isEdit ? "編輯角色" : "新增角色" }}</h2>
+  <div class="role-form-container">
     <form @submit.prevent="saveRole">
       <div class="form-group">
         <label for="role-name">角色名稱</label>
@@ -93,26 +92,52 @@ export default {
       },
       availableUsers: [],
       availableModules: [],
-      rolePermission: [],
+      rolePermissions: [],
       isEdit: false
     };
   },
   methods: {
+    async loadRole(roleId) {
+      try {
+        const response = await axios.get(`/api/backend/roles/${roleId}/`);
+        const role = response.data;
+
+        // 将响应的数据填充到 localRole
+        this.localRole = {
+          id: role.id,
+          name: role.name,
+          module: role.module ? role.module : '',
+          users: role.users.map(user => user.id),
+          is_active: role.is_active
+        };
+
+        // 如果角色有权限，您可以加载权限数据
+        await this.fetchRolePermissions(roleId);
+      } catch (error) {
+        console.error('Error loading role:', error.response ? error.response.data : error.message);
+      }
+    },
+    async fetchRolePermissions(roleId) {
+      try {
+        const response = await axios.get(`/api/backend/role_permissions/?role_id=${roleId}`);
+        this.rolePermissions = response.data;
+      } catch (error) {
+        console.error('Error fetching role permissions:', error);
+      }
+    },
     async saveRole() {
       try {
         const roleData = {
           ...this.localRole,
           users: this.localRole.users,
-          permissions: this.rolePermissions  // 确保权限数据包含在请求中
+          permissions: this.rolePermissions 
         };
-        console.log('Sending role data:', roleData);
         const response = this.isEdit
           ? await axios.put(`/api/backend/roles/${this.localRole.id}/`, roleData)
           : await axios.post('/api/backend/roles/', roleData);
 
         if (response.status === 200 || response.status === 201) {
           alert('保存成功');
-          await this.fetchRolePermissions(this.localRole.id);
           this.$emit('role-saved');
           this.$emit('close');
         } else {
@@ -135,7 +160,6 @@ export default {
       try {
         const response = await axios.get('/api/backend/modules/');
         this.availableModules = response.data;
-        console.log('Avaliable Modules:', this.availableModules);
       } catch (error) {
         console.error('Error fetching modules:', error);
       }
@@ -146,74 +170,12 @@ export default {
     removeMember(index) {
       this.localRole.users.splice(index, 1);
     },
-    updateMembers() {
-      this.$forceUpdate();
-    },
     cancel() {
-      this.$emit('close');
-    },
-    async fetchRolePermissions(roleId) {
-      try {
-        const response = await axios.get(`/api/backend/role_permissions/?role_id=${roleId}`);
-        this.rolePermissions = response.data;
-      } catch (error) {
-        console.error('Error fetching role permissions:', error);
-      }
-    },
-    navigateToAddPermission() {
-      this.$router.push(`/backend/role_permissions/${this.localRole.id}/`);
-    },
-    async deletePermission(permissionId) {
-      try {
-        const response = await axios.delete(`/api/backend/role_permissions/${permissionId}/`);
-        if (response.status === 204) {
-          // 成功刪除後，從本地權限列表中移除該權限
-          this.rolePermissions = this.rolePermissions.filter(permission => permission.id !== permissionId);
-          
-          // 強制更新以反映變更
-          this.$forceUpdate();
-          
-          alert('刪除成功');
-        } else {
-          alert('刪除失敗');
-        }
-      } catch (error) {
-        console.error('刪除權限時出錯:', error.response ? error.response.data : error.message);
-        alert('刪除失敗');
-      }
-    },
-    async loadRole(roleId) {
-      try {
-        const response = await axios.get(`/api/backend/roles/${roleId}/`);
-        const role = response.data;
-
-        // 确认 role.module 是模块的 ID
-        console.log('API返回的Role:', role);
-
-        this.localRole = {
-          id: role.id,
-          name: role.name,
-          module: role.module ? role.module : '',  // 确保 module 是 ID
-          users: role.users.map(user => user.id),
-          is_active: role.is_active
-        };
-
-        console.log('当前角色模块 ID:', this.localRole.module);
-
-        await this.fetchRolePermissions(roleId);
-
-        this.updateMembers();
-
-        // 确保在 DOM 更新后模块已经加载正确
-        this.$nextTick(() => {
-          console.log('DOM 更新完成，模块已加载:', this.localRole.module);
-        });
-      } catch (error) {
-        console.error('加载角色信息时出错:', error.response ? error.response.data : error.message);
-      }
+      this.$router.push('/backend/role-management');
     }
   },
   async mounted() {
+    window.scrollTo(0, 0);
     await this.fetchModules();
     await this.fetchUsers();
     if (this.roleId) {
@@ -224,4 +186,71 @@ export default {
 };
 </script>
 
-<style scoped src="@/assets/css/backend/RoleForm.css"></style>
+<style scoped>
+.role-form-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 20px auto;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: auto; 
+}
+
+.form-group input,
+.form-group select,
+.btn {
+  font-size: 1.2em;
+  padding: 10px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.2em; /* 增大表格字體 */
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.member-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.member-item select {
+  flex-grow: 1;
+  font-size: 1.2em;
+}
+
+.member-item button {
+  margin-left: 10px;
+  padding: 10px;
+  font-size: 1em;
+}
+</style>

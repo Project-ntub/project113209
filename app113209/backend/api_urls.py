@@ -59,6 +59,8 @@ urlpatterns = [
     path('delete-chart/<int:pk>/', api_views.ChartConfigurationViewSet.as_view({'post': 'delete_chart'}), name='delete_chart'),
     path('get-chart-configurations/', api_views.get_chart_configuration, name='get_chart_configurations'),
     path('dynamic-chart-data/', api_views.dynamic_chart_data, name='dynamic_chart_data'),
+    path('table-fields-metadata/<str:table_name>/', api_views.get_table_fields_metadata, name='get_table_fields_metadata'),
+    path('get-options/<str:related_model>/', api_views.get_options, name='get_options'),
 
 
     # 圖表數據（更正名稱以避免衝突）
