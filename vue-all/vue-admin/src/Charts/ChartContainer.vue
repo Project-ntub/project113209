@@ -111,19 +111,19 @@ export default {
     },
     async deleteChart() {
       if (!this.localChartConfig.id) {
-        alert('图表ID无效，无法删除');
+        alert('圖表ID無效，無法刪除');
         return;
       }
-      const confirmation = confirm('确定要隐藏此图表吗？');
+      const confirmation = confirm('確定要刪除此圖表嗎？');
       if (confirmation) {
         try {
           await axios.post(`/api/backend/delete-chart/${this.localChartConfig.id}/`);
-          alert('图表已被删除');
+          alert('圖表已刪除');
           await this.$store.dispatch('fetchPermissions'); // 刷新权限
           this.$emit('reload-charts'); // 发出事件
         } catch (error) {
-          console.error('隐藏图表时出错:', error);
-          alert('隐藏失败，请稍后再试。');
+          console.error('刪除此圖表時出錯:', error);
+          alert('刪除失敗，請稍後再試。');
         }
       }
     },
@@ -153,14 +153,14 @@ export default {
         link.click();
         link.remove();
       } catch (error) {
-        console.error('导出数据时出错:', error);
-        alert('导出失败，请检查数据并重试。');
+        console.error('導出數據時出錯:', error);
+        alert('導出失敗，請檢查數據並重試。');
       }
     },
     async fetchChartConfigMethod(chartId) {
       if (!chartId) {
         console.error('chartId is undefined');
-        alert('无效的图表 ID，无法加载图表配置');
+        alert('無效的圖表 ID，無法加載圖表配置');
         return null;
       }
       try {
@@ -189,8 +189,8 @@ export default {
 
         return updatedConfig;
       } catch (error) {
-        console.error('加载图表配置时发生错误:', error);
-        alert('加载图表配置时发生错误，请稍后再试');
+        console.error('加載圖表配置時發生錯誤:', error);
+        alert('加載圖表配置時發生錯誤，請稍後再試');
         return null;
       }
     },
