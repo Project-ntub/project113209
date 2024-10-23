@@ -63,7 +63,9 @@
             </tr>
           </tbody>
         </table>
-        <button type="button" @click="navigateToAddPermission">新增權限</button>
+        <button type="button" @click="navigateToAddPermission" :disabled="!localRole.id">
+          新增權限
+        </button>
       </div>
       <button type="submit" class="btn">{{ isEdit ? "保存變更" : "新增" }}</button>
       <button type="button" class="btn secondary" @click="cancel">取消</button>
@@ -172,6 +174,13 @@ export default {
     },
     cancel() {
       this.$router.push('/backend/role-management');
+    },
+    navigateToAddPermission() {
+      if (this.localRole.id) {
+        this.$router.push(`/backend/role_permissions/${this.localRole.id}/`);
+      } else {
+        alert('請先保存角色以獲取角色 ID');
+      }
     }
   },
   async mounted() {
