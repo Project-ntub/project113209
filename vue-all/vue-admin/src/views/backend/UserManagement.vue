@@ -34,7 +34,7 @@
       <table class="user-table">
         <thead>
           <tr>
-            <th>姓名</th>
+            <th>用戶名</th>
             <th>電子郵件</th>
             <th>電話號碼</th>
             <th>部門</th>

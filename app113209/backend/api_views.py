@@ -750,19 +750,13 @@ def dynamic_chart_data(request):
         queryset = model.objects.all()
 
         # 處理關聯字段
-        if join_fields:
-            logger.info(f"Using join_fields with fields: {join_fields}")
-            queryset = queryset.select_related(*join_fields)
+        select_related_fields = get_select_related_fields(x_field) + get_select_related_fields(y_field)
+        if select_related_fields:
+            queryset = queryset.select_related(*select_related_fields)
 
         # 處理過濾條件
         if isinstance(filter_conditions, dict) and filter_conditions:
-            for key, value in filter_conditions.items():
-                if isinstance(value, dict):
-                    for op, val in value.items():
-                        filter_key = f"{key}__{op}"
-                        queryset = queryset.filter(**{filter_key: val})
-                else:
-                    queryset = queryset.filter(**{key: value})
+            queryset = queryset.filter(**filter_conditions)
 
         # 處理排序
         if ordering:
@@ -796,29 +790,52 @@ def dynamic_chart_data(request):
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
+def get_select_related_fields(field_name):
+    parts = field_name.split('__')
+    if len(parts) > 1:
+        # 返回所有关联字段的路径
+        return ['__'.join(parts[:i]) for i in range(1, len(parts))]
+    else:
+        return []
+
+def get_fields_metadata(model, prefix='', visited_models=None):
+    if visited_models is None:
+        visited_models = set()
+    model_name = model.__name__
+    if model_name in visited_models:
+        return []
+    visited_models.add(model_name)
+
+    fields_metadata = []
+    for field in model._meta.get_fields():
+        if field.auto_created and not field.concrete:
+            continue  # 跳过自动生成的反向关联字段
+        field_name = f"{prefix}{field.name}"
+        field_info = {
+            'name': field_name,
+            'type': field.get_internal_type(),
+            'verbose_name': field.verbose_name,
+            'choices': field.choices if hasattr(field, 'choices') else None,
+            'related_model': field.related_model.__name__ if field.is_relation else None
+        }
+        fields_metadata.append(field_info)
+
+        # 如果是外键，递归获取关联模型的字段
+        if field.is_relation and field.related_model and not field.many_to_many:
+            # 避免循环引用
+            if len(prefix.split('__')) < 2:  # 限制递归深度，防止过深的嵌套
+                related_fields = get_fields_metadata(field.related_model, prefix=f"{field_name}__", visited_models=visited_models)
+                fields_metadata.extend(related_fields)
+    return fields_metadata
+
 @api_view(['GET'])
 def get_table_fields_metadata(request, table_name):
-    """
-    返回指定資料表的欄位元數據，包括欄位名稱、類型及選項（如果有）。
-    """
     try:
         model = MODEL_MAPPING.get(table_name)
         if not model:
             return Response({'error': '資料表不存在'}, status=400)
         
-        fields_metadata = []
-        for field in model._meta.get_fields():
-            if field.auto_created and not field.concrete:
-                continue  # 跳過自動生成的反向關聯字段
-            field_info = {
-                'name': field.name,
-                'type': field.get_internal_type(),
-                'verbose_name': field.verbose_name,
-                'choices': field.choices if hasattr(field, 'choices') else None,
-                'related_model': field.related_model.__name__ if field.is_relation else None
-            }
-            fields_metadata.append(field_info)
-        
+        fields_metadata = get_fields_metadata(model)
         return Response({'fields': fields_metadata})
     except Exception as e:
         logger.error(f"Error fetching table metadata for {table_name}: {e}")
@@ -1225,22 +1242,26 @@ class StoreComparisonChartDataAPIView(APIView):
     
 def validate_lookup(model, lookup):
     """
-    驗證給定的查詢欄位路徑是否在模型中存在。
+    验证给定的查询字段路径是否在模型中存在。
 
     Args:
-        model (models.Model): Django 模型類。
-        lookup (str): 查詢欄位路徑，例如 'product__category'。
+        model (models.Model): Django 模型类。
+        lookup (str): 查询字段路径，例如 'product__category__name'。
 
     Returns:
-        bool: 如果查詢路徑存在，返回 True，否則返回 False。
+        bool: 如果查询路径存在，返回 True，否则返回 False。
     """
     parts = lookup.split('__')
     current_model = model
     for part in parts:
         try:
             field = current_model._meta.get_field(part)
-            if isinstance(field, models.ForeignKey):
+            if field.is_relation:
                 current_model = field.related_model
+            else:
+                # 如果不是关联字段，且不是最后一个部分，则路径无效
+                if part != parts[-1]:
+                    return False
         except FieldDoesNotExist:
             return False
     return True

@@ -34,7 +34,6 @@
       :chartId="selectedChartId" 
       :fetchChartConfig="fetchChartConfigMethod"
       @close="closeChartModal"
-      @reload-charts="fetchCharts"  
     />
   </div>
 </template>
@@ -129,6 +128,7 @@ export default {
         }));
 
         this.charts = chartsWithData;
+        this.applyFilter(); 
       } catch (error) {
         console.error('Error fetching chart configurations:', error);
       }
@@ -164,6 +164,9 @@ export default {
     canViewChart(chartName) {
       return this.getPermissions.some(perm => perm.permission_name === chartName && perm.can_view);
     },
+    async onReloadCharts() {
+      await this.fetchCharts();
+    }
   },
   watch: {
     filterType() {

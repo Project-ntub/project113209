@@ -41,7 +41,8 @@
       :chartId="localChartConfig.id" 
       :fetchChartConfig="fetchChartConfigMethod"
       @close="closeEditModal" 
-      
+      @reload-charts="$emit('reload-charts')"
+
     />
   </div>
 </template>
@@ -89,6 +90,9 @@ export default {
     },
   },
   methods: {
+    handleReloadCharts() {
+      this.$emit('reload-charts');
+    },
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },

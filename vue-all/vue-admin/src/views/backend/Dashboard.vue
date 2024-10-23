@@ -40,7 +40,6 @@
       :chartId="selectedChartId" 
       :fetchChartConfig="fetchChartConfigMethod"
       @close="closeChartModal"
-      @reload-charts="fetchCharts"  
     />
   </div>
 </template>
@@ -144,7 +143,7 @@ export default {
 
         this.charts = chartsWithData;
         // 不再直接設置 filteredCharts
-
+        this.applyFilter();
         console.log('Charts count:', this.charts.length);
         console.log('Charts:', this.charts);
       } catch (error) {
@@ -242,6 +241,9 @@ export default {
         .replace(/--+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
+    },
+    async onReloadCharts() {
+      await this.fetchCharts();
     }
   },
   watch: {

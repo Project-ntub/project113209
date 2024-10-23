@@ -190,11 +190,11 @@ export default {
       // 如果資料來源是動態的，請從後端獲取
       // 目前假設是靜態的，已在 data 中定義
     },
-    async fetchTableFieldsMetadata() { // 標記為 async
+    async fetchTableFieldsMetadata() {
       try {
         const response = await axios.get(`/api/backend/table-fields-metadata/${this.chartData.dataSource}/`);
         this.tableFields = response.data.fields;
-        this.filtersMetadata = response.data.fields.filter(field => this.isFilterable(field));
+        this.filtersMetadata = this.tableFields.filter(field => this.isFilterable(field));
         // 重置過濾條件
         this.filterValues = {};
         this.chartData.filterConditions = {};
