@@ -1,7 +1,7 @@
 <template>
   <TopNavbar title="歷史紀錄" />
   <div>
-    <div class="container">
+    <div v-if="hasPermission" class="container">  
       <!-- Search Box -->
       <div class="search-container">
         <input type="text" v-model="searchQuery" placeholder="查尋歷史紀錄..." />
@@ -47,12 +47,17 @@
         </div>
       </div>
     </div>
+    <div v-else>
+      <!-- 沒有權限時顯示的內容 -->
+      <p>您沒有權限觀看</p>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from '@/axios';
-import TopNavbar from '@/components/frontend/TopNavbar.vue'; 
+import TopNavbar from '@/components/frontend/TopNavbar.vue';
+ 
 
 
 export default {
@@ -66,7 +71,8 @@ export default {
       isLoading: false,
       records: [],
       sortField: 'timestamp', // 默認排序字段
-      sortOrder: 'asc' // 默認排序順序
+      sortOrder: 'asc', // 默認排序順序
+      hasPermission: true, // 新增屬性，表示使用者是否有權限
     };
   },
   computed: {
@@ -98,10 +104,15 @@ export default {
       this.isLoading = true;
       try {
         const { data } = await axios.get('/api/backend/user_history/');
-        console.log(data); // 調試用
+        console.log(data); // 偵錯用
         this.records = data;
       } catch (error) {
-        console.error('Failed to fetch records:', error);
+        if (error.response && error.response.status === 403) {
+          // 如果後端回傳 403，表示沒有權限
+          this.hasPermission = false;
+        } else {
+          console.error('Failed to fetch records:', error);
+        }
       } finally {
         this.isLoading = false;
       }

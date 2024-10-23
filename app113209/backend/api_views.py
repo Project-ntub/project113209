@@ -30,7 +30,7 @@ from rest_framework import viewsets, status, generics, serializers
 from rest_framework.views import APIView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermission
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -45,6 +45,22 @@ from app113209.utils import record_history, update_permission_name
 
 logger = logging.getLogger(__name__)
 
+
+class IsSystemAdministrator(BasePermission):
+    """
+    僅允許具有「系統管理員」角色的使用者存取。    
+    """
+
+    def has_permission(self, request, view):
+        # 取得使用者的角色
+        user_roles = Role.objects.filter(
+            roleuser__user=request.user,
+            is_deleted=False,
+            is_active=True
+        )
+        # 檢查使用者是否有「系統管理員」角色
+        return user_roles.filter(name='系統管理員').exists()
+    
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         logger.debug(f"Received attrs: {attrs}")
@@ -649,7 +665,7 @@ class ModuleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ModuleSerializer
 
 class UserHistoryListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSystemAdministrator]
 
     def get(self, request):
         records = UserHistory.objects.all()
