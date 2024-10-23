@@ -140,7 +140,7 @@ EMAIL_HOST_PASSWORD = 'evcajuubazrginrn'
 
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE = 60 * 30
+SESSION_COOKIE_AGE =1209600
 SESSION_COOKIE_SECURE = False  # 開發模式下設置為 False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
