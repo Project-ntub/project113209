@@ -24,7 +24,7 @@
       </div>
       <div class="form-group">
         <label for="role-module">模組</label>
-        <select v-model="localRole.module" id="role-module">
+        <select v-model="localRole.module" id="role-module" required>
           <option value="">-- 選擇模組 --</option>
           <option v-for="module in availableModules" :key="module.id" :value="module.id">{{ module.name }}</option>
         </select>
@@ -66,6 +66,7 @@
         <button type="button" @click="navigateToAddPermission" :disabled="!localRole.id">
           新增權限
         </button>
+        <span v-if="!localRole.id" class="help-text">請先保存角色以獲取角色 ID</span>
       </div>
       <button type="submit" class="btn">{{ isEdit ? "保存變更" : "新增" }}</button>
       <button type="button" class="btn secondary" @click="cancel">取消</button>
@@ -80,7 +81,7 @@ export default {
   name: 'RoleForm',
   props: {
     roleId: {
-      type: Number,
+      type: [String, Number],
       default: null
     }
   },
@@ -113,7 +114,7 @@ export default {
           is_active: role.is_active
         };
 
-        // 如果角色有权限，您可以加载权限数据
+        // 加载权限数据
         await this.fetchRolePermissions(roleId);
       } catch (error) {
         console.error('Error loading role:', error.response ? error.response.data : error.message);
@@ -128,35 +129,37 @@ export default {
       }
     },
     async saveRole() {
-      try {
-        const roleData = {
-          ...this.localRole,
-          users: this.localRole.users,
-          permissions: this.rolePermissions 
-        };
-        const response = this.isEdit
-          ? await axios.put(`/api/backend/roles/${this.localRole.id}/`, roleData)
-          : await axios.post('/api/backend/roles/', roleData);
-
-        if (response.status === 200 || response.status === 201) {
-          alert('保存成功');
-          this.$emit('role-saved');
-          this.$emit('close');
-        } else {
-          alert('保存失敗');
+        if (!this.localRole.name) {
+            alert('請輸入角色名稱');
+            return;
         }
-      } catch (error) {
-        console.error('Error saving role:', error.response ? error.response.data : error.message);
-        alert('保存失敗');
-      }
-    },
-    async fetchUsers() {
-      try {
-        const response = await axios.get('/api/backend/users/');
-        this.availableUsers = response.data;
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
+        if (!this.localRole.module) {
+            alert('請選擇模組');
+            return;
+        }
+        try {
+            const roleData = {
+                ...this.localRole,
+                users: this.localRole.users,
+                permissions: this.rolePermissions 
+            };
+            const response = this.isEdit
+                ? await axios.put(`/api/backend/roles/${this.localRole.id}/`, roleData)
+                : await axios.post('/api/backend/roles/', roleData);
+
+            if (response.status === 200 || response.status === 201) {
+                console.log('Response data:', response.data);
+                alert('保存成功');
+                
+                // 只需發出 'role-saved' 事件，傳遞 roleId
+                this.$emit('role-saved', response.data.id);
+            } else {
+                alert('保存失敗');
+            }
+        } catch (error) {
+            console.error('Error saving role:', error.response ? error.response.data : error.message);
+            alert('保存失敗：' + (error.response && error.response.data && error.response.data.error ? error.response.data.error : error.message));
+        }
     },
     async fetchModules() {
       try {
@@ -175,23 +178,50 @@ export default {
     cancel() {
       this.$router.push('/backend/role-management');
     },
+    async fetchUsers() {
+      try {
+        const response = await axios.get('/api/backend/users/');
+        this.availableUsers = response.data;
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    },
     navigateToAddPermission() {
       if (this.localRole.id) {
-        this.$router.push(`/backend/role_permissions/${this.localRole.id}/`);
+        // alert(`localRole.id is ${this.localRole.id}`);
+        this.$router.push({ name: 'BackendRolePermissions', params: { roleId: this.localRole.id } });
       } else {
         alert('請先保存角色以獲取角色 ID');
       }
-    }
+    },
   },
   async mounted() {
     window.scrollTo(0, 0);
     await this.fetchModules();
     await this.fetchUsers();
-    if (this.roleId) {
-      this.isEdit = true;
-      await this.loadRole(this.roleId);
-    }
-  }
+    // 移除未使用的代码，避免 ESLint 错误
+  },
+  watch: {
+    roleId: {
+      handler(newVal) {
+        if (newVal) {
+          this.isEdit = true;
+          this.loadRole(newVal);
+        } else {
+          this.isEdit = false;
+          // 重置 localRole
+          this.localRole = {
+            name: '',
+            module: '',
+            users: [],
+            is_active: false
+          };
+          this.rolePermissions = [];
+        }
+      },
+      immediate: true,
+    },
+  },
 };
 </script>
 
@@ -226,6 +256,12 @@ th, td {
   padding: 10px;
   border: 1px solid #ddd;
   text-align: center;
+}
+
+.help-text {
+  color: #888;
+  margin-left: 10px;
+  font-size: 0.9em;
 }
 
 .btn {

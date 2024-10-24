@@ -53,10 +53,9 @@ class RoleSerializer(serializers.ModelSerializer):
     module_name = serializers.CharField(source='module.name', read_only=True)
     users = serializers.SerializerMethodField()
 
-
     class Meta:
         model = Role
-        fields = ['id', 'name', 'is_active', 'module', 'module_name', 'users']
+        fields = '__all__'
 
     def get_users(self, obj):
         # 如果需要返回角色相關的用戶，可以返回用戶的基本信息，而不是完整的 UserSerializer

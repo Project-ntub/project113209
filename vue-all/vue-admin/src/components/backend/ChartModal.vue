@@ -3,17 +3,19 @@
   <div class="chart-modal-container">
     <div class="chart-modal">
       <div class="chart-modal-header">
+        <!-- 顯示編輯或新增圖表的標題 -->
         <h2>{{ isEditing ? '編輯圖表' : '新增圖表' }}</h2>
+        <!-- 關閉視窗的按鈕 -->
         <button @click="closeModal" class="close-btn">×</button>
       </div>
       <div class="chart-modal-body">
         <div class="chart-settings">
-          <!-- 圖表名稱 -->
+          <!-- 圖表名稱設定 -->
           <div class="setting">
             <label for="chart-name">圖表名稱</label>
             <input id="chart-name" v-model="chartData.name" type="text" placeholder="輸入圖表名稱" />
           </div>
-          <!-- 圖表類型 -->
+          <!-- 圖表類型選擇 -->
           <div class="setting">
             <label for="chart-type">圖表類型</label>
             <select id="chart-type" v-model="chartData.chartType">
@@ -23,7 +25,7 @@
               <!-- 更多圖表類型 -->
             </select>
           </div>
-          <!-- 資料來源 -->
+          <!-- 資料來源選擇 -->
           <div class="setting">
             <label for="data-source">資料來源</label>
             <select id="data-source" v-model="chartData.dataSource" @change="fetchTableFieldsMetadata">
@@ -32,7 +34,7 @@
               </option>
             </select>
           </div>
-          <!-- X 軸欄位選擇 -->
+          <!-- X 軸欄位選擇，當資料來源有欄位時顯示 -->
           <div class="setting" v-if="tableFields.length > 0">
             <label for="x-axis-field">X 軸欄位</label>
             <select id="x-axis-field" v-model="chartData.xAxisField">
@@ -42,7 +44,7 @@
             </select>
           </div>
 
-          <!-- Y 軸欄位選擇 -->
+          <!-- Y 軸欄位選擇，當資料來源有欄位時顯示 -->
           <div class="setting" v-if="tableFields.length > 0">
             <label for="y-axis-field">Y 軸欄位</label>
             <select id="y-axis-field" v-model="chartData.yAxisField">
@@ -52,11 +54,12 @@
             </select>
           </div>
 
-          <!-- 動態生成的過濾條件 -->
+          <!-- 動態生成的過濾條件設定 -->
           <div class="filter-conditions" v-if="filtersMetadata.length > 0">
             <h3>過濾條件</h3>
             <div v-for="filter in filtersMetadata" :key="filter.name" class="filter-item">
               <label :for="'filter-' + filter.name">{{ filter.verbose_name || filter.name }}</label>
+              <!-- 根據過濾條件的類型動態選擇組件 -->
               <component
                 :is="getFilterComponent(filter)"
                 :filter="filter"
@@ -65,14 +68,16 @@
             </div>
           </div>
         </div>
-        <!-- 圖表預覽 -->
+        <!-- 圖表預覽區域 -->
         <div class="chart-preview">
           <h3>預覽</h3>
           <PlotlyChart :chartConfig="chartData" />
         </div>
       </div>
       <div class="chart-modal-footer">
+        <!-- 保存或新增圖表的按鈕 -->
         <button class="btn-save" @click="saveChart">{{ isEditing ? '保存變更' : '新增圖表' }}</button>
+        <!-- 取消操作的按鈕 -->
         <button class="btn-cancel" @click="closeModal">取消</button>
       </div>
     </div>
@@ -83,7 +88,7 @@
 import axios from 'axios';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 
-// 引入過濾組件
+// 引入不同類型的過濾組件
 import TextFilter from '@/components/backend/filters/TextFilter.vue';
 import SelectFilter from '@/components/backend/filters/SelectFilter.vue';
 import CheckboxFilter from '@/components/backend/filters/CheckboxFilter.vue';
@@ -100,14 +105,14 @@ export default {
     DateFilter
   },
   props: {
-    isEditing: Boolean,
+    isEditing: Boolean, // 判斷是否為編輯模式
     chartId: {
       type: Number,
-      default: null
+      default: null // 圖表ID，若為新增則為 null
     },
     fetchChartConfig: {
       type: Function,
-      required: true
+      required: true // 必須傳遞獲取圖表配置的方法
     }
   },
   data() {
@@ -133,18 +138,21 @@ export default {
         { value: 'TEST_Products', label: '商品數據' },
         // 添加更多資料來源
       ],
-      tableFields: [],
-      filtersMetadata: [],
-      filterValues: {}
+      tableFields: [], // 儲存選定資料來源的欄位
+      filtersMetadata: [], // 儲存可用的過濾條件
+      filterValues: {} // 儲存用戶設置的過濾值
     };
   },
   mounted() {
+    // 組件掛載後獲取資料來源
     this.fetchDataSources();
     if (this.isEditing && this.chartId) {
+      // 如果是編輯模式，載入現有圖表配置
       this.loadChartConfig();
     }
   },
   watch: {
+    // 監視資料來源的變化，並根據變化更新欄位和過濾條件
     'chartData.dataSource'(newSource) {
       if (newSource) {
         this.fetchTableFieldsMetadata();
@@ -158,31 +166,36 @@ export default {
         this.chartData.filterConditions = {};
       }
     },
+    // 監視 X 軸欄位的變化，並根據變化獲取圖表數據
     'chartData.xAxisField'(newVal) {
       if (newVal && this.chartData.yAxisField) {
         this.fetchChartData();
       }
     },
+    // 監視 Y 軸欄位的變化，並根據變化獲取圖表數據
     'chartData.yAxisField'(newVal) {
       if (newVal && this.chartData.xAxisField) {
         this.fetchChartData();
       }
     },
+    // 監視排序條件的變化，並根據變化獲取圖表數據
     'chartData.ordering'() {
       if (this.chartData.xAxisField && this.chartData.yAxisField) {
         this.fetchChartData();
       }
     },
+    // 監視限制條件的變化，並根據變化獲取圖表數據
     'chartData.limit'() {
       if (this.chartData.xAxisField && this.chartData.yAxisField) {
         this.fetchChartData();
       }
     },
+    // 監視過濾值的變化，並更新過濾條件
     filterValues: {
       handler() {
         this.updateFilterConditions();
       },
-      deep: true
+      deep: true // 深度監視對象內部變化
     }
   },
   methods: {
@@ -191,9 +204,11 @@ export default {
       // 目前假設是靜態的，已在 data 中定義
     },
     async fetchTableFieldsMetadata() {
+      // 獲取選定資料來源的欄位元數據
       try {
         const response = await axios.get(`/api/backend/table-fields-metadata/${this.chartData.dataSource}/`);
         this.tableFields = response.data.fields;
+        // 根據欄位類型過濾出可用的過濾條件
         this.filtersMetadata = this.tableFields.filter(field => this.isFilterable(field));
         // 重置過濾條件
         this.filterValues = {};
@@ -213,6 +228,7 @@ export default {
       return filterableTypes.includes(field.type);
     },
     getFilterComponent(filter) {
+      // 根據欄位類型選擇對應的過濾組件
       switch (filter.type) {
         case 'CharField':
         case 'TextField':
@@ -248,17 +264,18 @@ export default {
       }
     },
     updateFilterConditions() {
+      // 根據用戶設置的過濾值更新圖表的過濾條件
       const conditions = {};
       for (const [key, value] of Object.entries(this.filterValues)) {
         if (value === '' || (Array.isArray(value) && value.length === 0)) {
-          continue;
+          continue; // 跳過空值
         }
         const filter = this.filtersMetadata.find(f => f.name === key);
         if (filter) {
           switch (filter.type) {
             case 'CharField':
             case 'TextField':
-              conditions[key + '__icontains'] = value;
+              conditions[key + '__icontains'] = value; // 模糊匹配
               break;
             case 'IntegerField':
             case 'FloatField':
@@ -281,13 +298,11 @@ export default {
               }
               break;
             case 'ForeignKey':
-              // **修正此處，使用正確的字段名稱**
-              // 例如，對於 `product` 外鍵，應使用 `product__product_name__icontains`
+              // 根據實際情況修改外鍵的過濾條件
               if (key === 'product') {
                 conditions['product__product_name__icontains'] = value;
               } else {
-                // 其他外鍵處理
-                conditions[key + '__name__icontains'] = value; // 根據實際情況修改
+                conditions[key + '__name__icontains'] = value;
               }
               break;
             default:
@@ -296,14 +311,16 @@ export default {
         }
       }
       this.chartData.filterConditions = conditions;
-      this.fetchChartData();
+      this.fetchChartData(); // 更新圖表數據
     },
     async fetchChartData() { // 標記為 async
+      // 獲取圖表數據的函數
       if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
         console.error('dataSource, xAxisField, 和 yAxisField 必須設置');
         return;
       }
       try {
+        // 發送請求到後端獲取動態圖表數據
         const response = await axios.post('/api/backend/dynamic-chart-data/', {
           table_name: this.chartData.dataSource,
           x_field: this.chartData.xAxisField,
@@ -326,24 +343,25 @@ export default {
       }
     },
     async loadChartConfig() { // 標記為 async
+      // 加載現有圖表配置的函數
       try {
         const response = await axios.get(`/api/backend/charts/${this.chartId}/`);
         const config = response.data;
-        console.log('Fetched chart config:', config); // 調試輸出
+        console.log('獲取到的圖表配置:', config); // 調試輸出
 
         this.chartData = {
           ...this.chartData,
           id: config.id,
-          chartType: config.chartType,           // 使用駝峰式
+          chartType: config.chartType,           // 使用駝峰命名
           name: config.name,
-          dataSource: config.dataSource,         // 使用駝峰式
-          xAxisField: config.xAxisField,         // 使用駝峰式
-          yAxisField: config.yAxisField,         // 使用駝峰式
+          dataSource: config.dataSource,         // 使用駝峰命名
+          xAxisField: config.xAxisField,         // 使用駝峰命名
+          yAxisField: config.yAxisField,         // 使用駝峰命名
           filterConditions: config.filter_conditions || {},
           ordering: config.ordering || [],
           limit: config.limit || null
         };
-        console.log('Updated chartData:', this.chartData); // 調試輸出
+        console.log('更新後的 chartData:', this.chartData); // 調試輸出
 
         if (this.chartData.dataSource) {
           await this.fetchTableFieldsMetadata();
@@ -367,7 +385,7 @@ export default {
               }
             }
           }
-          console.log('Final filterValues:', this.filterValues); // 調試輸出
+          console.log('最終的 filterValues:', this.filterValues); // 調試輸出
           this.fetchChartData();
         }
       } catch (error) {
@@ -376,12 +394,14 @@ export default {
       }
     },
     saveChart() {
-      // 檢查必要字段
+      // 保存或新增圖表的函數
+      // 檢查必要字段是否已填寫
       if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
         alert('資料來源、X 軸欄位和 Y 軸欄位是必填的。');
         return;
       }
 
+      // 組裝圖表配置數據
       let chartConfig = {
         chart_type: this.chartData.chartType,
         name: this.chartData.name || '未命名圖表',
@@ -394,6 +414,7 @@ export default {
       };
 
       if (this.isEditing) {
+        // 如果是編輯模式，發送更新請求
         axios.post(`/api/backend/update-chart/${this.chartId}/`, chartConfig)
           .then(async () => {
             alert('圖表已成功更新！');
@@ -406,10 +427,11 @@ export default {
             alert(`更新圖表失敗: ${errorMsg}`);
           });
       } else {
+        // 如果是新增模式，發送創建請求
         axios.post('/api/backend/create-chart/', chartConfig)
           .then(() => {
             alert('圖表已成功創建！');
-            this.$emit('reload-charts'); // 發出事件
+            this.$emit('reload-charts'); // 發出重新載入圖表的事件
             this.closeModal();
           })
           .catch(error => {
@@ -419,6 +441,7 @@ export default {
       }
     },
     closeModal() {
+      // 關閉模態視窗的函數
       this.$emit('close');
     }
   }
@@ -435,8 +458,8 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5); /* 模態視窗背景色 */
+  z-index: 1000; /* 確保模態視窗在最上層 */
   overflow-y: auto;
 }
 
@@ -447,7 +470,7 @@ export default {
   width: 80%;
   max-width: 800px;
   max-height: 90vh; /* 限制最大高度 */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 模態視窗陰影 */
   overflow-y: auto;
 }
 
@@ -482,7 +505,7 @@ export default {
 
 .btn-save,
 .btn-cancel {
-  background-color: #007BFF;
+  background-color: #007BFF; /* 保存按鈕背景色 */
   color: white;
   border: none;
   padding: 10px 20px;
