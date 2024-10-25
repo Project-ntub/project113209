@@ -2,7 +2,7 @@
 <template>
   <div class="dashboard-page">
     <!-- 頂部導航欄，顯示標題 -->
-    <TopNavbar title="儀表板管理" />
+    <TopNavbar title="儀錶板管理" />
     <div class="dashboard-container">
       <!-- 下拉選單來選擇圖表類型 -->
       <div class="top-left-controls">
