@@ -356,15 +356,14 @@ class ModuleViewSet(viewsets.ModelViewSet):
 
         # 記錄刪除模組的操作
         record_history(self.request.user, f"管理員 {self.request.user.username} 刪除了模組 {instance.name}")
-
         logger.info(f"Module {instance.id} is marked as deleted")
-        
+
     @action(detail=False, methods=['get'])
     def get_modules(self, request):
-        modules = Module.objects.filter(is_deleted = False)
+        modules = Module.objects.filter(is_deleted=False)
         serializer = self.get_serializer(modules, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=['post'])
     def delete_module(self, request, pk=None):
         module = get_object_or_404(Module, pk=pk)
