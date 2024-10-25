@@ -19,7 +19,7 @@ SECRET_KEY = 'django-insecure-y&%10_w2a%0v)(jqe46d2)mevjv0f^ro8!#+pu#67d%md8k8vr
 DEBUG = True
 
 # 設定允許的主機，包括本機和 Bluestacks 的 IP 地址
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.87', '192.168.168.109', '172.16.32.106']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', fixed_ip, '192.168.168.87', '192.168.168.109', '172.16.32.106', '172.16.36.19']
 
 # Application definition
 INSTALLED_APPS = [
@@ -140,7 +140,7 @@ EMAIL_HOST_PASSWORD = 'evcajuubazrginrn'
 
 # Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_COOKIE_AGE =1209600
+SESSION_COOKIE_AGE = 1209600
 SESSION_COOKIE_SECURE = False  # 開發模式下設置為 False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
@@ -166,13 +166,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
-        # 'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-        # 'djangorestframework_camel_case.parser.CamelCaseJSONParser',
-
+        'rest_framework.permissions.AllowAny',  # 註冊和登入需要允許匿名訪問
     ],
 }
 
@@ -200,7 +196,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "http://192.168.1.100:8080",  # 本機固定 IP
     "http://192.168.168.87:8080",  # Bluestacks 固定 IP
-    "http://192.168.168.109:8080"
+    "http://192.168.168.109:8080",
+    "http://172.16.36.19:8080",  # Bluestacks 的另一個 IP
 ]
 
 # Logging 設置

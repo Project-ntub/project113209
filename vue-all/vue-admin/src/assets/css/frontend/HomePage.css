@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   height: 100vh;
-  padding: 20px;
+  padding: 70px; /* 將 padding-top 增加，使整體往下移動 */
   margin-top: 50px;
   overflow-y: auto;
   padding-bottom: 100px; /* 增加底部空白 */

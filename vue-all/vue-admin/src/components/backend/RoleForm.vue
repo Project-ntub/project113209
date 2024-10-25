@@ -9,7 +9,7 @@
         <label for="role-users">角色成員</label>
         <div class="member-container">
           <div v-for="(userId, index) in localRole.users" :key="index" class="member-item">
-            <select v-model="localRole.users[index]" @change="updateMembers">
+            <select v-model="localRole.users[index]">
               <option value="">-- 選擇成員 --</option>
               <option v-for="user in availableUsers" :key="user.id" :value="user.id">{{ user.username }}</option>
             </select>
@@ -105,7 +105,7 @@ export default {
         const response = await axios.get(`/api/backend/roles/${roleId}/`);
         const role = response.data;
 
-        // 将响应的数据填充到 localRole
+        // 將響應的數據填充到 localRole
         this.localRole = {
           id: role.id,
           name: role.name,
@@ -114,7 +114,7 @@ export default {
           is_active: role.is_active
         };
 
-        // 加载权限数据
+        // 加載權限數據
         await this.fetchRolePermissions(roleId);
       } catch (error) {
         console.error('Error loading role:', error.response ? error.response.data : error.message);
@@ -188,18 +188,31 @@ export default {
     },
     navigateToAddPermission() {
       if (this.localRole.id) {
-        // alert(`localRole.id is ${this.localRole.id}`);
         this.$router.push({ name: 'BackendRolePermissions', params: { roleId: this.localRole.id } });
       } else {
         alert('請先保存角色以獲取角色 ID');
       }
     },
+    async deletePermission(permissionId) {
+      try {
+        const response = await axios.delete(`/api/backend/role_permissions/${permissionId}/`);
+        if (response.status === 204) {
+          // 刪除成功後從列表中移除相應權限
+          this.rolePermissions = this.rolePermissions.filter(permission => permission.id !== permissionId);
+          alert('刪除成功');
+        } else {
+          alert('刪除失敗');
+        }
+      } catch (error) {
+        console.error('Error deleting permission:', error.response ? error.response.data : error.message);
+        alert('刪除失敗：' + (error.response && error.response.data && error.response.data.error ? error.response.data.error : error.message));
+      }
+    }
   },
   async mounted() {
     window.scrollTo(0, 0);
     await this.fetchModules();
     await this.fetchUsers();
-    // 移除未使用的代码，避免 ESLint 错误
   },
   watch: {
     roleId: {
