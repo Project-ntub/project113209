@@ -1,6 +1,6 @@
 import json
 from rest_framework import serializers
-from .models import User, Module, Role, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue
+from .models import User, Module, Role, RoleUser, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue
 
 
 class RolePermissionSerializer(serializers.ModelSerializer):
@@ -23,7 +23,13 @@ class ModuleSerializer(serializers.ModelSerializer):
         }
 
     def get_user_count(self, obj):
-        return User.objects.filter(roles__module=obj, is_active=True).count()
+        return RoleUser.objects.filter(
+                    role__module=obj,
+                    role__is_active=True,
+                    role__is_deleted=False,
+                    # user__is_active=True,  # 確保用戶本身也是活躍的
+                    user__is_deleted=False  # 確保用戶本身未被刪除
+                ).distinct().count()
 
 class SimpleRoleSerializer(serializers.ModelSerializer):
     class Meta:
