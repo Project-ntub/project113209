@@ -49,7 +49,7 @@
           </div>
           <div class="form-group">
             <label for="phone">電話：</label>
-            <input type="text" v-model="editData.phone" />
+            <input type="tel" v-model="editData.phone" @input="validatePhone" />
           </div>
         </div>
         <div class="form-group full-width">
@@ -149,7 +149,6 @@ export default {
 
     // 保存個人信息和密碼
     async saveProfile() {
-      // 密碼驗證：僅當輸入新密碼時
       if (this.editData.newPassword || this.editData.confirmPassword) {
         if (this.editData.newPassword !== this.editData.confirmPassword) {
           this.errorMessage = '新密碼與確認密碼不匹配';
@@ -170,7 +169,6 @@ export default {
         formData.append('email', this.editData.email);
         formData.append('phone', this.editData.phone);
 
-        // 只有在用戶輸入新密碼時提交密碼相關字段
         if (this.editData.newPassword) {
           formData.append('current_password', this.editData.currentPassword);
           formData.append('new_password', this.editData.newPassword);
@@ -184,7 +182,6 @@ export default {
           }
         });
 
-        // 密碼更新成功後登出並重新登入
         if (this.editData.newPassword) {
           alert('密碼修改成功，請重新登入');
           router.push('/frontend/login');
@@ -232,6 +229,11 @@ export default {
       }
     },
 
+    // 驗證電話欄位只接受數字
+    validatePhone() {
+      this.editData.phone = this.editData.phone.replace(/\D/g, '');
+    },
+
     // 驗證密碼的正則表達式
     validatePassword(password) {
       const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -253,10 +255,10 @@ export default {
   align-items: flex-start;
   height: 100vh;
   background-color: #f4f4f4;
-  overflow-y: auto; /* 只讓外部容器滾動 */
+  overflow-y: auto;
   padding: 20px;
-  margin-top: 100px; /* 增加 margin-top 讓內容下移 */
-  padding-bottom: 50px; /* 增加下方的空白，讓介面有更多空間 */
+  margin-top: 100px;
+  padding-bottom: 50px;
 }
 
 .profile-card {
@@ -265,24 +267,24 @@ export default {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 800px;
-  max-height: none; /* 避免內部元素也滾動 */
-  overflow: visible; /* 禁止內部滾動行為 */
-  margin-bottom: 75px; /* 增加下方空白 */
+  max-height: none;
+  overflow: visible;
+  margin-bottom: 75px;
 }
 
 .form-group {
-  margin-bottom: 15px; /* 為每個表單組件之間添加空白 */
+  margin-bottom: 15px;
 }
 
 .half-width {
-  width: 48%; /* 確認新密碼的輸入框縮小一半 */
+  width: 48%;
 }
 
 .small-button {
-  width: 30%; /* 修改密碼按鈕縮小，將寬度改為30% */
+  width: 30%;
   text-align: center;
   padding: 8px;
-  margin-top: 25px; /* 調整按鈕向下的距離 */
+  margin-top: 25px;
 }
 
 .profile-info h3, .edit-form h3 {
@@ -327,10 +329,10 @@ export default {
   background-color: #2196F3;
   color: white;
   border: none;
-  padding: 8px; /* 修改按鈕的內填充 */
+  padding: 8px;
   cursor: pointer;
   border-radius: 5px;
-  font-size: 14px; /* 調整字體大小 */
+  font-size: 14px;
 }
 
 .cancel {
@@ -357,7 +359,7 @@ export default {
   font-size: 12px;
   color: gray;
   margin-top: -10px;
-  text-align: left; /* 左對齊文字 */
+  text-align: left;
 }
 
 .feedback {
@@ -365,5 +367,4 @@ export default {
   text-align: center;
   margin-top: 15px;
 }
-
 </style>
