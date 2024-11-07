@@ -1,6 +1,35 @@
+.loading-container {
+  display: flex;
+  flex-direction: column; /* Align items vertically */
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full page height */
+}
+
+.loading-animation {
+  border: 10px solid #f3f3f3; /* Light gray */
+  border-top: 10px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px; /* Add space below the animation */
+}
+
+.loading-text {
+  font-size: 20px;
+  color: #333; /* Text color */
+  margin-top: 10px; /* Add space above the text */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .container {
   margin: 0 auto;
-  padding: 20px 30px; /* 調大內邊距 */
+  padding: 20px 30px; /* Larger padding */
   max-width: 1200px;
   width: 100%;
   box-sizing: border-box;
@@ -9,11 +38,11 @@
 .search-sort-container {
   display: flex;
   align-items: center;
-  gap: 20px; /* 增加元素之間的間距 */
-  margin-bottom: 20px; /* 增加下方間距 */
-  flex-wrap: nowrap; /* 禁止換行，確保所有元素在同一行 */
+  gap: 20px; /* Increase spacing */
+  margin-bottom: 20px; /* Add spacing below */
+  flex-wrap: nowrap;
   width: 100%;
-  justify-content: flex-start; /* 元素向左對齊 */
+  justify-content: flex-start;
 }
 
 .search-container {
@@ -22,16 +51,16 @@
 }
 
 .search-container input {
-  width: 400px; /* 調大輸入框的寬度 */
-  font-size: 18px; /* 調大字體 */
-  padding: 12px; /* 調大內邊距 */
+  width: 400px; /* Increase input width */
+  font-size: 18px; /* Larger font */
+  padding: 12px; /* Larger padding */
   margin-right: 15px;
   box-sizing: border-box;
 }
 
 .search-container button {
-  font-size: 18px; /* 調大按鈕字體 */
-  padding: 10px 20px; /* 調大按鈕內邊距 */
+  font-size: 18px; /* Larger button font */
+  padding: 10px 20px; /* Larger button padding */
   margin-right: 10px;
   box-sizing: border-box;
 }
@@ -39,40 +68,40 @@
 .sort-container {
   display: flex;
   align-items: center;
-  margin-left: 15px; /* 增加左邊距 */
+  margin-left: 15px;
 }
 
 .sort-container select, 
 .sort-container button {
   width: auto;
-  font-size: 18px; /* 調大字體 */
-  padding: 10px 15px; /* 調大內邊距 */
+  font-size: 18px; /* Larger font */
+  padding: 10px 15px; /* Larger padding */
   margin-right: 10px;
   box-sizing: border-box;
 }
 
 .history-container {
   max-width: 100%;
-  margin-top: 20px; /* 增加表格與上方的間距 */
+  margin-top: 20px;
 }
 
 .table-container {
-  max-height: 400px; /* 調整表格的最大高度 */
+  max-height: 400px; /* Adjust table height */
   overflow-y: auto;
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px; /* 增加表格上方的間距 */
+  margin-top: 10px;
 }
 
 .history-table th, .history-table td {
   border: 1px solid #ddd;
-  padding: 15px; /* 增加單元格的內邊距 */
+  padding: 15px; /* Increase cell padding */
   text-align: center;
   vertical-align: middle;
-  font-size: 16px; /* 調大表格字體 */
+  font-size: 16px; /* Larger font */
 }
 
 .history-table th {
