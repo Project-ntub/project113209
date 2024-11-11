@@ -1,22 +1,21 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+body, html {
   margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f4;
 }
 
 .main-container {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  margin-left: 7vw;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
+  width: 90vw; /* 拉寬主容器以適應螢幕寬度 */
+  max-width: 1200px;
+  margin: 1.5rem auto;
   padding: 1.5rem;
-  padding-bottom: 4rem; /* 增加底部填充 */
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
+  overflow: hidden;
 }
 
 .header {
@@ -27,25 +26,23 @@ body {
 }
 
 .header button {
-  margin: 0.75rem;
   padding: 0.75rem 1.5rem;
+  background-color: #6c757d;
+  color: white;
+  font-size: 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  background-color: #6c757d;
-  color: white;
-  font-size: 1.25rem;
 }
 
 .table-container {
-  overflow-y: auto;
-  max-height: 60vh;
+  overflow-x: auto; /* 支援水平滾動 */
+  max-height: 60vh; /* 限制表格最大高度 */
   margin-top: 1.5rem;
-  padding-bottom: 4rem; /* 增加底部填充 */
 }
 
 .role-table {
-  width: 100%;
+  width: 100%; /* 撐滿容器寬度 */
   border-collapse: collapse;
 }
 
@@ -53,6 +50,7 @@ body {
   border: 1px solid #ddd;
   padding: 1rem;
   text-align: left;
+  white-space: nowrap; /* 防止單元格內容換行 */
 }
 
 .role-table th {
@@ -74,7 +72,6 @@ body {
   cursor: pointer;
   color: white;
   font-size: 1rem;
-  margin: 0.25rem;
 }
 
 .permissions-btn {
@@ -160,4 +157,22 @@ input:checked + .slider:before {
   z-index: 1051;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .main-container {
+      width: 95vw; /* 更加適合小螢幕 */
+      padding: 1rem;
+  }
+
+  .header button {
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+  }
+
+  .role-table th, .role-table td {
+      font-size: 0.875rem;
+      padding: 0.5rem;
+  }
 }

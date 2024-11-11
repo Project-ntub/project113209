@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 只有當前頁面不是重設密碼或註冊頁面時顯示 sidebar -->
+    <!-- Sidebar only displayed if not on reset password or register page -->
     <div v-if="!hideSidebar" :class="['sidebar', { open: isSidebarActive }]">
       <div class="sidebar-header">
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
@@ -8,6 +8,8 @@
       <div class="user-section" @click="toggleUserLinks">
         <font-awesome-icon icon="user" class="icon user-icon" />
         <span v-if="isSidebarActive" class="username">{{ username }}</span>
+        <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
+        <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
       </div>
       <!-- User-related links, only visible when the user section is expanded -->
       <div v-if="showUserLinks" class="user-links">
@@ -15,10 +17,6 @@
           <span class="icon">👤</span>
           <span class="text">個人資料</span>
         </router-link>
-        <!-- <router-link to="/backend/preferences" class="sidebar-link">
-          <span class="icon">⚙️</span>
-          <span class="text">個人偏好</span>
-        </router-link> -->
       </div>
       <!-- General links -->
       <router-link to="/backend/dashboard" class="sidebar-link">
@@ -43,7 +41,7 @@
       </button>
     </div>
     
-    <!-- content 部分 -->
+    <!-- content section -->
     <div :class="['content', { shift: isSidebarActive }]">
       <slot></slot>
     </div>
@@ -52,17 +50,21 @@
 
 <script>
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default {
+  components: {
+    FontAwesomeIcon
+  },
   data() {
     return {
       username: '',
-      showUserLinks: false, // 控制用戶相關鏈接的顯示
+      showUserLinks: false, // Controls display of user-related links
     };
   },
   computed: {
     hideSidebar() {
-      // 當路由名稱為 "BackendForgetPassword" 或 "BackendRegister" 時，隱藏 sidebar
+      // Hide sidebar on specific pages
       return this.$route.name === 'BackendForgetPassword' || this.$route.name === 'BackendRegister';
     },
   },
@@ -87,22 +89,13 @@ export default {
     },
     async handleLogout() {
       try {
-        // 發送登出請求到後端
         await axios.post('/api/backend/logout/');
-
-        // 清除前端的 localStorage 和 sessionStorage
         localStorage.removeItem('token');
-
-        // 防止使用返回按鈕回到已登入頁面
         history.replaceState(null, null, '/backend/login');
         window.addEventListener('popstate', () => {
           history.pushState(null, null, document.URL);
         });
-
-        // 導向登入頁面
         this.$router.replace('/backend/login');
-
-        // 強制刷新頁面，清除所有舊的狀態
         setTimeout(() => {
           location.reload();
         }, 100);
@@ -120,9 +113,25 @@ export default {
     },
   },
   mounted() {
-    this.fetchUserData(); // 進入頁面時加載用戶資料
+    this.fetchUserData(); // Load user data on mount
   },
 };
 </script>
 
 <style scoped src="@/assets/css/backend/SideBar.css"></style>
+<style scoped>
+.user-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.username {
+  margin-left: 8px;
+}
+
+.arrow-icon {
+  margin-left: auto; /* 將箭頭推到最右邊 */
+  padding-left: 4px;
+}
+</style>
