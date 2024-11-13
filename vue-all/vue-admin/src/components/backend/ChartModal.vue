@@ -73,6 +73,11 @@
           <h3>預覽</h3>
           <PlotlyChart :chartConfig="chartData" />
         </div>
+        <!-- 數據摘要顯示區域 -->
+        <div class="chart-summary">
+          <h3>數據摘要</h3>
+          <p>{{ summary }}</p>
+        </div>
       </div>
       <div class="chart-modal-footer">
         <!-- 保存或新增圖表的按鈕 -->
@@ -131,6 +136,7 @@ export default {
         y_data: [],
         joinFields: []
       },
+      summary: "",  // 數據摘要
       dataSource: [
         { value: 'TEST_Inventory', label: '庫存數據' },
         { value: 'TEST_Sales', label: '銷售數據' },
