@@ -228,6 +228,22 @@ export default {
         alert('獲取欄位元數據時出錯，請檢查後端日誌。');
       }
     },
+
+    async fetchChartSummary() {
+    try {
+      const response = await axios.post('/api/backend/chart-summary/', {
+        table_name: this.chartData.dataSource,
+        x_field: this.chartData.xAxisField,
+        y_field: this.chartData.yAxisField,
+        filter_conditions: this.chartData.filterConditions
+      });
+      this.summary = response.data.summary;
+    } catch (error) {
+      console.error('獲取數據摘要時出錯:', error);
+    }
+  },
+
+
     isFilterable(field) {
       // 定義哪些欄位可以過濾，根據需要調整
       const filterableTypes = ['CharField', 'TextField', 'IntegerField', 'FloatField', 'DateTimeField', 'DateField', 'ForeignKey'];
@@ -320,34 +336,37 @@ export default {
       this.fetchChartData(); // 更新圖表數據
     },
     async fetchChartData() { // 標記為 async
-      // 獲取圖表數據的函數
-      if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
-        console.error('dataSource, xAxisField, 和 yAxisField 必須設置');
-        return;
-      }
-      try {
-        // 發送請求到後端獲取動態圖表數據
-        const response = await axios.post('/api/backend/dynamic-chart-data/', {
-          table_name: this.chartData.dataSource,
-          x_field: this.chartData.xAxisField,
-          y_field: this.chartData.yAxisField,
-          filter_conditions: this.chartData.filterConditions,
-          ordering: this.chartData.ordering,
-          limit: this.chartData.limit
-        });
-        const { x_data, y_data, last_updated } = response.data;
-        if (x_data && y_data) {
-          this.chartData.x_data = x_data;
-          this.chartData.y_data = y_data;
-          this.chartData.last_updated = last_updated;
-        } else {
-          console.error('x_data 和 y_data 不能為空');
-        }
-      } catch (error) {
-        console.error('獲取圖表數據時出錯:', error);
-        alert('獲取圖表數據時出錯，請檢查後端日誌。');
-      }
-    },
+  // 獲取圖表數據的函數
+  if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
+    console.error('dataSource, xAxisField, 和 yAxisField 必須設置');
+    return;
+  }
+  try {
+    // 發送請求到後端獲取動態圖表數據
+    const response = await axios.post('/api/backend/dynamic-chart-data/', {
+      table_name: this.chartData.dataSource,
+      x_field: this.chartData.xAxisField,
+      y_field: this.chartData.yAxisField,
+      filter_conditions: this.chartData.filterConditions,
+      ordering: this.chartData.ordering,
+      limit: this.chartData.limit
+    });
+    
+    const { x_data, y_data, last_updated } = response.data;
+    if (x_data && y_data) {
+      this.chartData.x_data = x_data;
+      this.chartData.y_data = y_data;
+      this.chartData.last_updated = last_updated;
+      await this.fetchChartSummary(); // 添加此行來獲取數據摘要
+    } else {
+      console.error('x_data 和 y_data 不能為空');
+    }
+  } catch (error) {
+    console.error('獲取圖表數據時出錯:', error);
+    alert('獲取圖表數據時出錯，請檢查後端日誌。');
+  }
+},
+
     async loadChartConfig() { // 標記為 async
       // 加載現有圖表配置的函數
       try {
@@ -449,6 +468,8 @@ export default {
     closeModal() {
       // 關閉模態視窗的函數
       this.$emit('close');
+
+    
     }
   }
 };
@@ -529,4 +550,10 @@ export default {
 .filter-item {
   margin-bottom: 10px;
 }
+
+.chart-summary {
+  margin-top: 20px;
+}
 </style>
+
+
