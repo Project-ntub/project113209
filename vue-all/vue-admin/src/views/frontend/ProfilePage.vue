@@ -3,6 +3,10 @@
     <div class="profile-card">
       <div v-if="!isEditing" class="profile-info">
         <h3>個人資料</h3>
+        <br>                 
+        <br>
+        <br>
+        
         <div class="form-row">
           <div class="form-group">
             <label>用戶名稱：</label>
