@@ -39,6 +39,82 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
+
+
+
+from django.http import JsonResponse
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+import json
+
+# 假設你有一個模型來存日曆事件
+from django.http import JsonResponse
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from app113209.models import CalendarEvent
+from app113209.serializers import CalendarEventSerializer
+import json
+
+class CalendarView(View):
+    def get(self, request):
+        return JsonResponse({'message': 'Calendar main page loaded successfully!'})
+
+@csrf_exempt
+def get_calendar_events(request):
+    if request.method == 'GET':
+        events = CalendarEvent.objects.all()
+        serializer = CalendarEventSerializer(events, many=True)
+        return JsonResponse({'events': serializer.data}, safe=False)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+def add_calendar_event(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        serializer = CalendarEventSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse({'message': 'Event added successfully!', 'event': serializer.data})
+        return JsonResponse({'error': serializer.errors}, status=400)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+def update_calendar_event(request, event_id):
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        try:
+            event = CalendarEvent.objects.get(id=event_id)
+            serializer = CalendarEventSerializer(event, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse({'message': 'Event updated successfully!', 'event': serializer.data})
+            return JsonResponse({'error': serializer.errors}, status=400)
+        except CalendarEvent.DoesNotExist:
+            return JsonResponse({'error': 'Event not found'}, status=404)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+def delete_calendar_event(request, event_id):
+    if request.method == 'DELETE':
+        try:
+            event = CalendarEvent.objects.get(id=event_id)
+            event.delete()
+            return JsonResponse({'message': 'Event deleted successfully!'})
+        except CalendarEvent.DoesNotExist:
+            return JsonResponse({'error': 'Event not found'}, status=404)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
+
+
+
+
+
+
+
 User = get_user_model()
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])

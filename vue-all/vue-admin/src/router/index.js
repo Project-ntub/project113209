@@ -1,4 +1,3 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 
 // Frontend Views
@@ -14,6 +13,7 @@ import HistoryPage from '@/views/frontend/HistoryPage.vue';
 import HistoryDetails from '@/views/frontend/HistoryDetails.vue';
 import ManagerHome from '@/views/frontend/ManagerHome.vue';
 import BranchManagerHome from '@/views/frontend/BranchManagerHome.vue';
+import EventCalendar from '@/views/frontend/EventCalendar.vue'; // 修改的元件名稱
 
 // Backend Views
 import Login from '@/views/backend/Login.vue';
@@ -51,6 +51,9 @@ const routes = [
   { path: '/frontend/historydetails/:id', name: '歷史紀錄詳情', component: HistoryDetails, meta: { requiresAuth: true } },
   { path: '/frontend/history', name: '歷史紀錄', component: HistoryPage, meta: { requiresAuth: true } },
 
+  // 日曆路由
+  { path: '/frontend/calendar', name: '日曆', component: EventCalendar, meta: { requiresAuth: true } },
+
   // Backend Routes
   { path: '/backend/login', name: 'BackendLogin', component: Login, meta: { hideSidebar: true, requiresAuth: false } },
   { path: '/backend/register', name: 'BackendRegister', component: Register, meta: { requiresAuth: false } },
@@ -59,8 +62,8 @@ const routes = [
   { path: '/backend/dashboard', name: '儀表板管理', component: Dashboard, meta: { requiresAuth: true } },
   { path: '/backend/user-management', name: '用戶管理', component: UserManagement, meta: { requiresAuth: true } },
   { path: '/backend/role-management', name: '角色管理', component: RoleManagement, meta: { requiresAuth: true } },
-  { path: '/backend/role-management/create', name: '新增角色', component: RoleFormPage, props: true, meta: { requiresAuth: true },},
-  { path: '/backend/role-management/edit/:id', name: '編輯角色', component: RoleFormPage, props: true, meta: { requiresAuth: true },},
+  { path: '/backend/role-management/create', name: '新增角色', component: RoleFormPage, props: true, meta: { requiresAuth: true } },
+  { path: '/backend/role-management/edit/:id', name: '編輯角色', component: RoleFormPage, props: true, meta: { requiresAuth: true } },
   { path: '/backend/pending_list', name: '待審核名單', component: PendingList, meta: { requiresAuth: true } },
   { path: '/backend/edit_user/:userId', name: 'BackendEditUser', component: EditUser, meta: { requiresAuth: true } },
   { path: '/backend/assign_role/:userId', name: 'BackendAssignRole', component: AssignRole, meta: { requiresAuth: true } },
@@ -70,7 +73,7 @@ const routes = [
   { path: '/backend/create-module', name: 'BackendCreateModule', component: ModuleForm, meta: { requiresAuth: true } },
   { path: '/backend/edit_module/:moduleId', name: 'BackendEditModule', component: ModuleForm, meta: { requiresAuth: true } },
   { path: '/backend/role_permissions/:roleId', name: 'BackendRolePermissions', component: RolePermissions, meta: { requiresAuth: true } },
-  { path: '/backend/history', name: '歷史紀錄', component: HistoricalRecord, meta: { requiresAuth: true } },    
+  { path: '/backend/history', name: '歷史紀錄', component: HistoricalRecord, meta: { requiresAuth: true } },
   { path: '/backend/preferences', name: '個人偏好', component: PersonalPreference, meta: { requiresAuth: true } },
   { path: '/backend/profile', name: '個人資料', component: BackendProfile, meta: { requiresAuth: true } }
 ];
@@ -80,28 +83,26 @@ const router = createRouter({
   routes
 });
 
+// 路由守衛
 router.beforeEach((to, from, next) => {
-  const frontendToken = localStorage.getItem('frontend_token'); 
-  const backendToken = localStorage.getItem('backend_token'); // 後台 token
+  const frontendToken = localStorage.getItem('frontend_token');
+  const backendToken = localStorage.getItem('backend_token');
 
   // 前台路由邏輯
   if (to.path.startsWith('/frontend')) {
-    // 允許訪問不需要登入的頁面，如登入、註冊、忘記密碼
-    if (!frontendToken && to.name !== 'FrontendLogin' && to.name !== 'FrontendRegister' && to.name !== 'FrontendForgetPassword') {
+    if (!frontendToken && to.meta.requiresAuth) {
       return next({ name: 'FrontendLogin' });
     }
   }
 
   // 後台路由邏輯
   if (to.path.startsWith('/backend')) {
-    // 允許訪問不需要登入的頁面，如後台登入、註冊、忘記密碼
-    if (!backendToken && to.name !== 'BackendLogin' && to.name !== 'BackendRegister' && to.name !== 'BackendForgetPassword') {
+    if (!backendToken && to.meta.requiresAuth) {
       return next({ name: 'BackendLogin' });
     }
-    // 不再有 else 區塊，允許正常導航
   }
 
-  next();
+  next(); // 允許導航
 });
 
 export default router;

@@ -23,6 +23,11 @@ urlpatterns = [
     path('changepassword/', frontend_views.changepassword, name='changepassword'),
     path('user_preferences/', frontend_views.user_preferences_view, name='user_preferences'),
     path('logout/', logout_view, name='logout'),  # 登出的 URL
-
+    path('calendar/', frontend_views.CalendarView.as_view(), name='calendar'),  # 日曆主頁
+    path('calendar/events/', frontend_views.get_calendar_events, name='get_calendar_events'),  # 獲取事件資料
+    path('calendar/events/add/', frontend_views.add_calendar_event, name='add_calendar_event'),  # 新增事件
+    path('calendar/events/update/<int:event_id>/', frontend_views.update_calendar_event, name='update_calendar_event'),  # 更新事件
+    path('calendar/events/delete/<int:event_id>/', frontend_views.delete_calendar_event, name='delete_calendar_event'),  # 刪除事件
 ]
+
 

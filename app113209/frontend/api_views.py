@@ -6,6 +6,18 @@ from rest_framework.permissions import IsAuthenticated
 from app113209.models import User, UserHistory
 from app113209.serializers import UserSerializer
 
+
+
+# app113209/frontend/api_views.py
+from rest_framework import viewsets
+from app113209.models import CalendarEvent
+from app113209.serializers import CalendarEventSerializer
+
+# 定義 CalendarEvent 的 CRUD API
+class CalendarEventViewSet(viewsets.ModelViewSet):
+    queryset = CalendarEvent.objects.all()
+    serializer_class = CalendarEventSerializer
+
 class CurrentUserViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
