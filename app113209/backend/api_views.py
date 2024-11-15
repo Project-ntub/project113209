@@ -748,10 +748,12 @@ def dynamic_chart_data(request):
     table_name = request.data.get('table_name')
     x_field = request.data.get('x_field')
     y_field = request.data.get('y_field')
+    y_fields = request.data.get('y_fields', [])
     join_fields = request.data.get('join_fields', [])
     filter_conditions = request.data.get('filter_conditions', {})
     ordering = request.data.get('ordering', None)
     limit = request.data.get('limit', None)
+    chart_type = request.data.get('chart_type')
 
     logger.info(f"Fetching data from {table_name} with x_field={x_field}, y_field={y_field}, filters={filter_conditions}, ordering={ordering}, limit={limit}")
 
@@ -768,7 +770,9 @@ def dynamic_chart_data(request):
     if not validate_lookup(model, x_field):
         logger.error(f"x_field {x_field} does not exist in model {table_name}")
         return JsonResponse({'error': f"x_field {x_field} 不存在於資料表 {table_name}"}, status=400)
-    if not validate_lookup(model, y_field):
+
+    # 对于部分图表类型，y_field 可能不存在，例如 heatmap，所以我们需要根据情况进行验证
+    if chart_type not in ['heatmap'] and not validate_lookup(model, y_field):
         logger.error(f"y_field {y_field} does not exist in model {table_name}")
         return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
 
@@ -792,10 +796,73 @@ def dynamic_chart_data(request):
         if isinstance(limit, int):
             queryset = queryset[:limit]
 
-        # 聚合數據：按 x_field 分組並聚合 y_field
-        aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
-        x_data = [item[x_field] for item in aggregated_data]
-        y_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
+        # 初始化返回数据字典
+        response_data = {}
+
+        if chart_type == 'multi_line':
+            data = {}
+            x_data = []
+            for y_field in y_fields:
+                if not validate_lookup(model, y_field):
+                    logger.error(f"y_field {y_field} does not exist in model {table_name}")
+                    return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
+                aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
+                if not x_data:
+                    x_data = [item[x_field] for item in aggregated_data]
+                y_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
+                data[y_field] = y_data
+            response_data['x_data'] = x_data
+            response_data['y_data'] = data
+        elif chart_type == 'heatmap':
+            # 假設需要兩個字段作為 x 和 y 軸，第三個字段作為 z 值
+            y_field = request.data.get('y_field')
+            z_field = request.data.get('z_field')
+            if not validate_lookup(model, y_field) or not validate_lookup(model, z_field):
+                logger.error(f"One of the fields {y_field} or {z_field} does not exist in model {table_name}")
+                return JsonResponse({'error': f"One of the fields {y_field} or {z_field} 不存在於資料表 {table_name}"}, status=400)
+            data = queryset.values(x_field, y_field).annotate(z_value=Sum(z_field))
+            x_data = list(set(item[x_field] for item in data))
+            y_data = list(set(item[y_field] for item in data))
+            z_data = [[0 for _ in x_data] for _ in y_data]
+            x_index = {x: i for i, x in enumerate(x_data)}
+            y_index = {y: i for i, y in enumerate(y_data)}
+            for item in data:
+                i = y_index[item[y_field]]
+                j = x_index[item[x_field]]
+                z_data[i][j] = float(item['z_value']) if item['z_value'] is not None else 0
+            response_data['x_data'] = x_data
+            response_data['y_data'] = y_data
+            response_data['z_data'] = z_data
+        elif chart_type == 'combo':
+            y_field_bar = request.data.get('y_field_bar')
+            y_field_line = request.data.get('y_field_line')
+            if not validate_lookup(model, y_field_bar) or not validate_lookup(model, y_field_line):
+                logger.error(f"One of the y_fields {y_field_bar} or {y_field_line} does not exist in model {table_name}")
+                return JsonResponse({'error': f"One of the y_fields {y_field_bar} or {y_field_line} 不存在於資料表 {table_name}"}, status=400)
+
+            data_bar = queryset.values(x_field).annotate(y_sum=Sum(y_field_bar))
+            data_line = queryset.values(x_field).annotate(y_avg=Avg(y_field_line))
+
+            x_data = [item[x_field] for item in data_bar]
+            y_data_bar = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in data_bar]
+            y_data_line = [float(item['y_avg']) if item['y_avg'] is not None else 0 for item in data_line]
+
+            response_data['x_data'] = x_data
+            response_data['y_data_bar'] = y_data_bar
+            response_data['y_data_line'] = y_data_line
+        elif chart_type == 'horizontal_bar':
+            aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
+            x_data = [item['y_sum'] for item in aggregated_data]
+            y_data = [item[x_field] for item in aggregated_data]
+            response_data['x_data'] = x_data
+            response_data['y_data'] = y_data
+        else:
+            # 默認處理
+            aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
+            x_data = [item[x_field] for item in aggregated_data]
+            y_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
+            response_data['x_data'] = x_data
+            response_data['y_data'] = y_data
 
         # 獲取最後更新時間
         last_updated_field = 'last_update' if hasattr(model, 'last_update') else (
@@ -810,8 +877,10 @@ def dynamic_chart_data(request):
         else:
             last_updated = None
 
-        logger.info(f"Returning x_data length: {len(x_data)}, y_data length: {len(y_data)}")
-        return JsonResponse({'x_data': x_data, 'y_data': y_data, 'last_updated': last_updated})
+        response_data['last_updated'] = last_updated
+
+        logger.info(f"Returning data for chart_type: {chart_type}")
+        return JsonResponse(response_data)
     except Exception as e:
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)

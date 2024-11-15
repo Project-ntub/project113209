@@ -4,6 +4,8 @@
     <!-- 頂部導航欄，顯示標題 -->
     <TopNavbar title="儀表板管理" />
     <div class="dashboard-container">
+      <br>
+      <br>
       <!-- 下拉選單來選擇圖表類型 -->
       <div class="top-left-controls">
         <select @change="showDashboard($event.target.value)">

@@ -90,6 +90,9 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
     x_axis_field = serializers.CharField(write_only=True)
     y_axis_field = serializers.CharField(write_only=True)
 
+    color = serializers.JSONField(required=False)
+
+
     class Meta:
         model = ChartConfiguration
         fields = '__all__'

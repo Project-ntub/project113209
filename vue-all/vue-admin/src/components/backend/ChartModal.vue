@@ -22,6 +22,10 @@
               <option value="bar">柱狀圖</option>
               <option value="line">折線圖</option>
               <option value="pie">餅圖</option>
+              <!-- <option value="heatmap">熱力圖</option> -->
+              <option value="horizontal_bar">橫條圖</option>
+              <option value="multi_line">多線折線圖</option>
+              <option value="combo">組合式圖表</option>
               <!-- 更多圖表類型 -->
             </select>
           </div>
@@ -54,6 +58,20 @@
             </select>
           </div>
 
+          <!-- Y 軸欄位選擇，當資料來源有欄位時顯示 -->
+          <div class="setting" v-if="chartData.chartType === 'multi_line' || chartData.chartType === 'combo'">
+            <label for="y-axis-fields">Y 軸欄位（可多選）</label>
+            <select id="y-axis-fields" v-model="chartData.yAxisFields" multiple>
+              <option v-for="field in tableFields" :key="field.name" :value="field.name">
+                {{ field.verbose_name || field.name }}
+              </option>
+            </select>
+          </div>
+
+          <label for="chart-color">圖表顏色</label>
+          <!-- 使用顏色選擇器組件 -->
+          <Chrome v-model="chartData.color" />
+
           <!-- 動態生成的過濾條件設定 -->
           <div class="filter-conditions" v-if="filtersMetadata.length > 0">
             <h3>過濾條件</h3>
@@ -67,6 +85,9 @@
               />
             </div>
           </div>
+
+          <label for="threshold">數據標記閾值</label>
+          <input id="threshold" v-model="chartData.threshold" type="number" placeholder="輸入閾值" />
         </div>
         <!-- 圖表預覽區域 -->
         <div class="chart-preview">
@@ -91,6 +112,7 @@
 
 <script>
 import axios from 'axios';
+import { Chrome } from '@ckpack/vue-color';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 
 // 引入不同類型的過濾組件
@@ -107,7 +129,8 @@ export default {
     SelectFilter,
     CheckboxFilter,
     NumberFilter,
-    DateFilter
+    DateFilter, 
+    Chrome,
   },
   props: {
     isEditing: Boolean, // 判斷是否為編輯模式
@@ -134,7 +157,12 @@ export default {
         limit: null,
         x_data: [],
         y_data: [],
-        joinFields: []
+        joinFields: [],
+        yAxisFields: [],
+        color: {
+          hex: '#000000',
+        },       
+        threshold: null, // 閾值
       },
       summary: "",  // 數據摘要
       dataSource: [
@@ -146,7 +174,9 @@ export default {
       ],
       tableFields: [], // 儲存選定資料來源的欄位
       filtersMetadata: [], // 儲存可用的過濾條件
-      filterValues: {} // 儲存用戶設置的過濾值
+      filterValues: {}, // 儲存用戶設置的過濾值
+
+
     };
   },
   mounted() {
@@ -330,18 +360,22 @@ export default {
         const response = await axios.post('/api/backend/dynamic-chart-data/', {
           table_name: this.chartData.dataSource,
           x_field: this.chartData.xAxisField,
-          y_field: this.chartData.yAxisField,
+          y_field: this.chartData.chartType === 'multi_line' ? null : this.chartData.yAxisField,
+          y_fields: this.chartData.chartType === 'multi_line' ? this.chartData.yAxisFields : null,
           filter_conditions: this.chartData.filterConditions,
+          chart_type: this.chartData.chartType,
           ordering: this.chartData.ordering,
           limit: this.chartData.limit
         });
         const { x_data, y_data, last_updated } = response.data;
-        if (x_data && y_data) {
+        this.chartData.last_updated = last_updated;
+
+        if (this.chartData.chartType === 'multi_line') {
+          this.chartData.x_data = x_data;
+          this.chartData.y_data = y_data; // y_data 是一個對象，鍵為 y_field 名稱
+        } else {
           this.chartData.x_data = x_data;
           this.chartData.y_data = y_data;
-          this.chartData.last_updated = last_updated;
-        } else {
-          console.error('x_data 和 y_data 不能為空');
         }
       } catch (error) {
         console.error('獲取圖表數據時出錯:', error);
@@ -416,7 +450,8 @@ export default {
         y_axis_field: this.chartData.yAxisField,
         filter_conditions: this.chartData.filterConditions,
         ordering: this.chartData.ordering,
-        limit: this.chartData.limit
+        limit: this.chartData.limit,
+        color: this.chartData.color,
       };
 
       if (this.isEditing) {
