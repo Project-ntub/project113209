@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue';
 import { ScheduleXCalendar } from '@schedule-x/vue';
 import {
   createCalendar,
@@ -7,9 +8,8 @@ import {
   createViewMonthGrid,
   createViewMonthAgenda,
 } from '@schedule-x/calendar';
-import axios from 'axios'; // 用於與後端 API 通訊
-import '@schedule-x/theme-default/dist/index.css';
-import { ref } from 'vue';
+import axios from 'axios';  // 用於與後端 API 通訊
+import '@schedule-x/theme-default/dist/index.css';  // 預設樣式
 
 // 初始化日曆
 const calendarApp = createCalendar({
@@ -26,7 +26,7 @@ const calendarApp = createCalendar({
 // 從後端動態加載事件
 const fetchEvents = async () => {
   try {
-    const response = await axios.get('/api/calendar/events/');
+    const response = await axios.get('/calendar/events/');
     const events = response.data.map((event) => ({
       id: event.id,
       title: event.title,
@@ -41,20 +41,13 @@ const fetchEvents = async () => {
 
 // 對話框相關狀態
 const isDialogOpen = ref(false);
-const dialogMode = ref('add'); // 'add' 或 'edit'
+const dialogMode = ref('add'); // 'add' 用於新增事件
 const form = ref({ id: null, title: '', start: '', end: '' });
-
-// 打開對話框進行編輯
-const openEditDialog = (event) => {
-  dialogMode.value = 'edit';
-  form.value = { ...event }; // 載入事件數據
-  isDialogOpen.value = true;
-};
 
 // 打開對話框以新增事件
 const openAddDialog = () => {
   dialogMode.value = 'add';
-  form.value = { id: null, title: '', start: '', end: '' };
+  form.value = { id: null, title: '', start: '', end: '' }; // 初始化表單數據
   isDialogOpen.value = true;
 };
 
@@ -68,36 +61,16 @@ const handleDialogSubmit = async () => {
   const event = { ...form.value };
   if (dialogMode.value === 'add') {
     try {
-      const response = await axios.post('/api/calendar/events/', event);
-      calendarApp.addEvent(response.data); // 立即將新增事件添加到日曆
+      const response = await axios.post('/calendar/events/add/', event);  // 發送請求新增事件
+      calendarApp.addEvent(response.data);  // 立即將新增事件添加到日曆
       closeDialog(); // 提交後關閉對話框
     } catch (error) {
       console.error('新增事件失敗:', error);
     }
-  } else if (dialogMode.value === 'edit') {
-    try {
-      await axios.put(`/api/calendar/events/${event.id}/`, event);
-      calendarApp.updateEvent(event); // 更新日曆中的事件
-      closeDialog(); // 提交後關閉對話框
-    } catch (error) {
-      console.error('編輯事件失敗:', error);
-    }
   }
 };
 
-// 刪除事件
-const deleteEvent = async () => {
-  if (!form.value.id) return;
-  try {
-    await axios.delete(`/api/calendar/events/${form.value.id}/`);
-    calendarApp.removeEvent(form.value.id); // 刪除事件並更新日曆
-    closeDialog();
-  } catch (error) {
-    console.error('刪除事件失敗:', error);
-  }
-};
-
-// 初始化時調用以加載事件
+// 初始化時加載事件
 fetchEvents();
 </script>
 
@@ -106,7 +79,7 @@ fetchEvents();
     <div class="calendar-header">
       <button @click="openAddDialog" class="add-event-btn">新增事件</button>
     </div>
-    <ScheduleXCalendar :calendar-app="calendarApp" @event-click="openEditDialog" />
+    <ScheduleXCalendar :calendar-app="calendarApp" />
     <div v-if="isDialogOpen" class="dialog-overlay">
       <div class="dialog">
         <h3>{{ dialogMode === 'edit' ? '編輯事件' : '新增事件' }}</h3>
@@ -126,14 +99,6 @@ fetchEvents();
           <div>
             <button type="submit">{{ dialogMode === 'edit' ? '保存' : '新增' }}</button>
             <button type="button" @click="closeDialog">取消</button>
-            <button
-              v-if="dialogMode === 'edit'"
-              type="button"
-              @click="deleteEvent"
-              class="delete-btn"
-            >
-              刪除
-            </button>
           </div>
         </form>
       </div>
