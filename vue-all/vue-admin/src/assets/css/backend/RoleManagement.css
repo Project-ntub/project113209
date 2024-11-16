@@ -4,17 +4,17 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Poppins', sans-serif;
-  background-color: #f4f4f4;
+  background-color: #f0f8ff; /* 使用更亮的背景色 */
 }
 
 .main-container {
-  width: 90vw; /* 拉寬主容器以適應螢幕寬度 */
+  width: 90vw;
   max-width: 1200px;
   margin: 1.5rem auto;
   padding: 1.5rem;
   background-color: #ffffff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -27,22 +27,27 @@ body, html {
 
 .header button {
   padding: 0.75rem 1.5rem;
-  background-color: #6c757d;
+  background-color: #ff69b4; /* 使用亮粉色 */
   color: white;
   font-size: 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.header button:hover {
+  background-color: #ff1493; /* 懸停時顏色更深 */
 }
 
 .table-container {
-  overflow-x: auto; /* 支援水平滾動 */
-  max-height: 60vh; /* 限制表格最大高度 */
+  overflow-x: auto;
+  max-height: 60vh;
   margin-top: 1.5rem;
 }
 
 .role-table {
-  width: 100%; /* 撐滿容器寬度 */
+  width: 100%;
   border-collapse: collapse;
 }
 
@@ -50,19 +55,25 @@ body, html {
   border: 1px solid #ddd;
   padding: 1rem;
   text-align: left;
-  white-space: nowrap; /* 防止單元格內容換行 */
+  white-space: nowrap;
 }
 
 .role-table th {
-  background-color: #f2f2f2;
+  background-color: #4a90e2;
+  color: #ffffff;
+  font-weight: bold;
 }
 
 .role-table tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #e1f5fe;
+}
+
+.role-table tr:nth-child(odd) {
+  background-color: #ffecb3;
 }
 
 .role-table tr:hover {
-  background-color: #ddd;
+  background-color: #ffeb3b;
 }
 
 .permissions-btn, .delete-btn {
@@ -72,22 +83,23 @@ body, html {
   cursor: pointer;
   color: white;
   font-size: 1rem;
+  transition: background-color 0.3s ease;
 }
 
 .permissions-btn {
-  background-color: #007bff;
+  background-color: #28a745; /* 使用亮綠色 */
 }
 
 .permissions-btn:hover {
-  background-color: #0056b3;
+  background-color: #218838;
 }
 
 .delete-btn {
-  background-color: #dc3545;
+  background-color: #ff5252; /* 使用亮紅色 */
 }
 
 .delete-btn:hover {
-  background-color: #c82333;
+  background-color: #ff1744;
 }
 
 .switch {
@@ -110,7 +122,7 @@ body, html {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: #b0bec5; /* 使用更鮮豔的灰藍色 */
   transition: .4s;
   border-radius: 25px;
 }
@@ -128,7 +140,7 @@ body, html {
 }
 
 input:checked + .slider {
-  background-color: #007bff;
+  background-color: #ff9800; /* 使用亮橙色 */
 }
 
 input:checked + .slider:before {
@@ -162,7 +174,7 @@ input:checked + .slider:before {
 /* 響應式設計 */
 @media (max-width: 768px) {
   .main-container {
-      width: 95vw; /* 更加適合小螢幕 */
+      width: 95vw;
       padding: 1rem;
   }
 
