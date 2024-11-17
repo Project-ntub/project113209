@@ -9,7 +9,6 @@
 
       <!-- Body -->
       <div class="chart-modal-body">
-<<<<<<< HEAD
         <div class="chart-settings">
           <!-- 圖表名稱設定 -->
           <div class="setting">
@@ -48,16 +47,6 @@
               </option>
             </select>
           </div>
-=======
-        <div class="chart-content-settings">
-          <!-- Chart Settings -->
-          <div class="chart-settings">
-            <!-- Chart Name -->
-            <div class="setting">
-              <label for="chart-name">圖表名稱</label>
-              <input id="chart-name" v-model="chartData.name" type="text" placeholder="輸入圖表名稱" />
-            </div>
->>>>>>> ba0d8c41 (描述您的更改)
 
             <!-- Chart Type -->
             <div class="setting">
@@ -69,7 +58,6 @@
               </select>
             </div>
 
-<<<<<<< HEAD
           <!-- Y 軸欄位選擇，當資料來源有欄位時顯示 -->
           <div class="setting" v-if="chartData.chartType === 'multi_line' || chartData.chartType === 'combo'">
             <label for="y-axis-fields">Y 軸欄位（可多選）</label>
@@ -95,51 +83,6 @@
                 :filter="filter"
                 v-model="filterValues[filter.name]"
               />
-=======
-            <!-- Data Source -->
-            <div class="setting">
-              <label for="data-source">資料來源</label>
-              <select id="data-source" v-model="chartData.dataSource" @change="fetchTableFieldsMetadata">
-                <option v-for="source in dataSource" :key="source.value" :value="source.value">
-                  {{ source.label }}
-                </option>
-              </select>
-            </div>
-
-            <!-- X Axis Field -->
-            <div class="setting" v-if="tableFields.length > 0">
-              <label for="x-axis-field">X 軸欄位</label>
-              <select id="x-axis-field" v-model="chartData.xAxisField">
-                <option v-for="field in tableFields" :key="field.name" :value="field.name">
-                  {{ field.verbose_name || field.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Y Axis Field -->
-            <div class="setting" v-if="tableFields.length > 0">
-              <label for="y-axis-field">Y 軸欄位</label>
-              <select id="y-axis-field" v-model="chartData.yAxisField">
-                <option v-for="field in tableFields" :key="field.name" :value="field.name">
-                  {{ field.verbose_name || field.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Filters -->
-            <div class="filter-conditions" v-if="filtersMetadata.length > 0">
-              <h3>過濾條件</h3>
-              <div v-for="filter in filtersMetadata" :key="filter.name" class="filter-item">
-                <label :for="'filter-' + filter.name">{{ filter.verbose_name || filter.name }}</label>
-                <component :is="getFilterComponent(filter)" :filter="filter" v-model="filterValues[filter.name]" />
-              </div>
-            </div>
-
-            <!-- Chart Summary -->
-            <div class="chart-summary">
-              <h3>數據摘要</h3>
-              <p>{{ summary }}</p>
->>>>>>> ba0d8c41 (描述您的更改)
             </div>
           </div>
 
@@ -226,17 +169,11 @@ export default {
         { value: 'TEST_Revenue', label: '營業數據' },
         { value: 'TEST_Products', label: '商品數據' }
       ],
-<<<<<<< HEAD
       tableFields: [], // 儲存選定資料來源的欄位
       filtersMetadata: [], // 儲存可用的過濾條件
       filterValues: {}, // 儲存用戶設置的過濾值
 
 
-=======
-      tableFields: [],
-      filtersMetadata: [],
-      filterValues: {}
->>>>>>> ba0d8c41 (描述您的更改)
     };
   },
   mounted() {
@@ -488,7 +425,6 @@ export default {
       this.chartData.filterConditions = conditions;
       this.fetchChartData();
     },
-<<<<<<< HEAD
     async fetchChartData() { // 標記為 async
       // 獲取圖表數據的函數
       if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
@@ -524,9 +460,6 @@ export default {
     },
     async loadChartConfig() { // 標記為 async
       // 加載現有圖表配置的函數
-=======
-    async fetchChartSummary() {
->>>>>>> ba0d8c41 (描述您的更改)
       try {
         const response = await axios.post('/api/backend/chart-summary/', {
           table_name: this.chartData.dataSource,
@@ -538,7 +471,6 @@ export default {
       } catch (error) {
         console.error('獲取數據摘要時出錯:', error);
       }
-<<<<<<< HEAD
     },
     saveChart() {
       // 保存或新增圖表的函數
@@ -593,8 +525,6 @@ export default {
       this.$emit('close');
 
     
-=======
->>>>>>> ba0d8c41 (描述您的更改)
     }
   }
 };
