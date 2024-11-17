@@ -2,26 +2,26 @@
 <template>
   <div class="dashboard-page">
     <!-- 頂部導航欄，顯示標題 -->
-    <TopNavbar title="儀表板管理" />
+    <TopNavbar title="✨ 儀表板管理 ✨" />
     <div class="dashboard-container">
-      <br>
-      <br>
+      <br />
+      <br />
       <!-- 下拉選單來選擇圖表類型 -->
       <div class="top-left-controls">
         <select @change="showDashboard($event.target.value)">
-          <option value="all">所有圖表</option>
-          <option value="sales">銷售額</option>
-          <option value="revenue">營業額</option>
-          <option value="inventory">庫存量</option>
+          <option value="all">🌈 所有圖表</option>
+          <option value="sales">💹 銷售額</option>
+          <option value="revenue">💰 營業額</option>
+          <option value="inventory">📦 庫存量</option>
         </select>
       </div>
 
       <!-- 新增圖表和預覽角色介面按鈕 -->
       <div class="button-group">
         <!-- 新增圖表按鈕，只有有權限的用戶才能看到 -->
-        <button v-if="canAddChart" @click="openChartModal(false)">新增圖表</button>
+        <button v-if="canAddChart" @click="openChartModal(false)">➕ 新增圖表</button>
         <!-- 預覽角色介面按鈕 -->
-        <button @click="openPreviewModal">預覽角色介面</button>
+        <button @click="openPreviewModal">👀 預覽角色介面</button>
         <!-- 用戶介面預覽模態視窗 -->
         <UserInterfacePreviewModal v-if="showPreviewModal" @close="showPreviewModal = false" />
       </div>
