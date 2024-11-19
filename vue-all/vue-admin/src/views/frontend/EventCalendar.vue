@@ -20,7 +20,9 @@ const calendarApp = createCalendar({
     createViewMonthGrid(),
     createViewMonthAgenda(),
   ],
-  events: [],
+  events: [
+    { id: 1, title: '測試事件', start: '2023-12-19T10:00:00', end: '2023-12-19T11:00:00' }, // 假事件數據
+  ],
 });
 
 // 從後端動態加載事件
