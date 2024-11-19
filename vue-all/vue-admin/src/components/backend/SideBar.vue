@@ -1,13 +1,15 @@
 <template>
   <div>
-    <!-- 只有當前頁面不是重設密碼或註冊頁面時顯示 sidebar -->
+    <!-- Sidebar only displayed if not on reset password or register page -->
     <div v-if="!hideSidebar" :class="['sidebar', { open: isSidebarActive }]">
       <div class="sidebar-header">
-        <span class="toggle-btn" @click="toggleSidebar">☰</span>
+        <span class="toggle-btn" @click="toggleSidebar" style="color: #333 !important;">☰</span>
       </div>
       <div class="user-section" @click="toggleUserLinks">
         <font-awesome-icon icon="user" class="icon user-icon" />
         <span v-if="isSidebarActive" class="username">{{ username }}</span>
+        <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
+        <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
       </div>
       <!-- User-related links, only visible when the user section is expanded -->
       <div v-if="showUserLinks" class="user-links">
@@ -15,10 +17,6 @@
           <span class="icon">👤</span>
           <span class="text">個人資料</span>
         </router-link>
-        <!-- <router-link to="/backend/preferences" class="sidebar-link">
-          <span class="icon">⚙️</span>
-          <span class="text">個人偏好</span>
-        </router-link> -->
       </div>
       <!-- General links -->
       <router-link to="/backend/dashboard" class="sidebar-link">
@@ -43,7 +41,7 @@
       </button>
     </div>
     
-    <!-- content 部分 -->
+    <!-- content section -->
     <div :class="['content', { shift: isSidebarActive }]">
       <slot></slot>
     </div>
@@ -52,17 +50,21 @@
 
 <script>
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default {
+  components: {
+    FontAwesomeIcon
+  },
   data() {
     return {
       username: '',
-      showUserLinks: false, // 控制用戶相關鏈接的顯示
+      showUserLinks: false, // Controls display of user-related links
     };
   },
   computed: {
     hideSidebar() {
-      // 當路由名稱為 "BackendForgetPassword" 或 "BackendRegister" 時，隱藏 sidebar
+      // Hide sidebar on specific pages
       return this.$route.name === 'BackendForgetPassword' || this.$route.name === 'BackendRegister';
     },
   },
@@ -87,22 +89,13 @@ export default {
     },
     async handleLogout() {
       try {
-        // 發送登出請求到後端
         await axios.post('/api/backend/logout/');
-
-        // 清除前端的 localStorage 和 sessionStorage
         localStorage.removeItem('token');
-
-        // 防止使用返回按鈕回到已登入頁面
         history.replaceState(null, null, '/backend/login');
         window.addEventListener('popstate', () => {
           history.pushState(null, null, document.URL);
         });
-
-        // 導向登入頁面
         this.$router.replace('/backend/login');
-
-        // 強制刷新頁面，清除所有舊的狀態
         setTimeout(() => {
           location.reload();
         }, 100);
@@ -120,9 +113,116 @@ export default {
     },
   },
   mounted() {
-    this.fetchUserData(); // 進入頁面時加載用戶資料
+    this.fetchUserData(); // Load user data on mount
   },
 };
 </script>
 
 <style scoped src="@/assets/css/backend/SideBar.css"></style>
+<style scoped>
+.sidebar {
+  width: 250px; /* 調整側邊欄寬度 */
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #b3e5fc; /* 改為淡藍色背景 */
+  padding-top: 20px; /* 增加頂部間距 */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* 輕微陰影 */
+  transition: all 0.3s ease; /* 增加動畫效果 */
+}
+
+.sidebar.open {
+  width: 250px; /* 側邊欄展開的寬度 */
+}
+
+.sidebar:not(.open) {
+  width: 120px; /* 側邊欄收起的寬度，調整為更寬 */
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px; /* 增加間距，讓元素更寬鬆 */
+  margin: 10px 15px; /* 增加項目之間的間距 */
+  text-decoration: none;
+  color: #333 !important; /* 字體顏色加上 !important */
+  font-weight: bold; /* 加粗文字 */
+  font-size: 1.1rem; /* 增大字體 */
+  border-radius: 10px; /* 圓角背景 */
+  border-bottom: 1px solid #000; /* 添加分隔線 */
+  transition: background 0.3s ease, box-shadow 0.3s ease; /* 過渡效果 */
+}
+
+.sidebar-link .icon {
+  font-size: 1.6rem; /* 增大圖標大小 */
+  margin-right: 20px; /* 增加圖標和文字之間的間距 */
+  color: #333 !important; /* 圖標的顏色也設為黑色 */
+}
+
+.sidebar-link:hover {
+  background: #e0e4e7; /* 懸停時背景顏色變化 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* 輕微陰影增強懸停效果 */
+}
+
+.sidebar-link.active {
+  background: #4285f4; /* 被選中項目藍色背景 */
+  color: #ffffff !important; /* 被選中項目文字變為白色 */
+}
+
+.sidebar-link.active .icon {
+  color: #ffffff !important; /* 被選中項目的圖標顏色變為白色 */
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  cursor: pointer;
+  background: #34495e; /* 比較深的背景色，和側邊欄形成區分 */
+  color: #333 !important; /* 使用黑色字體增強對比 */
+  font-weight: bold; /* 加粗文字 */
+  transition: background 0.3s ease;
+}
+
+.user-section:hover {
+  background: #3b5773; /* 懸停效果 */
+}
+
+.user-icon {
+  font-size: 1.8rem; /* 增大圖標大小 */
+  margin-right: 10px;
+  color: #333 !important; /* 圖標顏色設為黑色 */
+}
+
+.username {
+  margin-left: 10px;
+  font-size: 1.2rem; /* 增大字體，增強可讀性 */
+  color: #333 !important; /* 確保字體顏色是黑色 */
+}
+
+.logout-btn {
+  background: #c0392b; /* 強調登出按鈕的危險性 */
+  color: #ecf0f1;
+  border: none;
+  width: calc(100% - 30px);
+  padding: 15px 20px;
+  text-align: left;
+  cursor: pointer;
+  margin: 10px 15px;
+  border-radius: 10px;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  font-weight: bold; /* 加粗文字 */
+  font-size: 1.1rem; /* 增大字體 */
+}
+
+.logout-btn:hover {
+  background: #e74c3c; /* 懸停時更亮的紅色 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* 懸停效果的陰影 */
+}
+
+.content.shift {
+  margin-left: 250px; /* 根據側邊欄的新寬度進行偏移 */
+  transition: margin-left 0.3s ease;
+}
+</style>

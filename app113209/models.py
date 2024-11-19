@@ -4,6 +4,20 @@ from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.db import models
 import pyotp
+# app113209/frontend/models.py
+from django.db import models
+
+class CalendarEvent(models.Model):
+    title = models.CharField(max_length=255)
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
 
 
 class CustomUserManager(BaseUserManager):
@@ -141,6 +155,9 @@ class Chart(models.Model):
         ('area', 'Area Chart'),  # 區域圖
         ('histogram', 'Histogram'),  # 直方圖
         ('heatmap', 'Heatmap'),  # 熱力圖
+        {'horizontal_bar', 'Horizontal Bar Chart'},
+        {'multi_line', 'Multi-line Chart'},
+        {'combo', 'Combination Chart'},
         ('bubble', 'Bubble Chart'),  # 泡泡圖
         ('donut', 'Donut Chart'),  # 甜甜圈圖
         ('radar', 'Radar Chart'),  # 雷達圖
@@ -171,16 +188,31 @@ class Chart(models.Model):
         return self.chart_name
 
 class ChartConfiguration(models.Model):
+    CHART_TYPES = [
+        ('bar', 'Bar Chart'),
+        ('line', 'Line Chart'),
+        ('pie', 'Pie Chart'),
+        ('heatmap', 'Heatmap'),  # 新增熱力圖
+        ('horizontal_bar', 'Horizontal Bar Chart'),  # 新增橫條圖
+        ('multi_line', 'Multi-line Chart'),  # 新增多線折線圖
+        ('combo', 'Combination Chart'),  # 新增組合式圖表
+        # ...可以根據需要添加更多的圖表類型
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, blank=True, null=True, unique=True)
     chart_type = models.CharField(max_length=50)
     data_source = models.CharField(max_length=100)
     x_axis_field = models.CharField(max_length=100)
     y_axis_field = models.CharField(max_length=100)
+    y_axis_fields = models.JSONField(blank=True, null=True)  # 新增，用於多線折線圖
     filter_conditions = models.JSONField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)  # 用來標記是否已刪除/隱藏
+    ordering = models.JSONField(blank=True, null=True)  # 新增，用於排序
+    limit = models.IntegerField(blank=True, null=True)  # 新增，用於限制資料筆數
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    color = models.JSONField(default=dict)  # 存儲顏色的 HEX 值
+
 
     def __str__(self):
         return self.name

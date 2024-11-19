@@ -39,6 +39,7 @@
   padding: 10px 15px;
   position: relative;
   background-color: transparent; /* 圖示背景透明 */
+  border-bottom: 1px solid #ccc; /* 為每個選項之間增加分隔線 */
 }
 
 .sidebar a:hover {

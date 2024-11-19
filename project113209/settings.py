@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',
+    'corsheaders',  # CORS 支援
     'app113209.apps.App113209Config',
 ]
 

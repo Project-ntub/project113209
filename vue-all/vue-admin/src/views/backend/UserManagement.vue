@@ -1,7 +1,6 @@
-<!-- src/views/backend/UserManagement.vue -->
 <template>
   <TopNavbar title="用戶管理" />
-  <div class="container">
+  <div class="main-container">
     <div class="filter-section">
       <!-- 排序下拉選單 -->
       <label for="sort-select">排序:</label>
@@ -20,11 +19,10 @@
         <option v-for="department in departments" :key="department" :value="department">{{ department }}</option>
       </select>
       <!-- 搜尋框 -->
-      <input type="text" id="search-box" placeholder="搜尋..." v-model="query" @keydown.enter="applyFilters">
+      <input type="text" id="search-box" placeholder="搜尋..." v-model="query" @keydown.enter="applyFilters" />
       <button @click="applyFilters" class="search-btn">搜尋</button>
-
-      <!-- 待審核按鈕，與搜尋欄一體化 -->
-      <button class="pending-approval-btn" v-if="hasAddPermission" @click="navigateToPendingList">
+      <!-- 待審核按鈕 -->
+      <button v-if="hasAddPermission" @click="navigateToPendingList" class="pending-approval-btn">
         待審核
       </button>
     </div>
@@ -54,18 +52,17 @@
             <td>{{ formatDate(user.date_joined) }}</td>
             <td>{{ formatDate(user.last_login) }}</td>
             <td>
-              <!-- 編輯按鈕 -->
-              <button v-if="hasEditPermission" @click="navigateToEditUser(user.id)" class="edit-btn">
-                編輯
-              </button>
-              <!-- 刪除按鈕 -->
-              <button v-if="hasDeletePermission" @click="deleteUser(user.id)" class="delete-btn">
-                刪除
-              </button>
-              <!-- 分配角色按鈕 -->
-              <button v-if="hasEditPermission" class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">
-                分配角色
-              </button>
+              <div class="button-group">
+                <button v-if="hasEditPermission" @click="navigateToEditUser(user.id)" class="edit-btn">
+                  編輯
+                </button>
+                <button v-if="hasDeletePermission" @click="deleteUser(user.id)" class="delete-btn">
+                  刪除
+                </button>
+                <button v-if="hasEditPermission" class="assigning-roles-btn" @click="navigateToAssignRole(user.id)">
+                  分配角色
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -112,45 +109,24 @@ export default {
       }
 
       return filtered.sort((a, b) => {
-        if (this.sortBy === 'name') {
-          return a.username.localeCompare(b.username);
-        } else if (this.sortBy === 'email') {
-          return a.email.localeCompare(b.email);
-        } else if (this.sortBy === 'department') {
-          return a.department_id.localeCompare(b.department_id);
-        } else if (this.sortBy === 'position') {
-          return a.position_id.localeCompare(b.position_id);
-        } else if (this.sortBy === 'creation-time') {
-          return new Date(a.date_joined) - new Date(b.date_joined);
-        } else if (this.sortBy === 'last-login') {
-          const dateA = a.last_login ? new Date(a.last_login) : new Date(0);
-          const dateB = b.last_login ? new Date(b.last_login) : new Date(0);
-          return dateB - dateA;
-        }
+        if (this.sortBy === 'name') return a.username.localeCompare(b.username);
+        if (this.sortBy === 'email') return a.email.localeCompare(b.email);
+        if (this.sortBy === 'department') return a.department_id.localeCompare(b.department_id);
+        if (this.sortBy === 'position') return a.position_id.localeCompare(b.position_id);
+        if (this.sortBy === 'creation-time') return new Date(a.date_joined) - new Date(b.date_joined);
+        if (this.sortBy === 'last-login') return (new Date(b.last_login) || 0) - (new Date(a.last_login) || 0);
         return 0;
       });
     },
     hasAddPermission() {
-      const hasPermission = this.getPermissions.some(
-        perm => perm.permission_name === '用戶管理' && perm.can_add
-      );
-      console.log(`hasAddPermission: ${hasPermission}`);
-      return hasPermission;
+      return this.getPermissions.some(perm => perm.permission_name === '用戶管理' && perm.can_add);
     },
     hasEditPermission() {
-      const hasPermission = this.getPermissions.some(
-        perm => perm.permission_name === '用戶管理' && perm.can_edit
-      );
-      console.log(`hasEditPermission: ${hasPermission}`);
-      return hasPermission;
+      return this.getPermissions.some(perm => perm.permission_name === '用戶管理' && perm.can_edit);
     },
     hasDeletePermission() {
-      const hasPermission = this.getPermissions.some(
-        perm => perm.permission_name === '用戶管理' && perm.can_delete
-      );
-      console.log(`hasDeletePermission: ${hasPermission}`);
-      return hasPermission;
-    }
+      return this.getPermissions.some(perm => perm.permission_name === '用戶管理' && perm.can_delete);
+    },
   },
   methods: {
     fetchUsers() {
@@ -183,10 +159,7 @@ export default {
       this.$router.push(`/backend/assign_role/${userId}`);
     },
     formatDate(date) {
-      if (!date) {
-        return '從未登入';
-      }
-      return new Date(date).toLocaleString();
+      return date ? new Date(date).toLocaleString() : '從未登入';
     },
     applyFilters() {
       console.log('Filters applied');
@@ -194,10 +167,96 @@ export default {
   },
   mounted() {
     this.fetchUsers();
-    console.log('User Permissions:', this.getPermissions); // 添加日誌
   },
 };
 </script>
 
+<style scoped>
+.main-container {
+  width: 90vw;
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
 
-<style scoped src="@/assets/css/backend/UserManagement.css"></style>
+.filter-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-btn, .pending-approval-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+  font-size: 1rem;
+}
+
+.search-btn {
+  background-color: #4a90e2;
+}
+
+.pending-approval-btn {
+  background-color: #ff69b4;
+}
+
+.table-container {
+  overflow-x: auto;
+  max-height: 60vh;
+  margin-top: 1.5rem;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th {
+  background-color: #4A90E2;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.user-table th, .user-table td {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  text-align: left;
+}
+
+.user-table tr:nth-child(even) {
+  background-color: #e1f5fe;
+}
+
+.user-table tr:nth-child(odd) {
+  background-color: #ffecb3;
+}
+
+.user-table tr:hover {
+  background-color: #ffeb3b;
+}
+
+.button-group {
+  display: flex;
+  gap: 5px;
+}
+
+.edit-btn {
+  background-color: #ff9f43;
+}
+
+.delete-btn {
+  background-color: #ff5252;
+}
+
+.assigning-roles-btn {
+  background-color: #54a0ff;
+}
+</style>
+

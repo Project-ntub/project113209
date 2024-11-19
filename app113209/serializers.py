@@ -2,6 +2,13 @@ import json
 from rest_framework import serializers
 from .models import User, Module, Role, RoleUser, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue
 
+from rest_framework import serializers
+from app113209.models import CalendarEvent
+
+class CalendarEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CalendarEvent
+        fields = ['id', 'title', 'start', 'end', 'description', 'created_at', 'updated_at']
 
 class RolePermissionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -89,6 +96,9 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
     data_source = serializers.CharField(write_only=True)
     x_axis_field = serializers.CharField(write_only=True)
     y_axis_field = serializers.CharField(write_only=True)
+
+    color = serializers.JSONField(required=False)
+
 
     class Meta:
         model = ChartConfiguration
