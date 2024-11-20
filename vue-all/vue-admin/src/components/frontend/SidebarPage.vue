@@ -16,19 +16,25 @@
       <div v-if="isSidebarOpen || !isSmallScreen">
         <!-- 儀表板 -->
         <router-link to="/frontend/home" class="sidebar-link">
-          <font-awesome-icon icon="chart-pie" class="icon" />
+          <font-awesome-icon icon="chart-pie" class="icon no-bg-icon" />
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">儀錶板管理</span>
         </router-link>
 
         <!-- 個人資訊 -->
         <router-link to="/frontend/profile" class="sidebar-link">
-          <font-awesome-icon icon="user" class="icon second-icon" />
+          <font-awesome-icon icon="user" class="icon second-icon no-bg-icon" />
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">個人資訊</span>
+        </router-link>
+
+        <!-- 行事曆 -->
+        <router-link to="/frontend/calendar" class="sidebar-link">
+          <font-awesome-icon icon="calendar-alt" class="icon no-bg-icon" />
+          <span class="text" v-if="isSidebarOpen || !isSmallScreen">行事曆</span>
         </router-link>
 
         <!-- 登出 -->
         <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
-          <font-awesome-icon icon="sign-out-alt" class="icon" />
+          <font-awesome-icon icon="sign-out-alt" class="icon no-bg-icon" />
           <span class="text" v-if="isSidebarOpen || !isSmallScreen">登出</span>
         </a>
       </div>
@@ -176,11 +182,10 @@ export default {
   width: 25px;
   text-align: center;
   font-size: 33px;
-  background-color: transparent; /* 去除背景陰影色 */
 }
 
-.sidebar.open .sidebar-link .icon {
-  background-color: transparent; /* 展開時保持圖示背景透明 */
+.no-bg-icon {
+  background-color: transparent !important; /* 移除背景陰影顏色 */
 }
 
 .sidebar.open .sidebar-link .text {

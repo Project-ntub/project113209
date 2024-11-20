@@ -6,11 +6,11 @@
         <span class="toggle-btn" @click="toggleSidebar" style="color: #333 !important;">☰</span>
       </div>
       <div class="user-section" @click="toggleUserLinks">
-        <font-awesome-icon icon="user" class="icon user-icon" />
-        <span v-if="isSidebarActive" class="username">{{ username }}</span>
-        <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
-        <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
-      </div>
+  <span v-if="isSidebarActive" class="username">{{ username }}</span>
+  <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
+  <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
+</div>
+
       <!-- User-related links, only visible when the user section is expanded -->
       <div v-if="showUserLinks" class="user-links">
         <router-link to="/backend/profile" class="sidebar-link">
@@ -198,7 +198,7 @@ export default {
 .username {
   margin-left: 10px;
   font-size: 1.2rem; /* 增大字體，增強可讀性 */
-  color: #333 !important; /* 確保字體顏色是黑色 */
+  color: #ffffff !important; /* 確保字體顏色是白色 */
 }
 
 .logout-btn {

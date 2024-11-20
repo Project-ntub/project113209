@@ -71,6 +71,7 @@
 .username {
   font-size: 18px; /* Adjust the font size if needed */
   display: none;
+  color: white; /* Set the username color to white */
 }
 
 .sidebar.open .username {

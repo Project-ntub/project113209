@@ -1,5 +1,7 @@
+/* TopNavbar.css */
+
 .navbar {
-  background-color: #333;
+  background-color: #f8d7b3; /* 使用整個淺橘色作為背景色 */ /* 灰色漸層至淺橘 */
   color: #fff;
   padding: 15px;
   display: flex;
@@ -10,8 +12,8 @@
   left: 0;
   width: 100%;
   z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
 .navbar-title {
   font-size: 30px;
   font-weight: bold;
