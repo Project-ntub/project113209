@@ -204,7 +204,7 @@ export default {
 }
 
 .pending-approval-btn {
-  background-color: #ff69b4;
+  background-color: #ffa500;
 }
 
 .table-container {
@@ -231,15 +231,15 @@ export default {
 }
 
 .user-table tr:nth-child(even) {
-  background-color: #e1f5fe;
+  background-color: #f0f0f0;
 }
 
 .user-table tr:nth-child(odd) {
-  background-color: #ffecb3;
+  background-color: #ffffff;
 }
 
 .user-table tr:hover {
-  background-color: #ffeb3b;
+  background-color: #e0e0e0;
 }
 
 .button-group {
@@ -247,16 +247,23 @@ export default {
   gap: 5px;
 }
 
+.edit-btn, .delete-btn, .assigning-roles-btn {
+  padding: 0.3rem 0.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+}
+
 .edit-btn {
-  background-color: #ff9f43;
+  background-color: #ffa500;
 }
 
 .delete-btn {
-  background-color: #ff5252;
+  background-color: #ff4500;
 }
 
 .assigning-roles-btn {
-  background-color: #54a0ff;
+  background-color: #1e90ff;
 }
 </style>
-

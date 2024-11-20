@@ -4,7 +4,7 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Poppins', sans-serif;
-  background-color: #f0f8ff; /* 使用更亮的背景色 */
+  background-color: #f9f9f9;
 }
 
 .main-container {
@@ -13,8 +13,8 @@ body, html {
   margin: 1.5rem auto;
   padding: 1.5rem;
   background-color: #ffffff;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -27,7 +27,7 @@ body, html {
 
 .header button {
   padding: 0.75rem 1.5rem;
-  background-color: #ff69b4; /* 使用亮粉色 */
+  background-color: #4a90e2;
   color: white;
   font-size: 1rem;
   border: none;
@@ -37,7 +37,7 @@ body, html {
 }
 
 .header button:hover {
-  background-color: #ff1493; /* 懸停時顏色更深 */
+  background-color: #3a78c2;
 }
 
 .table-container {
@@ -65,15 +65,11 @@ body, html {
 }
 
 .role-table tr:nth-child(even) {
-  background-color: #e1f5fe;
-}
-
-.role-table tr:nth-child(odd) {
-  background-color: #ffecb3;
+  background-color: #f5f5f5;
 }
 
 .role-table tr:hover {
-  background-color: #ffeb3b;
+  background-color: #e0e0e0;
 }
 
 .permissions-btn, .delete-btn {
@@ -87,19 +83,19 @@ body, html {
 }
 
 .permissions-btn {
-  background-color: #28a745; /* 使用亮綠色 */
+  background-color: #4caf50;
 }
 
 .permissions-btn:hover {
-  background-color: #218838;
+  background-color: #45a047;
 }
 
 .delete-btn {
-  background-color: #ff5252; /* 使用亮紅色 */
+  background-color: #f44336;
 }
 
 .delete-btn:hover {
-  background-color: #ff1744;
+  background-color: #e53935;
 }
 
 .switch {
@@ -122,7 +118,7 @@ body, html {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #b0bec5; /* 使用更鮮豔的灰藍色 */
+  background-color: #b0bec5;
   transition: .4s;
   border-radius: 25px;
 }
@@ -140,7 +136,7 @@ body, html {
 }
 
 input:checked + .slider {
-  background-color: #ff9800; /* 使用亮橙色 */
+  background-color: #ff9800;
 }
 
 input:checked + .slider:before {

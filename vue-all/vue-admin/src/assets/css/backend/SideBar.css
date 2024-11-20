@@ -127,22 +127,25 @@
   width: 100%;
   text-align: left;
   transition: background-color 0.4s ease;
+  font-weight: bold; /* 加粗文字 */
+  font-size: 1.1rem; /* 增大字體 */
+  padding: 10px 15px; /* 增加間距 */
 }
 
 .logout-btn .text {
   display: none;
 }
 
+.sidebar.open .logout-btn {
+  background-color: #6c757d; /* 中性的灰色背景色 */
+}
+
 .sidebar.open .logout-btn .text {
   display: inline-block;
 }
 
-.sidebar.open .logout-btn {
-  background-color: #dc3545;
-}
-
 .logout-btn:hover {
-  background-color: #c82333;
+  background-color: #5a6268; /* 懸停時更深的灰色 */
 }
 
 .content {
