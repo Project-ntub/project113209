@@ -20,24 +20,28 @@ const calendarApp = createCalendar({
     createViewMonthGrid(),
     createViewMonthAgenda(),
   ],
-  events: [],
+  
+  
 });
 
 // 從後端動態加載事件
+// 從後端動態加載事件（GET 請求）
 const fetchEvents = async () => {
   try {
-    const response = await axios.get('/calendar/events/');
+    const response = await axios.get('/api/frontend/calendar/events/'); // 使用 GET 來加載事件
     const events = response.data.map((event) => ({
       id: event.id,
       title: event.title,
       start: event.start,
       end: event.end,
+      description: event.description,
     }));
     calendarApp.setEvents(events); // 更新日曆的事件
   } catch (error) {
     console.error('加載事件失敗:', error);
   }
 };
+
 
 // 對話框相關狀態
 const isDialogOpen = ref(false);
@@ -58,10 +62,15 @@ const closeDialog = () => {
 
 // 提交對話框
 const handleDialogSubmit = async () => {
-  const event = { ...form.value };
+  const event = {
+    title: form.value.title,
+    start: new Date(form.value.start).toISOString(),
+    end: new Date(form.value.end).toISOString(),
+    description: form.value.description || '',
+  };
   if (dialogMode.value === 'add') {
     try {
-      const response = await axios.post('/calendar/events/add/', event);  // 發送請求新增事件
+      const response = await axios.post('/api/frontend/calendar/events/add/', event); // 使用全局 axios 配置
       calendarApp.addEvent(response.data);  // 立即將新增事件添加到日曆
       closeDialog(); // 提交後關閉對話框
     } catch (error) {
@@ -69,6 +78,7 @@ const handleDialogSubmit = async () => {
     }
   }
 };
+
 
 // 初始化時加載事件
 fetchEvents();
@@ -84,23 +94,28 @@ fetchEvents();
       <div class="dialog">
         <h3>{{ dialogMode === 'edit' ? '編輯事件' : '新增事件' }}</h3>
         <form @submit.prevent="handleDialogSubmit">
-          <div>
-            <label for="title">標題</label>
-            <input id="title" v-model="form.title" type="text" required />
-          </div>
-          <div>
-            <label for="start">開始時間</label>
-            <input id="start" v-model="form.start" type="datetime-local" required />
-          </div>
-          <div>
-            <label for="end">結束時間</label>
-            <input id="end" v-model="form.end" type="datetime-local" required />
-          </div>
-          <div>
-            <button type="submit">{{ dialogMode === 'edit' ? '保存' : '新增' }}</button>
-            <button type="button" @click="closeDialog">取消</button>
-          </div>
-        </form>
+  <div>
+    <label for="title">標題</label>
+    <input id="title" v-model="form.title" type="text" required />
+  </div>
+  <div>
+    <label for="start">開始時間</label>
+    <input id="start" v-model="form.start" type="datetime-local" required />
+  </div>
+  <div>
+    <label for="end">結束時間</label>
+    <input id="end" v-model="form.end" type="datetime-local" required />
+  </div>
+  <div>
+    <label for="description">描述</label>
+    <textarea id="description" v-model="form.description"></textarea>
+  </div>
+  <div>
+    <button type="submit">{{ dialogMode === 'edit' ? '保存' : '新增' }}</button>
+    <button type="button" @click="closeDialog">取消</button>
+  </div>
+</form>
+
       </div>
     </div>
   </div>

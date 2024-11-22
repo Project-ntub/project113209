@@ -25,6 +25,12 @@
           </router-link>
         </li>
 
+        <!-- 行事曆 -->
+        <router-link to="/frontend/calendar" class="sidebar-link">
+          <font-awesome-icon icon="calendar-alt" class="icon no-bg-icon" />
+          <span class="text" v-if="isSidebarOpen || !isSmallScreen">行事曆</span>
+        </router-link>
+
         <!-- 登出 -->
         <li>
           <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">

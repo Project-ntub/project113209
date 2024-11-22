@@ -12,7 +12,7 @@
         <div class="search-container">
           <input type="text" v-model="searchQuery" placeholder="查尋歷史紀錄..." />
           <button @click="searchHistory" class="search-btn">查尋</button>
-          <button @click="refreshPage" class="refresh-btn">重整</button>
+          <button @click="refreshPage" class="refresh-btn">重清</button>
         </div>
         
         <!-- Sort Box -->
@@ -23,7 +23,6 @@
             <option value="username">用戶</option>
             <option value="action">操作</option>
           </select>
-
           <button @click="toggleSortOrder" class="sort-order-btn">
             排序順序: {{ sortOrder === 'asc' ? '升序' : '降序' }}
           </button>
@@ -57,7 +56,7 @@
       </div>
     </div>
     <div v-else>
-      <p>您沒有權限觀看</p>
+      <p>您沒有權限瀏覽</p>
     </div>
   </div>
 </template>
@@ -147,7 +146,7 @@ body, html {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
-  background-color: #f0f8ff;
+  background-color: #f7f7f7;
 }
 
 .loading-container {
@@ -160,7 +159,7 @@ body, html {
 
 .loading-animation {
   border: 10px solid #f3f3f3;
-  border-top: 10px solid #3498db;
+  border-top: 10px solid #007bff;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -181,29 +180,27 @@ body, html {
 
 .container {
   margin: 0 auto;
-  padding: 20px 30px;
+  padding: 20px;
   max-width: 1200px;
-  width: 100%;
-  box-sizing: border-box;
   background-color: #ffffff;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
 
 .search-sort-container {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .search-container input {
-  width: 300px;
-  padding: 12px;
+  width: 250px;
+  padding: 10px;
   font-size: 16px;
-  border: 2px solid #3498db;
-  border-radius: 5px;
+  border: 1px solid #007bff;
+  border-radius: 4px;
   margin-right: 10px;
 }
 
@@ -212,25 +209,25 @@ body, html {
   font-size: 16px;
   color: #ffffff;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .search-btn {
-  background-color: #3498db;
+  background-color: #007bff;
 }
 
 .search-btn:hover {
-  background-color: #2c81b7;
+  background-color: #0069d9;
 }
 
 .refresh-btn {
-  background-color: #4a90e2;
+  background-color: #28a745;
 }
 
 .refresh-btn:hover {
-  background-color: #357ab8;
+  background-color: #218838;
 }
 
 .sort-container label {
@@ -240,20 +237,17 @@ body, html {
 
 .sort-container select {
   width: 150px;
-  padding: 10px;
-  border: 2px solid #e67e22;
-  background-color: #f39c12;
-  color: #ffffff;
-  border-radius: 5px;
-  cursor: pointer;
+  padding: 8px;
+  border: 1px solid #6c757d;
+  border-radius: 4px;
 }
 
 .sort-order-btn {
-  background-color: #e67e22;
+  background-color: #6c757d;
 }
 
 .sort-order-btn:hover {
-  background-color: #d35400;
+  background-color: #5a6268;
 }
 
 .history-container {
@@ -265,9 +259,9 @@ body, html {
   max-height: 400px;
   overflow-y: auto;
   background-color: #ffffff;
-  padding: 15px;
+  padding: 10px;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .history-table {
@@ -276,26 +270,26 @@ body, html {
 }
 
 .history-table th, .history-table td {
-  border: 1px solid #ddd;
-  padding: 15px;
+  border: 1px solid #dee2e6;
+  padding: 10px;
   text-align: center;
   font-size: 16px;
 }
 
 .history-table th {
-  background-color: #4a90e2;
+  background-color: #007bff;
   color: #ffffff;
 }
 
 .history-table tr:nth-child(even) {
-  background-color: #e1f5fe;
+  background-color: #f8f9fa;
 }
 
 .history-table tr:nth-child(odd) {
-  background-color: #ffeaa7;
+  background-color: #ffffff;
 }
 
 .history-table tr:hover {
-  background-color: #ffeb3b;
+  background-color: #f1f1f1;
 }
 </style>

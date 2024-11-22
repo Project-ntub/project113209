@@ -17,7 +17,6 @@
   font-family: 'Poppins', sans-serif; /* 使用現代字體 */
   text-align: center; /* 文字水平置中 */
 }
-
 .navbar-title {
   display: inline-flex; /* 使標題內容保持彈性布局 */
   align-items: center; /* 圖標和文字垂直居中 */

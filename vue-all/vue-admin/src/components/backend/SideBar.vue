@@ -6,6 +6,7 @@
         <span v-if="isSidebarOpen" class="username">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
+<<<<<<< HEAD
 
       <!-- 側邊欄選單 -->
       <ul class="menu-list">
@@ -57,6 +58,42 @@
           </a>
         </li>
       </ul>
+=======
+      <div class="user-section" @click="toggleUserLinks">
+  <span v-if="isSidebarActive" class="username">{{ username }}</span>
+  <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
+  <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
+</div>
+
+      <!-- User-related links, only visible when the user section is expanded -->
+      <div v-if="showUserLinks" class="user-links">
+        <router-link to="/backend/profile" class="sidebar-link">
+          <span class="icon">👤</span>
+          <span class="text">個人資料</span>
+        </router-link>
+      </div>
+      <!-- General links -->
+      <router-link to="/backend/dashboard" class="sidebar-link">
+        <span class="icon">📈</span>
+        <span class="text">儀錶板管理</span>
+      </router-link>
+      <router-link to="/backend/user-management" class="sidebar-link">
+        <span class="icon">👥</span>
+        <span class="text">用戶管理</span>
+      </router-link>
+      <router-link to="/backend/role-management" class="sidebar-link">
+        <span class="icon">🔧</span>
+        <span class="text">角色管理</span>
+      </router-link>
+      <router-link to="/backend/history" class="sidebar-link">
+        <span class="icon">🕒</span>
+        <span class="text">歷史紀錄</span>
+      </router-link>
+      <button class="sidebar-link logout-btn" @click="confirmLogout">
+        <span class="icon">🚪</span>
+        <span class="text">登出</span>
+      </button>
+>>>>>>> 03d1da3b75e6dd7268295dd1c6c971e831f0f243
     </div>
 
     <!-- 內容區域 -->
@@ -148,8 +185,14 @@ export default {
 }
 
 .username {
+<<<<<<< HEAD
   font-size: 25px;
   color: #fff;
+=======
+  margin-left: 10px;
+  font-size: 1.2rem; /* 增大字體，增強可讀性 */
+  color: #ffffff !important; /* 確保字體顏色是白色 */
+>>>>>>> 03d1da3b75e6dd7268295dd1c6c971e831f0f243
 }
 
 .toggle-btn {
