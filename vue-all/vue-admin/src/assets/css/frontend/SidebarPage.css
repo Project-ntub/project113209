@@ -1,142 +1,77 @@
-.sidebar {
+/* .sidebar {
   height: 100vh;
-  width: 60px; /* 未展開時的寬度 */
+  width: 80px;
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #636262;
+  background-color: #111;
   overflow-x: hidden;
   transition: width 0.3s ease;
-  z-index: 1001;
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  box-sizing: border-box;
+  align-items: center;
 }
 
 .sidebar.open {
-  width: 200px; /* 展開時的寬度 */
+  width: 250px;
 }
 
 .sidebar-header {
-  padding: 10px 15px;
-  font-size: 25px;
-  color: white;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: start;
-  gap: 10px;
-  margin-top: 100px; /* 調整這裡的值來控制圖示向下的距離 */
-  background-color: #636262; /* 保持側邊欄頂部背景為黑色 */
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #222;
+  color: #fff;
 }
 
-.sidebar a {
-  text-decoration: none;
-  font-size: 18px;
-  color: white;
-  display: flex;
-  align-items: center;
-  padding: 10px 15px;
-  position: relative;
-  background-color: transparent; /* 圖示背景透明 */
-  border-bottom: 1px solid #ccc; /* 為每個選項之間增加分隔線 */
-}
-
-.sidebar a:hover {
-  background-color: #575757;
-}
-
-.sidebar a .icon {
-  margin-right: 10px;
-  display: inline-block;
-  width: 25px;
-  text-align: center;
-  font-size: 33px;
-}
-
-.sidebar.open a .icon {
-  background-color: #636262; /* 展開時恢復圖示背景顏色 */
-}
-
-.sidebar.open a .text {
-  display: inline-block;
-}
-
-.sidebar a .text {
-  display: none; /* 收起時隱藏文字 */
-}
-
-.sidebar.open ~ .content {
-  margin-left: 200px; /* 展開時的內容偏移 */
-}
-
-.sidebar ~ .content {
-  margin-left: 60px; /* 未展開時的內容偏移 */
-}
-
-.sidebar .toggle-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-size: 30px;
+.toggle-btn {
   cursor: pointer;
-  color: white;
+  font-size: 24px;
 }
 
-.logout {
-  margin-top: auto;
-  padding-bottom: 20px;
-  background-color: transparent; /* 縮小時隱藏底部黑色背景 */
+.username {
+  font-size: 18px;
 }
 
-.sidebar.open .logout {
-  background-color: #636262; /* 展開時顯示底部背景 */
+.sidebar-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #333;
+}
+
+.icon {
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+.sidebar.open .icon {
+  margin-right: 20px;
+}
+
+.sidebar-link span {
+  display: none;
+}
+
+.sidebar.open .sidebar-link span {
+  display: inline;
 }
 
 .content {
-  padding: 20px;
+  margin-left: 80px;
   transition: margin-left 0.3s;
 }
 
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 50px; /* 小螢幕時未展開寬度 */
-  }
-
-  .sidebar.open {
-    width: 150px; /* 小螢幕展開時的寬度 */
-    background-color: #636262; /* 強制展開時不透明背景 */
-  }
-
-  .sidebar a {
-    display: none; /* 小螢幕未展開時隱藏所有選單項目 */
-  }
-
-  .sidebar.open a {
-    display: flex; /* 展開時顯示所有選單項目 */
-  }
-
-  .sidebar ~ .content {
-    margin-left: 50px;
-  }
-
-  .sidebar.open ~ .content {
-    margin-left: 150px;
-  }
-
-  /* 設置側邊欄的底部部分透明，並且保留頂部部分背景 */
-  .sidebar {
-    background: linear-gradient(to bottom, #636262 0%, transparent 0%);
-  }
-
-  /* 隱藏側邊欄頂部區塊背景 */
-  .sidebar-header {
-    background-color: transparent !important; /* 小螢幕時設置背景為透明 */
-  }
-
-  /* 隱藏圖示 */
-  .sidebar-header .icon {
-    display: none; /* 小螢幕時隱藏圖示 */
-  }
-}
+.content.shift {
+  margin-left: 250px;
+} */

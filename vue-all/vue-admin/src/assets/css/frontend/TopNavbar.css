@@ -1,66 +1,30 @@
+/* Navbar 整體樣式 */
 .navbar {
-  background-color: #333;
-  color: #fff;
-  padding: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
+  background: linear-gradient(90deg, #1f1f1f, #333333); /* 黑色漸變背景 */
+  color: #fff; /* 白色字體 */
+  height: 60px; /* 固定高度，方便置中 */
+  display: flex; /* 彈性佈局 */
+  align-items: center; /* 垂直置中 */
+  justify-content: center; /* 水平置中 */
+  position: fixed; /* 固定於頁面頂部 */
+  top: 0; /* 距離頁面頂部 0 */
+  left: 0; /* 距離頁面左側 0 */
+  width: 100%; /* 寬度為 100% */
+  z-index: 1000; /* 保持頂層顯示 */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 下方陰影 */
+  font-size: 28px; /* 設定字體大小 */
+  font-weight: bold; /* 字體加粗 */
+  font-family: 'Poppins', sans-serif; /* 使用現代字體 */
+  text-align: center; /* 文字水平置中 */
 }
 
 .navbar-title {
-  font-size: 30px;
-  font-weight: bold;
+  display: inline-flex; /* 使標題內容保持彈性布局 */
+  align-items: center; /* 圖標和文字垂直居中 */
 }
 
-.export-container {
-  position: absolute;
-  right: 70px;
-}
-
-.export-button {
-  background-color: #6200ea;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  margin-top: 100px; /* 向上移動，減少距離 */
-  position: absolute;
-  right: -30px; /* 向右移動更多，讓按鈕更接近右邊 */
-  font-size: 16px;
-  font-weight: bold;
-  width: auto; /* 防止按鈕變寬 */
-}
-
-.export-button:hover {
-  background-color: #3700b3;
-}
-
-.export-menu {
-  position: absolute;
-  top: 48px;
-  right: 0;
-  padding: 10px 40px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  margin-right: 20px;
-}
-
-.export-menu button {
-  background-color: #fff;
-  color: #333;
-  border: none;
-  width: 100%;
-  cursor: pointer;
-  font-size: 15px;
-  padding: 3px;
-}
-
-.export-menu button:hover {
-  background-color: #f1f1f1;
+.navbar-title i {
+  font-size: 18px; /* 圖標大小 */
+  margin-right: 10px; /* 圖標與文字的間距 */
+  color: #fff; /* 圖標顏色 */
 }
