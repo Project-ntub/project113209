@@ -4,11 +4,11 @@ body, html {
   height: 100%;
   width: 100%;
   font-family: 'Poppins', sans-serif;
-  background-color: #f4f4f4;
+  background-color: #f9f9f9;
 }
 
 .main-container {
-  width: 90vw; /* 拉寬主容器以適應螢幕寬度 */
+  width: 90vw;
   max-width: 1200px;
   margin: 1.5rem auto;
   padding: 1.5rem;
@@ -27,22 +27,27 @@ body, html {
 
 .header button {
   padding: 0.75rem 1.5rem;
-  background-color: #6c757d;
+  background-color: #4a90e2;
   color: white;
   font-size: 1rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.header button:hover {
+  background-color: #3a78c2;
 }
 
 .table-container {
-  overflow-x: auto; /* 支援水平滾動 */
-  max-height: 60vh; /* 限制表格最大高度 */
+  overflow-x: auto;
+  max-height: 60vh;
   margin-top: 1.5rem;
 }
 
 .role-table {
-  width: 100%; /* 撐滿容器寬度 */
+  width: 100%;
   border-collapse: collapse;
 }
 
@@ -50,19 +55,21 @@ body, html {
   border: 1px solid #ddd;
   padding: 1rem;
   text-align: left;
-  white-space: nowrap; /* 防止單元格內容換行 */
+  white-space: nowrap;
 }
 
 .role-table th {
-  background-color: #f2f2f2;
+  background-color: #4a90e2;
+  color: #ffffff;
+  font-weight: bold;
 }
 
 .role-table tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f5f5f5;
 }
 
 .role-table tr:hover {
-  background-color: #ddd;
+  background-color: #e0e0e0;
 }
 
 .permissions-btn, .delete-btn {
@@ -72,22 +79,23 @@ body, html {
   cursor: pointer;
   color: white;
   font-size: 1rem;
+  transition: background-color 0.3s ease;
 }
 
 .permissions-btn {
-  background-color: #007bff;
+  background-color: #4caf50;
 }
 
 .permissions-btn:hover {
-  background-color: #0056b3;
+  background-color: #45a047;
 }
 
 .delete-btn {
-  background-color: #dc3545;
+  background-color: #f44336;
 }
 
 .delete-btn:hover {
-  background-color: #c82333;
+  background-color: #e53935;
 }
 
 .switch {
@@ -110,7 +118,7 @@ body, html {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: #b0bec5;
   transition: .4s;
   border-radius: 25px;
 }
@@ -128,7 +136,7 @@ body, html {
 }
 
 input:checked + .slider {
-  background-color: #007bff;
+  background-color: #ff9800;
 }
 
 input:checked + .slider:before {
@@ -162,7 +170,7 @@ input:checked + .slider:before {
 /* 響應式設計 */
 @media (max-width: 768px) {
   .main-container {
-      width: 95vw; /* 更加適合小螢幕 */
+      width: 95vw;
       padding: 1rem;
   }
 

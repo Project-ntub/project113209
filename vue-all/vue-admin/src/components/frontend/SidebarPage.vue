@@ -1,39 +1,47 @@
 <template>
   <div>
-    <div :class="['sidebar', { open: isSidebarOpen, smallScreen: isSmallScreen }]">
-      <!-- 顯示一個圖示，點擊後展開側邊欄 -->
+    <!-- 側邊欄 -->
+    <div :class="['sidebar', { open: isSidebarOpen }]">
       <div class="sidebar-header">
-        <font-awesome-icon
-          icon="user"
-          class="icon user-icon"
-          v-if="!isSmallScreen || isSidebarOpen" 
-        />
-        <span v-if="isSidebarOpen">{{ username }}</span>
+        <span v-if="isSidebarOpen" class="username">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
 
-      <!-- 大螢幕時顯示所有圖示，小螢幕時依賴 v-if 展開 -->
-      <div v-if="isSidebarOpen || !isSmallScreen">
+      <!-- 側邊欄選單 -->
+      <ul class="menu-list">
         <!-- 儀表板 -->
-        <router-link to="/frontend/home" class="sidebar-link">
-          <font-awesome-icon icon="chart-pie" class="icon" />
-          <span class="text" v-if="isSidebarOpen || !isSmallScreen">儀錶板管理</span>
-        </router-link>
+        <li>
+          <router-link to="/frontend/home" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-tachometer-alt icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">儀錶板管理</span>
+          </router-link>
+        </li>
 
         <!-- 個人資訊 -->
-        <router-link to="/frontend/profile" class="sidebar-link">
-          <font-awesome-icon icon="user" class="icon second-icon" />
-          <span class="text" v-if="isSidebarOpen || !isSmallScreen">個人資訊</span>
+        <li>
+          <router-link to="/frontend/profile" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-user icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">個人資訊</span>
+          </router-link>
+        </li>
+
+        <!-- 行事曆 -->
+        <router-link to="/frontend/calendar" class="sidebar-link">
+          <font-awesome-icon icon="calendar-alt" class="icon no-bg-icon" />
+          <span class="text" v-if="isSidebarOpen || !isSmallScreen">行事曆</span>
         </router-link>
 
         <!-- 登出 -->
-        <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
-          <font-awesome-icon icon="sign-out-alt" class="icon" />
-          <span class="text" v-if="isSidebarOpen || !isSmallScreen">登出</span>
-        </a>
-      </div>
+        <li>
+          <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
+            <font-awesome-icon icon="fas fa-sign-out-alt icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">登出</span>
+          </a>
+        </li>
+      </ul>
     </div>
 
+    <!-- 內容區域 -->
     <div :class="['content', { shift: isSidebarOpen }]">
       <slot></slot>
     </div>
@@ -41,22 +49,23 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
-  name: 'SidebarPage',
+  name: "SidebarPage",
   data() {
     return {
-      isSidebarOpen: false,
-      isSmallScreen: false, // 判斷是否為小螢幕
-      username: ''
+      isSidebarOpen: false, // 側邊欄開關狀態
+      username: "Eva", // 使用者名稱
     };
   },
   methods: {
     toggleSidebar() {
+      // 切換側邊欄開關狀態
       this.isSidebarOpen = !this.isSidebarOpen;
     },
     confirmLogout() {
+      // 確認是否登出
       const confirmed = confirm("確定要登出嗎？");
       if (confirmed) {
         this.logout();
@@ -64,57 +73,137 @@ export default {
     },
     async logout() {
       try {
-        // 發送登出請求到後端
-        await axios.post('/api/backend/logout/');
+        await axios.post("/api/backend/logout/");
       } catch (error) {
-        console.error('登出失敗', error);
+        console.error("登出失敗", error);
       }
 
-      // 清除 localStorage
+      // 清除本地數據並跳轉到登入頁面
       window.localStorage.clear();
-
-      // 清除 sessionStorage
       window.sessionStorage.clear();
-
-      // 清除所有 Cookies
-      document.cookie.split(";").forEach(function(c) { 
+      document.cookie.split(";").forEach((c) => {
         document.cookie = c.trim() + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       });
-
-      // 導向登入頁面
-      this.$router.push('/frontend/login');
-
-      // 阻止返回上一頁
-      history.pushState(null, null, location.href);
-      window.onpopstate = function() {
-        history.go(1); // 強制前進，阻止返回
-      };
-
-      // 強制刷新頁面，確保狀態重置
+      this.$router.push("/frontend/login");
       location.reload();
     },
     async fetchUserData() {
       try {
-        const response = await axios.get('/api/frontend/profile/');
+        const response = await axios.get("/api/frontend/profile/");
         this.username = response.data.username;
       } catch (error) {
-        console.error('Failed to fetch user data:', error);
+        console.error("Failed to fetch user data:", error);
       }
     },
-    checkScreenSize() {
-      this.isSmallScreen = window.innerWidth <= 768;
-    }
   },
   mounted() {
     this.fetchUserData();
-    this.checkScreenSize(); // 初始檢查螢幕大小
-    window.addEventListener('resize', this.checkScreenSize); // 監聽螢幕大小變化
   },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.checkScreenSize);
-  }
 };
 </script>
 
-<!-- 引入外部的 CSS 文件 -->
-<style scoped src="@/assets/css/frontend/SidebarPage.css"></style>
+<style scoped>
+/* 側邊欄樣式 */
+.sidebar {
+  height: 100vh;
+  width: 80px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #1e1e2f;
+  transition: width 0.3s ease;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  width: 180px;
+}
+
+.sidebar-header {
+  padding: 15px;
+  font-size: 30px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #13131e;
+}
+
+.username {
+  font-size: 25px;
+  color: #fff;
+}
+
+.toggle-btn {
+  font-size: 24px;
+  cursor: pointer;
+  color: #fff;
+}
+
+/* 側邊欄選單樣式 */
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  font-size: 16px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  transition: background-color 0.3s ease, padding-left 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #3a3a4f;
+  padding-left: 30px;
+}
+
+.sidebar-link .icon {
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.sidebar-link .text {
+  display: none;
+}
+
+.sidebar.open .sidebar-link .text {
+  display: inline-block;
+}
+
+/* 內容區域樣式 */
+.content {
+  margin-left: 80px;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.open ~ .content {
+  margin-left: 250px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+  }
+
+  .sidebar.open {
+    width: 200px;
+  }
+
+  .content {
+    margin-left: 80px;
+  }
+
+  .sidebar.open ~ .content {
+    margin-left: 200px;
+  }
+}
+</style>

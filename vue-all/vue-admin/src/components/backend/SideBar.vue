@@ -1,16 +1,70 @@
 <template>
   <div>
-    <!-- Sidebar only displayed if not on reset password or register page -->
-    <div v-if="!hideSidebar" :class="['sidebar', { open: isSidebarActive }]">
+    <!-- 側邊欄 -->
+    <div :class="['sidebar', { open: isSidebarOpen }]">
       <div class="sidebar-header">
+        <span v-if="isSidebarOpen" class="username">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
+<<<<<<< HEAD
+
+      <!-- 側邊欄選單 -->
+      <ul class="menu-list">
+        <!-- 儀表板 -->
+        <li>
+          <router-link to="/backend/dashboard" class="sidebar-link">
+            <font-awesome-icon icon="tachometer-alt" class="icon" />
+            <span class="text" v-if="isSidebarOpen">儀錶板管理</span>
+          </router-link>
+        </li>
+
+        <!-- 用戶管理 -->
+        <li>
+          <router-link to="/backend/user-management" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-users icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">用戶管理</span>
+          </router-link>
+        </li>
+
+        <!-- 角色管理 -->
+        <li>
+          <router-link to="/backend/role-management" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-user-shield icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">角色管理</span>
+          </router-link>
+        </li>
+
+        <!-- 歷史紀錄 -->
+        <li>
+          <router-link to="/backend/history" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-history icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">歷史紀錄</span>
+          </router-link>
+        </li>
+
+        <!-- 個人資訊 -->
+        <li>
+          <router-link to="/backend/profile" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-user icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">個人資訊</span>
+          </router-link>
+        </li>
+
+        <!-- 登出 -->
+        <li>
+          <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
+            <font-awesome-icon icon="fas fa-sign-out-alt icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">登出</span>
+          </a>
+        </li>
+      </ul>
+=======
       <div class="user-section" @click="toggleUserLinks">
-        <font-awesome-icon icon="user" class="icon user-icon" />
-        <span v-if="isSidebarActive" class="username">{{ username }}</span>
-        <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
-        <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
-      </div>
+  <span v-if="isSidebarActive" class="username">{{ username }}</span>
+  <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
+  <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
+</div>
+
       <!-- User-related links, only visible when the user section is expanded -->
       <div v-if="showUserLinks" class="user-links">
         <router-link to="/backend/profile" class="sidebar-link">
@@ -39,99 +93,176 @@
         <span class="icon">🚪</span>
         <span class="text">登出</span>
       </button>
+>>>>>>> 03d1da3b75e6dd7268295dd1c6c971e831f0f243
     </div>
-    
-    <!-- content section -->
-    <div :class="['content', { shift: isSidebarActive }]">
+
+    <!-- 內容區域 -->
+    <div :class="['content', { shift: isSidebarOpen }]">
       <slot></slot>
     </div>
   </div>
 </template>
-
 <script>
-import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import axios from "axios";
 
 export default {
-  components: {
-    FontAwesomeIcon
-  },
+  name: "BackendSidebar",
   data() {
     return {
-      username: '',
-      showUserLinks: false, // Controls display of user-related links
+      isSidebarOpen: false, // 側邊欄開關狀態
+      username: "", // 使用者名稱
     };
-  },
-  computed: {
-    hideSidebar() {
-      // Hide sidebar on specific pages
-      return this.$route.name === 'BackendForgetPassword' || this.$route.name === 'BackendRegister';
-    },
-  },
-  props: {
-    isSidebarActive: {
-      type: Boolean,
-      default: false,
-    },
   },
   methods: {
     toggleSidebar() {
-      this.$emit('toggle-sidebar');
-    },
-    toggleUserLinks() {
-      this.showUserLinks = !this.showUserLinks;
+      // 切換側邊欄開關狀態
+      this.isSidebarOpen = !this.isSidebarOpen;
     },
     confirmLogout() {
-      const confirmed = confirm('確定要登出嗎？');
+      // 確認是否登出
+      const confirmed = confirm("確定要登出嗎？");
       if (confirmed) {
-        this.handleLogout();
+        this.logout();
       }
     },
-    async handleLogout() {
+    async logout() {
       try {
-        await axios.post('/api/backend/logout/');
-        localStorage.removeItem('token');
-        history.replaceState(null, null, '/backend/login');
-        window.addEventListener('popstate', () => {
-          history.pushState(null, null, document.URL);
-        });
-        this.$router.replace('/backend/login');
-        setTimeout(() => {
-          location.reload();
-        }, 100);
+        await axios.post("/api/backend/logout/");
       } catch (error) {
-        console.error('登出失敗', error);
+        console.error("登出失敗", error);
       }
+
+      // 清除本地數據並跳轉到登入頁面
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.trim() + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      });
+      this.$router.push("/backend/login");
+      location.reload();
     },
     async fetchUserData() {
       try {
-        const response = await axios.get('/api/backend/profile/');
+        const response = await axios.get("/api/backend/profile/");
         this.username = response.data.username;
       } catch (error) {
-        console.error('無法獲取用戶資料:', error);
+        console.error("無法獲取用戶資料:", error);
       }
     },
   },
   mounted() {
-    this.fetchUserData(); // Load user data on mount
+    this.fetchUserData();
   },
 };
 </script>
-
-<style scoped src="@/assets/css/backend/SideBar.css"></style>
 <style scoped>
-.user-section {
+/* 側邊欄樣式 */
+.sidebar {
+  height: 100vh;
+  width: 80px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #1e1e2f;
+  transition: width 0.3s ease;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  width: 180px;
+}
+
+.sidebar-header {
+  padding: 15px;
+  font-size: 30px;
+  color: #fff;
   display: flex;
   align-items: center;
-  cursor: pointer;
+  justify-content: space-between;
+  background-color: #13131e;
 }
 
 .username {
-  margin-left: 8px;
+<<<<<<< HEAD
+  font-size: 25px;
+  color: #fff;
+=======
+  margin-left: 10px;
+  font-size: 1.2rem; /* 增大字體，增強可讀性 */
+  color: #ffffff !important; /* 確保字體顏色是白色 */
+>>>>>>> 03d1da3b75e6dd7268295dd1c6c971e831f0f243
 }
 
-.arrow-icon {
-  margin-left: auto; /* 將箭頭推到最右邊 */
-  padding-left: 4px;
+.toggle-btn {
+  font-size: 24px;
+  cursor: pointer;
+  color: #fff;
+}
+
+/* 側邊欄選單樣式 */
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  font-size: 16px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  transition: background-color 0.3s ease, padding-left 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: #3a3a4f;
+  padding-left: 30px;
+}
+
+.sidebar-link .icon {
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+.sidebar-link .text {
+  display: none;
+}
+
+.sidebar.open .sidebar-link .text {
+  display: inline-block;
+}
+
+/* 內容區域樣式 */
+.content {
+  margin-left: 80px;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.open ~ .content {
+  margin-left: 250px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+  }
+
+  .sidebar.open {
+    width: 200px;
+  }
+
+  .content {
+    margin-left: 80px;
+  }
+
+  .sidebar.open ~ .content {
+    margin-left: 200px;
+  }
 }
 </style>

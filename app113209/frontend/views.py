@@ -57,27 +57,37 @@ from app113209.models import CalendarEvent
 import json
 
 # 獲取日曆事件
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from app113209.models import CalendarEvent
+import json
+
+# 獲取日曆事件的視圖，處理 GET 請求
 def get_calendar_events(request):
     if request.method == 'GET':
-        events = CalendarEvent.objects.all()
-        event_list = [
-            {
-                "id": event.id,
-                "title": event.title,
-                "start": event.start.isoformat(),
-                "end": event.end.isoformat(),
-                "description": event.description,
-            }
-            for event in events
-        ]
-        return JsonResponse(event_list, safe=False)
+        try:
+            events = CalendarEvent.objects.all()  # 查詢所有事件
+            event_list = [
+                {
+                    "id": event.id,
+                    "title": event.title,
+                    "start": event.start.isoformat(),  # 使用 ISO 格式返回時間
+                    "end": event.end.isoformat(),
+                    "description": event.description,
+                }
+                for event in events
+            ]
+            return JsonResponse(event_list, safe=False)  # 返回事件列表的 JSON 數據
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-@csrf_exempt  # 取消 CSRF 保護以允許未驗證的 POST 請求
+# 新增事件的視圖
+@csrf_exempt  # 如果有 CSRF 問題，可以使用這個裝飾器（僅供測試環境）
 def add_calendar_event(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            # 將接收到的事件資料存入資料庫
             new_event = CalendarEvent.objects.create(
                 title=data.get('title'),
                 start=data.get('start'),
@@ -93,6 +103,8 @@ def add_calendar_event(request):
             }, status=201)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 
 # @csrf_exempt
 # def update_calendar_event(request, event_id):
