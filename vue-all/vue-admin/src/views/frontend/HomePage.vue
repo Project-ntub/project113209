@@ -106,11 +106,21 @@ export default {
               ? JSON.parse(chart.filter_conditions || '{}') 
               : chart.filter_conditions || {};
 
+            let y_field = null;
+            let y_fields = null;
+
+            if (chart.chartType === 'multi_line' || chart.chartType === 'combo') {
+              y_fields = chart.yAxisFields || [];
+            } else {
+              y_field = chart.yAxisField;
+            }
             // 發送請求到後端獲取動態圖表數據
             const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
               table_name: chart.dataSource,
               x_field: chart.xAxisField,
-              y_field: chart.yAxisField,
+              y_field: y_field,
+              y_fields: y_fields,
+              chart_type: chart.chartType,
               filter_conditions: filterConditions,
               join_fields: chart.joinFields || []
             });
@@ -200,3 +210,4 @@ export default {
 </script>
 
 <style scoped src="@/assets/css/frontend/HomePage.css"></style>
+ 
