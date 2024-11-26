@@ -7,6 +7,8 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import VueCookies from 'vue-cookies'; // 引入 vue-cookies 插件
+import 'vue-multiselect/dist/vue-multiselect.min.css';
+
 
 // 初始化應用程序
 const app = createApp(App);

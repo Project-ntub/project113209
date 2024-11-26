@@ -90,12 +90,15 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
     dataSource = serializers.CharField(source='data_source', read_only=True)
     xAxisField = serializers.CharField(source='x_axis_field', read_only=True)
     yAxisField = serializers.CharField(source='y_axis_field', read_only=True)
-    
+    yAxisFields = serializers.ListField(source='y_axis_fields', read_only=True)
+
     # 寫入時接受蛇形命名
     chart_type = serializers.CharField(write_only=True)
     data_source = serializers.CharField(write_only=True)
     x_axis_field = serializers.CharField(write_only=True)
-    y_axis_field = serializers.CharField(write_only=True)
+    y_axis_field = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    y_axis_fields = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+
 
     color = serializers.JSONField(required=False)
 
@@ -104,12 +107,20 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
         model = ChartConfiguration
         fields = '__all__'
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # 確保 filter_conditions 正確地對應為 filterConditions
+        data['filterConditions'] = data.pop('filterConditions', {})
+        return data
+
     def to_internal_value(self, data):
         # 允許前端使用駝峰命名或蛇形命名
         data['chart_type'] = data.get('chartType', data.get('chart_type'))
         data['data_source'] = data.get('dataSource', data.get('data_source'))
         data['x_axis_field'] = data.get('xAxisField', data.get('x_axis_field'))
         data['y_axis_field'] = data.get('yAxisField', data.get('y_axis_field'))
+        data['y_axis_fields'] = data.get('yAxisFields', data.get('y_axis_fields'))
+        data['filter_conditions'] = data.get('filterConditions', data.get('filter_conditions'))
         return super().to_internal_value(data)
 
     def validate(self, data):
@@ -123,18 +134,27 @@ class ChartConfigurationSerializer(serializers.ModelSerializer):
         
         # 確保 x 軸資料欄位不為空
         if not data.get('x_axis_field'):
-            raise serializers.ValidationError({'x_axis_field': 'x 軸資料欄位不能為空.'})
+            raise serializers.ValidationError({'x_axis_field': 'X 軸資料欄位不能為空.'})
         
-        # 確保 y 軸資料欄位不為空
-        if not data.get('y_axis_field'):
-            raise serializers.ValidationError({'y_axis_field': 'y 軸資料欄位不能為空.'})
+        chart_type = data.get('chart_type')
+
+        if chart_type in ['multi_line', 'combo']:
+            # 對於 multi_line 和 combo 圖表，驗證 y_axis_fields
+            y_axis_fields = data.get('y_axis_fields')
+            if not y_axis_fields or len(y_axis_fields) < 2:
+                raise serializers.ValidationError({'y_axis_fields': '請至少選擇兩個 Y 軸欄位。'})
+        else:
+            # 對於其他圖表類型，驗證 y_axis_field
+            if not data.get('y_axis_field'):
+                raise serializers.ValidationError({'y_axis_field': 'Y 軸資料欄位不能為空。'})
         
         # 確保過濾條件是字典而不是字符串
         if 'filter_conditions' in data and data['filter_conditions']:
-            try:
-                data['filter_conditions'] = json.loads(data['filter_conditions'])
-            except json.JSONDecodeError:
-                raise serializers.ValidationError("Filter conditions must be valid JSON.")
+            if isinstance(data['filter_conditions'], str):
+                try:
+                    data['filter_conditions'] = json.loads(data['filter_conditions'])
+                except json.JSONDecodeError:
+                    raise serializers.ValidationError("Filter conditions must be valid JSON.")
         return data
     
 class UserPreferencesSerializer(serializers.ModelSerializer):

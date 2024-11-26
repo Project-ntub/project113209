@@ -732,7 +732,6 @@ def get_data_sources(request):
     ]
     return Response(data_sources)
 
-
 MODEL_MAPPING = {
     'TEST_Inventory': TEST_Inventory,
     'TEST_Products': TEST_Products,
@@ -755,7 +754,10 @@ def dynamic_chart_data(request):
     limit = request.data.get('limit', None)
     chart_type = request.data.get('chart_type')
 
-    logger.info(f"Fetching data from {table_name} with x_field={x_field}, y_field={y_field}, filters={filter_conditions}, ordering={ordering}, limit={limit}")
+    logger.info(f"Fetching data from {table_name} with x_field={x_field}, y_field={y_field}, y_fields={y_fields}, chart_type={chart_type}, filters={filter_conditions}, ordering={ordering}, limit={limit}")
+
+    if not y_field or not isinstance(y_field, str):
+        y_field = None
 
     if not table_name:
         logger.error("table_name 未提供")
@@ -767,22 +769,37 @@ def dynamic_chart_data(request):
         return JsonResponse({'error': '資料表不存在'}, status=400)
 
     # 驗證 x_field 和 y_field
+    # 驗證 x_field
     if not validate_lookup(model, x_field):
         logger.error(f"x_field {x_field} does not exist in model {table_name}")
         return JsonResponse({'error': f"x_field {x_field} 不存在於資料表 {table_name}"}, status=400)
 
-    # 对于部分图表类型，y_field 可能不存在，例如 heatmap，所以我们需要根据情况进行验证
-    if chart_type not in ['heatmap'] and not validate_lookup(model, y_field):
-        logger.error(f"y_field {y_field} does not exist in model {table_name}")
-        return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
+    # 驗證 y_field 或 y_fields
+    if chart_type in ['multi_line', 'combo']:
+        if not y_fields or not isinstance(y_fields, list):
+            logger.error("y_fields 未提供或格式不正确")
+            return JsonResponse({'error': 'y_fields 未提供或格式不正确'}, status=400)
+        for y_f in y_fields:
+            if not validate_lookup(model, y_f):
+                logger.error(f"y_field {y_f} does not exist in model {table_name}")
+                return JsonResponse({'error': f"y_field {y_f} 不存在於資料表 {table_name}"}, status=400)
+        # 對於 multi_line 和 combo 圖表，y_field 可以為 None
+        y_field = None  # 確保後續程式碼不會因為 y_field 為 None 而出錯
+    else:
+        if not y_field or not validate_lookup(model, y_field):
+            logger.error(f"y_field {y_field} does not exist in model {table_name}")
+            return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
 
     try:
         queryset = model.objects.all()
 
         # 處理關聯字段
-        select_related_fields = get_select_related_fields(x_field) + get_select_related_fields(y_field)
-        if select_related_fields:
-            queryset = queryset.select_related(*select_related_fields)
+        select_related_fields = get_select_related_fields(x_field)
+        if y_field:
+            select_related_fields += get_select_related_fields(y_field)
+        elif y_fields:
+            for y_f in y_fields:
+                select_related_fields += get_select_related_fields(y_f)
 
         # 處理過濾條件
         if isinstance(filter_conditions, dict) and filter_conditions:
@@ -800,10 +817,12 @@ def dynamic_chart_data(request):
         response_data = {}
 
         if chart_type == 'multi_line':
+            if not y_fields:
+                return JsonResponse({'error': 'y_fields 未提供'}, status=400)
             data = {}
             x_data = []
             for y_field in y_fields:
-                if not validate_lookup(model, y_field):
+                if y_field and not validate_lookup(model, y_field):
                     logger.error(f"y_field {y_field} does not exist in model {table_name}")
                     return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
                 aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
@@ -813,51 +832,51 @@ def dynamic_chart_data(request):
                 data[y_field] = y_data
             response_data['x_data'] = x_data
             response_data['y_data'] = data
-        elif chart_type == 'heatmap':
-            # 假設需要兩個字段作為 x 和 y 軸，第三個字段作為 z 值
-            y_field = request.data.get('y_field')
-            z_field = request.data.get('z_field')
-            if not validate_lookup(model, y_field) or not validate_lookup(model, z_field):
-                logger.error(f"One of the fields {y_field} or {z_field} does not exist in model {table_name}")
-                return JsonResponse({'error': f"One of the fields {y_field} or {z_field} 不存在於資料表 {table_name}"}, status=400)
-            data = queryset.values(x_field, y_field).annotate(z_value=Sum(z_field))
-            x_data = list(set(item[x_field] for item in data))
-            y_data = list(set(item[y_field] for item in data))
-            z_data = [[0 for _ in x_data] for _ in y_data]
-            x_index = {x: i for i, x in enumerate(x_data)}
-            y_index = {y: i for i, y in enumerate(y_data)}
-            for item in data:
-                i = y_index[item[y_field]]
-                j = x_index[item[x_field]]
-                z_data[i][j] = float(item['z_value']) if item['z_value'] is not None else 0
-            response_data['x_data'] = x_data
-            response_data['y_data'] = y_data
-            response_data['z_data'] = z_data
         elif chart_type == 'combo':
-            y_field_bar = request.data.get('y_field_bar')
-            y_field_line = request.data.get('y_field_line')
-            if not validate_lookup(model, y_field_bar) or not validate_lookup(model, y_field_line):
-                logger.error(f"One of the y_fields {y_field_bar} or {y_field_line} does not exist in model {table_name}")
-                return JsonResponse({'error': f"One of the y_fields {y_field_bar} or {y_field_line} 不存在於資料表 {table_name}"}, status=400)
+            if not y_fields or len(y_fields) < 2:
+                return JsonResponse({'error': 'combo 图表需要至少两个 y_fields'}, status=400)
+            data = {}
+            x_data = []
+            y_data_bar = []
+            y_data_line = []
 
-            data_bar = queryset.values(x_field).annotate(y_sum=Sum(y_field_bar))
-            data_line = queryset.values(x_field).annotate(y_avg=Avg(y_field_line))
+            # 第一个 y_field 用于柱状图
+            y_field_bar = y_fields[0]
+            if not validate_lookup(model, y_field_bar):
+                logger.error(f"y_field {y_field_bar} does not exist in model {table_name}")
+                return JsonResponse({'error': f"y_field {y_field_bar} 不存在於資料表 {table_name}"}, status=400)
+            aggregated_data_bar = queryset.values(x_field).annotate(y_sum=Sum(y_field_bar))
+            x_data = [item[x_field] for item in aggregated_data_bar]
+            y_data_bar = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data_bar]
 
-            x_data = [item[x_field] for item in data_bar]
-            y_data_bar = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in data_bar]
-            y_data_line = [float(item['y_avg']) if item['y_avg'] is not None else 0 for item in data_line]
+            # 第二个 y_field 用于折线图
+            y_field_line = y_fields[1]
+            if not validate_lookup(model, y_field_line):
+                logger.error(f"y_field {y_field_line} does not exist in model {table_name}")
+                return JsonResponse({'error': f"y_field {y_field_line} 不存在於資料表 {table_name}"}, status=400)
+            aggregated_data_line = queryset.values(x_field).annotate(y_sum=Sum(y_field_line))
+            y_data_line = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data_line]
 
             response_data['x_data'] = x_data
             response_data['y_data_bar'] = y_data_bar
             response_data['y_data_line'] = y_data_line
+            response_data['y_field_bar'] = y_field_bar
+            response_data['y_field_line'] = y_field_line
         elif chart_type == 'horizontal_bar':
+                # 检查 y_field 是否存在
+            if y_field and not validate_lookup(model, y_field):
+                logger.error(f"y_field {y_field} does not exist in model {table_name}")
+                return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
             aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
-            x_data = [item['y_sum'] for item in aggregated_data]
+            x_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
             y_data = [item[x_field] for item in aggregated_data]
-            response_data['x_data'] = x_data
-            response_data['y_data'] = y_data
+            response_data['x_data'] = x_data  # 数值
+            response_data['y_data'] = y_data  # 分类标签
         else:
             # 默認處理
+            if y_field is None:
+                logger.error("y_field 未提供，無法進行預設的聚合處理")
+                return JsonResponse({'error': 'y_field 未提供，無法產生圖表數據'}, status=400)
             aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
             x_data = [item[x_field] for item in aggregated_data]
             y_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
@@ -886,9 +905,11 @@ def dynamic_chart_data(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 def get_select_related_fields(field_name):
+    if not field_name or not isinstance(field_name, str):
+        return []
     parts = field_name.split('__')
     if len(parts) > 1:
-        # 返回所有关联字段的路径
+        # 傳回所有關聯欄位的路徑
         return ['__'.join(parts[:i]) for i in range(1, len(parts))]
     else:
         return []
@@ -1357,15 +1378,17 @@ class StoreComparisonChartDataAPIView(APIView):
     
 def validate_lookup(model, lookup):
     """
-    验证给定的查询字段路径是否在模型中存在。
+    驗證給定的查詢欄位路徑是否在模型中存在。
 
     Args:
         model (models.Model): Django 模型类。
         lookup (str): 查询字段路径，例如 'product__category__name'。
 
     Returns:
-        bool: 如果查询路径存在，返回 True，否则返回 False。
+        bool: 如果查詢路徑存在，則傳回 True，否則傳回 False。
     """
+    if not lookup:
+        return False
     parts = lookup.split('__')
     current_model = model
     for part in parts:

@@ -236,13 +236,13 @@ export default {
 </script>
 
 <style scoped>
-.chart-container {
+/* .chart-container {
   position: relative;
   padding: 10px;
   background-color: white;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 圖表容器樣式 */
-}
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* 圖表容器樣式
+} */
 
 .chart-header {
   position: absolute;

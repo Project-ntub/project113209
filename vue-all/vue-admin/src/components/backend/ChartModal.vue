@@ -48,8 +48,8 @@
             </select>
           </div>
 
-          <!-- Y 軸欄位選擇，當資料來源有欄位時顯示 -->
-          <div class="setting" v-if="tableFields.length > 0">
+          <!-- 單一 Y 軸欄選擇，當圖表類型不是 'multi_line' 或 'combo' 時顯示-->
+          <div class="setting" v-if="tableFields.length > 0 && chartData.chartType !== 'multi_line' && chartData.chartType !== 'combo'">
             <label for="y-axis-field">Y 軸欄位</label>
             <select id="y-axis-field" v-model="chartData.yAxisField">
               <option v-for="field in tableFields" :key="field.name" :value="field.name">
@@ -58,14 +58,22 @@
             </select>
           </div>
 
-          <!-- Y 軸欄位選擇，當資料來源有欄位時顯示 -->
+          <!-- 多個 Y 軸欄位選擇 -->
           <div class="setting" v-if="chartData.chartType === 'multi_line' || chartData.chartType === 'combo'">
-            <label for="y-axis-fields">Y 軸欄位（可多選）</label>
-            <select id="y-axis-fields" v-model="chartData.yAxisFields" multiple>
-              <option v-for="field in tableFields" :key="field.name" :value="field.name">
-                {{ field.verbose_name || field.name }}
-              </option>
-            </select>
+            <label for="y-axis-fields">Y 軸欄位（可多重選擇，至少選兩個）</label>
+            <multiselect
+              id="y-axis-fields"
+              v-model="chartData.yAxisFields"
+              :options="tableFields"
+              :multiple="true"
+              :close-on-select="false"
+              :clear-on-select="false"
+              :preserve-search="true"
+              :preselect-first="false"
+              label="verbose_name"
+              track-by="name"
+              placeholder="請選擇 Y 軸欄位"
+            ></multiselect>
           </div>
 
           <label for="chart-color">圖表顏色</label>
@@ -114,6 +122,7 @@
 import axios from 'axios';
 import { Chrome } from '@ckpack/vue-color';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
+import Multiselect from 'vue-multiselect';
 
 // 引入不同類型的過濾組件
 import TextFilter from '@/components/backend/filters/TextFilter.vue';
@@ -129,19 +138,20 @@ export default {
     SelectFilter,
     CheckboxFilter,
     NumberFilter,
-    DateFilter, 
+    DateFilter,
     Chrome,
+    Multiselect,
   },
   props: {
     isEditing: Boolean, // 判斷是否為編輯模式
     chartId: {
       type: Number,
-      default: null // 圖表ID，若為新增則為 null
+      default: null, // 圖表ID，若為新增則為 null
     },
     fetchChartConfig: {
       type: Function,
-      required: true // 必須傳遞獲取圖表配置的方法
-    }
+      required: true, // 必須傳遞獲取圖表配置的方法
+    },
   },
   data() {
     return {
@@ -161,10 +171,10 @@ export default {
         yAxisFields: [],
         color: {
           hex: '#000000',
-        },       
+        },
         threshold: null, // 閾值
       },
-      summary: "",  // 數據摘要
+      summary: '', // 數據摘要
       dataSource: [
         { value: 'TEST_Inventory', label: '庫存數據' },
         { value: 'TEST_Sales', label: '銷售數據' },
@@ -175,8 +185,7 @@ export default {
       tableFields: [], // 儲存選定資料來源的欄位
       filtersMetadata: [], // 儲存可用的過濾條件
       filterValues: {}, // 儲存用戶設置的過濾值
-
-
+      isLoadingConfig: false,
     };
   },
   mounted() {
@@ -210,9 +219,28 @@ export default {
     },
     // 監視 Y 軸欄位的變化，並根據變化獲取圖表數據
     'chartData.yAxisField'(newVal) {
-      if (newVal && this.chartData.xAxisField) {
+      if (
+        newVal &&
+        this.chartData.xAxisField &&
+        this.chartData.chartType !== 'multi_line' &&
+        this.chartData.chartType !== 'combo'
+      ) {
         this.fetchChartData();
       }
+    },
+    'chartData.yAxisFields': {
+      handler(newVal) {
+        if (
+          !this.isLoadingConfig && // 確保不是在在入配置時
+          newVal &&
+          newVal.length >= 2 &&
+          this.chartData.xAxisField &&
+          (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo')
+        ) {
+          this.fetchChartData();
+        }
+      },
+      deep: true,
     },
     // 監視排序條件的變化，並根據變化獲取圖表數據
     'chartData.ordering'() {
@@ -231,8 +259,8 @@ export default {
       handler() {
         this.updateFilterConditions();
       },
-      deep: true // 深度監視對象內部變化
-    }
+      deep: true, // 深度監視對象內部變化
+    },
   },
   methods: {
     fetchDataSources() {
@@ -240,43 +268,52 @@ export default {
       // 目前假設是靜態的，已在 data 中定義
     },
     async fetchTableFieldsMetadata() {
-      // 獲取選定資料來源的欄位元數據
+      return new Promise(async (resolve, reject) => {
+        try {
+          const response = await axios.get(`/api/backend/table-fields-metadata/${this.chartData.dataSource}/`);
+          this.tableFields = response.data.fields;
+          console.log('獲取到的 tableFields:', this.tableFields.map(field => field.name));
+          // 根據欄位類型過濾出可用的過濾條件
+          this.filtersMetadata = this.tableFields.filter(field => this.isFilterable(field));
+          // 重置過濾條件
+          this.filterValues = {};
+          this.chartData.filterConditions = {};
+          // 初始化 filterValues
+          this.filtersMetadata.forEach(filter => {
+            this.filterValues[filter.name] = this.getDefaultFilterValue(filter);
+          });
+          resolve();
+        } catch (error) {
+          console.error('獲取欄位元數據出錯:', error);
+          alert('獲取欄位元數據時出錯，請檢查後端日誌。');
+          reject(error);
+        }
+      });
+    },
+    async fetchChartSummary() {
       try {
-        const response = await axios.get(`/api/backend/table-fields-metadata/${this.chartData.dataSource}/`);
-        this.tableFields = response.data.fields;
-        // 根據欄位類型過濾出可用的過濾條件
-        this.filtersMetadata = this.tableFields.filter(field => this.isFilterable(field));
-        // 重置過濾條件
-        this.filterValues = {};
-        this.chartData.filterConditions = {};
-        // 初始化 filterValues
-        this.filtersMetadata.forEach(filter => {
-          this.filterValues[filter.name] = this.getDefaultFilterValue(filter);
+        const response = await axios.post('/api/backend/chart-summary/', {
+          table_name: this.chartData.dataSource,
+          x_field: this.chartData.xAxisField,
+          y_field: this.chartData.yAxisField,
+          filter_conditions: this.chartData.filterConditions,
         });
+        this.summary = response.data.summary;
       } catch (error) {
-        console.error('獲取欄位元數據出錯:', error);
-        alert('獲取欄位元數據時出錯，請檢查後端日誌。');
+        console.error('獲取數據摘要時出錯:', error);
       }
     },
-
-    async fetchChartSummary() {
-    try {
-      const response = await axios.post('/api/backend/chart-summary/', {
-        table_name: this.chartData.dataSource,
-        x_field: this.chartData.xAxisField,
-        y_field: this.chartData.yAxisField,
-        filter_conditions: this.chartData.filterConditions
-      });
-      this.summary = response.data.summary;
-    } catch (error) {
-      console.error('獲取數據摘要時出錯:', error);
-    }
-  },
-
-
     isFilterable(field) {
       // 定義哪些欄位可以過濾，根據需要調整
-      const filterableTypes = ['CharField', 'TextField', 'IntegerField', 'FloatField', 'DateTimeField', 'DateField', 'ForeignKey'];
+      const filterableTypes = [
+        'CharField',
+        'TextField',
+        'IntegerField',
+        'FloatField',
+        'DateTimeField',
+        'DateField',
+        'ForeignKey',
+      ];
       return filterableTypes.includes(field.type);
     },
     getFilterComponent(filter) {
@@ -365,40 +402,80 @@ export default {
       this.chartData.filterConditions = conditions;
       this.fetchChartData(); // 更新圖表數據
     },
-    async fetchChartData() { // 標記為 async
-      // 獲取圖表數據的函數
-      if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
-        console.error('dataSource, xAxisField, 和 yAxisField 必須設置');
+    async fetchChartData() {
+      if (!this.chartData.dataSource || !this.chartData.xAxisField) {
+        console.error('資料來源和 X 軸欄位必須設置');
         return;
       }
+
+      // 根據圖表類型設置 y_field 和 y_fields
+      let y_field = null;
+      let y_fields = null;
+
+      console.log('chartData.yAxisFields:', this.chartData.yAxisFields);
+
+      if (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo') {
+        if (!this.chartData.yAxisFields || this.chartData.yAxisFields.length < 2) {
+          console.error('請選擇至少兩個 Y 軸欄位');
+          return;
+        }
+        y_fields = this.chartData.yAxisFields.map(field => field.name).filter(name => name);
+        console.log('生成的 y_fields:', y_fields);
+        if (!y_fields || y_fields.length < 2) {
+          console.error('請選擇至少兩個 Y 軸欄位');
+          return;
+        }
+      } else {
+        y_field = this.chartData.yAxisField;
+        if (!y_field) {
+          console.error('Y 軸欄位必須設置');
+          return;
+        }
+      }
+
       try {
-        // 發送請求到後端獲取動態圖表數據
-        const response = await axios.post('/api/backend/dynamic-chart-data/', {
+        // 構建請求數據
+        let requestData = {
           table_name: this.chartData.dataSource,
           x_field: this.chartData.xAxisField,
-          y_field: this.chartData.chartType === 'multi_line' ? null : this.chartData.yAxisField,
-          y_fields: this.chartData.chartType === 'multi_line' ? this.chartData.yAxisFields : null,
           filter_conditions: this.chartData.filterConditions,
           chart_type: this.chartData.chartType,
           ordering: this.chartData.ordering,
-          limit: this.chartData.limit
-        });
-        const { x_data, y_data, last_updated } = response.data;
-        this.chartData.last_updated = last_updated;
+          limit: this.chartData.limit,
+        };
 
-        if (this.chartData.chartType === 'multi_line') {
-          this.chartData.x_data = x_data;
-          this.chartData.y_data = y_data; // y_data 是一個對象，鍵為 y_field 名稱
+        if (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo') {
+          requestData['y_fields'] = y_fields;
         } else {
-          this.chartData.x_data = x_data;
-          this.chartData.y_data = y_data;
+          requestData['y_field'] = y_field;
+        }
+
+        // 發送請求到後端獲取動態圖表數據
+        const response = await axios.post('/api/backend/dynamic-chart-data/', requestData);
+        const responseData = response.data;
+        this.chartData.last_updated = responseData.last_updated || null;
+
+        // 根據不同的圖表類型，處理返回的數據
+        if (this.chartData.chartType === 'multi_line') {
+          this.chartData.x_data = responseData.x_data;
+          this.chartData.y_data = responseData.y_data; // y_data 是一個對象，鍵為 y_field 名稱
+        } else if (this.chartData.chartType === 'combo') {
+          this.chartData.x_data = responseData.x_data;
+          this.chartData.y_data_bar = responseData.y_data_bar;
+          this.chartData.y_data_line = responseData.y_data_line;
+          this.chartData.y_field_bar = responseData.y_field_bar;
+          this.chartData.y_field_line = responseData.y_field_line;
+        } else {
+          this.chartData.x_data = responseData.x_data;
+          this.chartData.y_data = responseData.y_data;
         }
       } catch (error) {
         console.error('獲取圖表數據時出錯:', error);
         alert('獲取圖表數據時出錯，請檢查後端日誌。');
       }
     },
-    async loadChartConfig() { // 標記為 async
+    async loadChartConfig() {
+      this.isLoadingConfig = true;  // 開始載入配置
       // 加載現有圖表配置的函數
       try {
         const response = await axios.get(`/api/backend/charts/${this.chartId}/`);
@@ -408,19 +485,24 @@ export default {
         this.chartData = {
           ...this.chartData,
           id: config.id,
-          chartType: config.chartType,           // 使用駝峰命名
+          chartType: config.chartType, // 使用駝峰命名
           name: config.name,
-          dataSource: config.dataSource,         // 使用駝峰命名
-          xAxisField: config.xAxisField,         // 使用駝峰命名
-          yAxisField: config.yAxisField,         // 使用駝峰命名
-          filterConditions: config.filter_conditions || {},
+          dataSource: config.dataSource, // 使用駝峰命名
+          xAxisField: config.xAxisField, // 使用駝峰命名
+          yAxisField: config.yAxisField, // 使用駝峰命名
+          yAxisFields: config.yAxisFields || [],
+          filterConditions: config.filterConditions || {},
           ordering: config.ordering || [],
-          limit: config.limit || null
+          limit: config.limit || null,
         };
         console.log('更新後的 chartData:', this.chartData); // 調試輸出
 
         if (this.chartData.dataSource) {
+          // 確保 fetchTableFieldsMetadata 已完成
           await this.fetchTableFieldsMetadata();
+          // 等待 DOM 和資料更新完成
+          await this.$nextTick();
+
           // 設置過濾值
           this.filtersMetadata.forEach(filter => {
             this.filterValues[filter.name] = this.getDefaultFilterValue(filter);
@@ -442,18 +524,56 @@ export default {
             }
           }
           console.log('最終的 filterValues:', this.filterValues); // 調試輸出
+
+          // **將欄位匹配的代碼移到這裡**
+          console.log('原始的 yAxisFields:', this.chartData.yAxisFields);
+          console.log('獲取到的 tableFields:', this.tableFields.map(field => field.name));
+
+          if (this.chartData.yAxisFields && Array.isArray(this.chartData.yAxisFields)) {
+            if (typeof this.chartData.yAxisFields[0] === 'string') {
+              const yAxisFieldsLower = this.chartData.yAxisFields.map(field => field.toLowerCase());
+              this.chartData.yAxisFields = this.tableFields.filter(field =>
+                yAxisFieldsLower.includes(field.name.toLowerCase()),
+              );
+            }
+          } else {
+            this.chartData.yAxisFields = [];
+          }
+
+          console.log('處理後的 yAxisFields:', this.chartData.yAxisFields);
+
           this.fetchChartData();
         }
       } catch (error) {
         console.error('獲取圖表配置出錯:', error);
         alert('獲取圖表配置時出錯，請檢查後端日誌以獲取更多信息。');
+      } finally {
+        this.isLoadingConfig = false; // 載入完成
       }
     },
     saveChart() {
       // 保存或新增圖表的函數
       // 檢查必要字段是否已填寫
-      if (!this.chartData.dataSource || !this.chartData.xAxisField || !this.chartData.yAxisField) {
-        alert('資料來源、X 軸欄位和 Y 軸欄位是必填的。');
+      if (!this.chartData.dataSource || !this.chartData.xAxisField) {
+        alert('資料來源和 X 軸欄位是必填的。');
+        return;
+      }
+
+      // 對於不同的圖表類型，驗證 Y 軸字段
+      if (
+        this.chartData.chartType !== 'multi_line' &&
+        this.chartData.chartType !== 'combo' &&
+        !this.chartData.yAxisField
+      ) {
+        alert('Y 軸欄位是必填的。');
+        return;
+      }
+
+      if (
+        (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo') &&
+        (!this.chartData.yAxisFields || this.chartData.yAxisFields.length < 2)
+      ) {
+        alert('請選擇至少兩個 Y 軸欄位。');
         return;
       }
 
@@ -464,6 +584,10 @@ export default {
         data_source: this.chartData.dataSource,
         x_axis_field: this.chartData.xAxisField,
         y_axis_field: this.chartData.yAxisField,
+        y_axis_fields:
+          this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo'
+            ? this.chartData.yAxisFields.map(field => field.name)
+            : [],
         filter_conditions: this.chartData.filterConditions,
         ordering: this.chartData.ordering,
         limit: this.chartData.limit,
@@ -472,7 +596,8 @@ export default {
 
       if (this.isEditing) {
         // 如果是編輯模式，發送更新請求
-        axios.post(`/api/backend/update-chart/${this.chartId}/`, chartConfig)
+        axios
+          .post(`/api/backend/update-chart/${this.chartId}/`, chartConfig)
           .then(async () => {
             alert('圖表已成功更新！');
             await this.$store.dispatch('fetchPermissions'); // 刷新權限
@@ -485,7 +610,8 @@ export default {
           });
       } else {
         // 如果是新增模式，發送創建請求
-        axios.post('/api/backend/create-chart/', chartConfig)
+        axios
+          .post('/api/backend/create-chart/', chartConfig)
           .then(() => {
             alert('圖表已成功創建！');
             this.$emit('reload-charts'); // 發出重新載入圖表的事件
@@ -500,10 +626,8 @@ export default {
     closeModal() {
       // 關閉模態視窗的函數
       this.$emit('close');
-
-    
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -564,7 +688,7 @@ export default {
 
 .btn-save,
 .btn-cancel {
-  background-color: #007BFF; /* 保存按鈕背景色 */
+  background-color: #007bff; /* 保存按鈕背景色 */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -587,5 +711,3 @@ export default {
   margin-top: 20px;
 }
 </style>
-
-

@@ -203,7 +203,7 @@ class ChartConfiguration(models.Model):
     chart_type = models.CharField(max_length=50)
     data_source = models.CharField(max_length=100)
     x_axis_field = models.CharField(max_length=100)
-    y_axis_field = models.CharField(max_length=100)
+    y_axis_field = models.CharField(max_length=100, blank=True, null=True)
     y_axis_fields = models.JSONField(blank=True, null=True)  # 新增，用於多線折線圖
     filter_conditions = models.JSONField(blank=True, null=True)
     is_deleted = models.BooleanField(default=False)  # 用來標記是否已刪除/隱藏

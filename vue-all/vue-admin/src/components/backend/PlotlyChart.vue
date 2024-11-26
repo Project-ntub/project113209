@@ -44,6 +44,18 @@ export default {
       }
 
       const color = (this.chartConfig.color && this.chartConfig.color.hex) || '#000000'; // 提取颜色值
+      const colorPalette = [
+        '#1f77b4',  // muted blue
+        '#ff7f0e',  // safety orange
+        '#2ca02c',  // cooked asparagus green
+        '#d62728',  // brick red
+        '#9467bd',  // muted purple
+        '#8c564b',  // chestnut brown
+        '#e377c2',  // raspberry yogurt pink
+        '#7f7f7f',  // middle gray
+        '#bcbd22',  // curry yellow-green
+        '#17becf'   // blue-teal
+      ];
       const threshold = this.chartConfig.threshold;
 
       let data = [];
@@ -73,6 +85,9 @@ export default {
         let traces = [];
         const x_data = this.chartConfig.x_data;
         const y_data = this.chartConfig.y_data;
+        
+        let colorIndex = 0;
+        
         for (const [y_field, y_values] of Object.entries(y_data)) {
           traces.push({
             x: x_data,
@@ -80,8 +95,9 @@ export default {
             type: 'scatter',
             mode: 'lines',
             name: y_field,
-            line: { color: color },
+            line: { color: colorPalette[colorIndex % colorPalette.length] },
           });
+          colorIndex++; 
         }
         data = traces;
       } else if (this.chartConfig.chartType === 'heatmap') {
@@ -96,8 +112,8 @@ export default {
           x: this.chartConfig.x_data,
           y: this.chartConfig.y_data_bar,
           type: 'bar',
-          name: '柱狀圖數據',
-          marker: { color: color },
+          name: this.chartConfig.y_field_bar || '柱狀圖數據',
+          marker: { color: colorPalette[0] },
           yaxis: 'y1',
         };
         const trace2 = {
@@ -105,13 +121,14 @@ export default {
           y: this.chartConfig.y_data_line,
           type: 'scatter',
           mode: 'lines+markers',
-          name: '折線圖數據',
-          line: { color: color },
+          name: this.chartConfig.y_field_line || '折線圖數據',
+          line: { color: colorPalette[1] },
           yaxis: 'y2',
         };
         data = [trace1, trace2];
+        layout.yaxis = { title: this.chartConfig.y_field_bar || 'Y 軸' };
         layout.yaxis2 = {
-          title: this.chartConfig.yAxisFieldLine,
+          title: this.chartConfig.y_field_line || 'Y 軸',
           overlaying: 'y',
           side: 'right',
         };
@@ -135,6 +152,9 @@ export default {
             labels: this.chartConfig.x_data,
             values: this.chartConfig.y_data,
             type: 'pie',
+            marker: {
+              colors: colorPalette.slice(0, this.chartConfig.x_data.length),
+            },
           }];
         } else {
           let marker = { color: color };
