@@ -6,59 +6,6 @@
         <span v-if="isSidebarOpen" class="username">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
-<<<<<<< HEAD
-
-      <!-- 側邊欄選單 -->
-      <ul class="menu-list">
-        <!-- 儀表板 -->
-        <li>
-          <router-link to="/backend/dashboard" class="sidebar-link">
-            <font-awesome-icon icon="tachometer-alt" class="icon" />
-            <span class="text" v-if="isSidebarOpen">儀錶板管理</span>
-          </router-link>
-        </li>
-
-        <!-- 用戶管理 -->
-        <li>
-          <router-link to="/backend/user-management" class="sidebar-link">
-            <font-awesome-icon icon="fas fa-users icon" class="icon" />
-            <span class="text" v-if="isSidebarOpen">用戶管理</span>
-          </router-link>
-        </li>
-
-        <!-- 角色管理 -->
-        <li>
-          <router-link to="/backend/role-management" class="sidebar-link">
-            <font-awesome-icon icon="fas fa-user-shield icon" class="icon" />
-            <span class="text" v-if="isSidebarOpen">角色管理</span>
-          </router-link>
-        </li>
-
-        <!-- 歷史紀錄 -->
-        <li>
-          <router-link to="/backend/history" class="sidebar-link">
-            <font-awesome-icon icon="fas fa-history icon" class="icon" />
-            <span class="text" v-if="isSidebarOpen">歷史紀錄</span>
-          </router-link>
-        </li>
-
-        <!-- 個人資訊 -->
-        <li>
-          <router-link to="/backend/profile" class="sidebar-link">
-            <font-awesome-icon icon="fas fa-user icon" class="icon" />
-            <span class="text" v-if="isSidebarOpen">個人資訊</span>
-          </router-link>
-        </li>
-
-        <!-- 登出 -->
-        <li>
-          <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
-            <font-awesome-icon icon="fas fa-sign-out-alt icon" class="icon" />
-            <span class="text" v-if="isSidebarOpen">登出</span>
-          </a>
-        </li>
-      </ul>
-=======
       <div class="user-section" @click="toggleUserLinks">
   <span v-if="isSidebarActive" class="username">{{ username }}</span>
   <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
@@ -93,7 +40,6 @@
         <span class="icon">🚪</span>
         <span class="text">登出</span>
       </button>
->>>>>>> 03d1da3b75e6dd7268295dd1c6c971e831f0f243
     </div>
 
     <!-- 內容區域 -->
@@ -185,14 +131,9 @@ export default {
 }
 
 .username {
-<<<<<<< HEAD
-  font-size: 25px;
-  color: #fff;
-=======
   margin-left: 10px;
   font-size: 1.2rem; /* 增大字體，增強可讀性 */
   color: #ffffff !important; /* 確保字體顏色是白色 */
->>>>>>> 03d1da3b75e6dd7268295dd1c6c971e831f0f243
 }
 
 .toggle-btn {
