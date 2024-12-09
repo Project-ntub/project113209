@@ -16,4 +16,5 @@ env/
 
 # Static files
 staticfiles/
+node_modules"app113209/migrations/*.py" 
 node_modules
