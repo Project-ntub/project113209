@@ -405,6 +405,18 @@ class TEST_Revenue(models.Model):
         return f"Revenue {self.id} for Branch {self.branch_name} - Product {self.product.product_id}"
 
 
+class UserLayout(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    layout = models.JSONField(default=dict)  # 使用 JSONField 儲存佈局資料
+    created_at = models.DateTimeField(auto_now_add=True)  # 添加創建時間
+    updated_at = models.DateTimeField(auto_now=True)  # 添加更新時間
+
+    class Meta:
+        db_table = 'user_layouts'
+
+    def __str__(self):
+        return f"{self.user.username}'s Layout"
+
 # 另外一個資料庫的圖表
 class SalesData(models.Model):
     sale_date = models.DateField()
@@ -414,3 +426,4 @@ class SalesData(models.Model):
 class StockData(models.Model):
     product_name = models.CharField(max_length=100)
     stock_quantity = models.IntegerField()
+

@@ -86,11 +86,13 @@ urlpatterns = [
     path('export-data-excel/', api_views.export_to_excel, name='export-data-excel'),
     path('export-data-pdf/', api_views.export_to_pdf, name='export-data-pdf'),
 
+    path('save-layout/', api_views.save_layout, name='save_layout'),
+    path('get-layout/', api_views.get_layout, name='get_layout'),
+
     # 另一個資料庫的圖表數據
 
     path('dashboard/revenue/', api_views.get_revenue_data, name='get_revenue_data'),
     path('dashboard/sales/', api_views.get_sales_data, name='get_sales_data'),
     path('dashboard/stock/', api_views.get_stock_data, name='get_stock_data'),
-
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

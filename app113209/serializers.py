@@ -1,6 +1,6 @@
 import json
 from rest_framework import serializers
-from .models import User, Module, Role, RoleUser, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue
+from .models import User, Module, Role, RoleUser, RolePermission, UserHistory, ChartConfiguration, TEST_Sales, UserPreferences, Branch, TEST_Inventory, TEST_Revenue, UserLayout
 
 from rest_framework import serializers
 from app113209.models import CalendarEvent
@@ -190,4 +190,25 @@ class RevenueDataSerializer(serializers.ModelSerializer):
         model = TEST_Revenue
         fields = ['revenue_id', 'store', 'store_name', 'total_revenue', 'revenue_date', 'created_at']  
 
+class UserLayoutSerializer(serializers.ModelSerializer):
+    layout = serializers.JSONField(required=False)
+    updated_at = serializers.DateTimeField(read_only=True)  # 確保更新時間是只讀的
+    
+    class Meta:
+        model = UserLayout
+        fields = ['layout', 'updated_at']
         
+    def validate_layout(self, value):
+        """驗證佈局數據的格式和內容"""
+        is_valid, error_message = validate_layout_data(value)
+        if not is_valid:
+            raise serializers.ValidationError(error_message)
+            
+        # 額外驗證：確保所有數值在合理範圍內
+        for item in value:
+            if item['x'] < 0 or item['y'] < 0:
+                raise serializers.ValidationError("座標值不能為負數")
+            if item['w'] < 1 or item['h'] < 1:
+                raise serializers.ValidationError("寬度和高度必須大於0")
+                
+        return value

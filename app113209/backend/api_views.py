@@ -36,11 +36,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from app113209.models import (User, Module, Role, RoleUser, RolePermission, UserHistory, 
                              UserPreferences, ChartConfiguration, TEST_Inventory, 
-                             TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores, Branch)
+                             TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores, 
+                             Branch, UserLayout)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer,
                                    ChartConfigurationSerializer, SalesDataSerializer,
-                                   RevenueDataSerializer, InventoryDataSerializer, UserPreferencesSerializer)
+                                   RevenueDataSerializer, InventoryDataSerializer, 
+                                   UserPreferencesSerializer, UserLayoutSerializer)
 from app113209.utils import record_history, update_permission_name
 
 logger = logging.getLogger(__name__)
@@ -744,6 +746,11 @@ MODEL_MAPPING = {
 
 @api_view(['POST'])
 def dynamic_chart_data(request):
+    chart_type = request.data.get('chart_type')
+    if chart_type not in ['bar', 'line', 'pie', 'horizontal_bar', 'multi_line', 'combo', 'treemap', 'donut']:
+        logger.error("未支援的 chart_type 或 chart_type 未提供")
+        return JsonResponse({'error': 'chart_type 未提供或不支援'}, status=400)
+
     table_name = request.data.get('table_name')
     x_field = request.data.get('x_field')
     y_field = request.data.get('y_field')
@@ -752,7 +759,7 @@ def dynamic_chart_data(request):
     filter_conditions = request.data.get('filter_conditions', {})
     ordering = request.data.get('ordering', None)
     limit = request.data.get('limit', None)
-    chart_type = request.data.get('chart_type')
+
 
     logger.info(f"Fetching data from {table_name} with x_field={x_field}, y_field={y_field}, y_fields={y_fields}, chart_type={chart_type}, filters={filter_conditions}, ordering={ordering}, limit={limit}")
 
@@ -776,9 +783,9 @@ def dynamic_chart_data(request):
 
     # 驗證 y_field 或 y_fields
     if chart_type in ['multi_line', 'combo']:
-        if not y_fields or not isinstance(y_fields, list):
-            logger.error("y_fields 未提供或格式不正确")
-            return JsonResponse({'error': 'y_fields 未提供或格式不正确'}, status=400)
+        if not y_fields or not isinstance(y_fields, list) or len(y_fields) < 2:
+            logger.error("y_fields 未提供或數量不足")
+            return JsonResponse({'error': 'multi_line 或 combo 圖表須提供至少兩個 y_fiel'}, status=400)
         for y_f in y_fields:
             if not validate_lookup(model, y_f):
                 logger.error(f"y_field {y_f} does not exist in model {table_name}")
@@ -862,16 +869,41 @@ def dynamic_chart_data(request):
             response_data['y_data_line'] = y_data_line
             response_data['y_field_bar'] = y_field_bar
             response_data['y_field_line'] = y_field_line
+        elif chart_type == 'treemap':
+            # 樹狀圖數據處理
+            hierarchical_data = queryset.values(x_field).annotate(
+                value=Sum(y_field)
+            ).order_by('-value')
+            
+            response_data = {
+                'labels': [item[x_field] for item in hierarchical_data],
+                'parents': [''] * len(hierarchical_data),  # 根層級
+                'values': [float(item['value']) for item in hierarchical_data],
+            }
+            
+        elif chart_type == 'donut':
+            # 環圈圖數據處理
+            aggregated_data = queryset.values(x_field).annotate(
+                value=Sum(y_field)
+            ).order_by('-value')
+            
+            response_data = {
+                'labels': [item[x_field] for item in aggregated_data],
+                'values': [float(item['value']) for item in aggregated_data],
+                'hole': 0.4  # 控制環圈的大小
+            }
+            
         elif chart_type == 'horizontal_bar':
-                # 检查 y_field 是否存在
-            if y_field and not validate_lookup(model, y_field):
-                logger.error(f"y_field {y_field} does not exist in model {table_name}")
-                return JsonResponse({'error': f"y_field {y_field} 不存在於資料表 {table_name}"}, status=400)
-            aggregated_data = queryset.values(x_field).annotate(y_sum=Sum(y_field))
-            x_data = [float(item['y_sum']) if item['y_sum'] is not None else 0 for item in aggregated_data]
-            y_data = [item[x_field] for item in aggregated_data]
-            response_data['x_data'] = x_data  # 数值
-            response_data['y_data'] = y_data  # 分类标签
+            # 修改横條圖的數據處理
+            aggregated_data = queryset.values(x_field).annotate(
+                value=Sum(y_field)
+            ).order_by('value')  # 按值排序
+            
+            response_data = {
+                'x_data': [float(item['value']) for item in aggregated_data],
+                'y_data': [item[x_field] for item in aggregated_data],
+                'orientation': 'h'
+            }
         else:
             # 默認處理
             if y_field is None:
@@ -1008,7 +1040,6 @@ def create_chart(chart_type, x_data, y_data):
         return go.Figure()
 
 
-
 # API：生成互動圖表（返回JSON格式）
 class ChartDataAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1031,7 +1062,6 @@ class ChartDataAPIView(APIView):
         y_data = get_y_data(y_field)  # 從資料庫或模型中獲取y_data
 
         return JsonResponse({'x_data': x_data, 'y_data': y_data})
-
 
 
 @api_view(['GET'])
@@ -1059,7 +1089,6 @@ def get_table_fields(request, table_name):
     except Exception as e:
         logger.error(f"Error retrieving table fields: {e}")
         return JsonResponse({'error': '無法獲取欄位'}, status=500)
-
 
     
 # API：儲存圖表配置
@@ -1410,12 +1439,13 @@ def export_data(request):
     logger.info("Received export request")
     chart_config = request.data.get('chartConfig', {})
     table_name = chart_config.get('data_source', '')
-    export_all = request.data.get('export_all', False)  # 新增參數判斷是否匯出所有字段
+    export_all = request.data.get('export_all', False)
     format = request.data.get('format')
     chart_name = chart_config.get('name', 'chart')
 
     x_field = chart_config.get('x_axis_field')
     y_field = chart_config.get('y_axis_field')
+    filter_conditions = chart_config.get('filter_conditions', {})
 
     logger.debug(f"Exporting chart: {chart_name}, table: {table_name}, x_field: {x_field}, y_field: {y_field}, format: {format}, export_all: {export_all}")
 
@@ -1438,7 +1468,12 @@ def export_data(request):
         fields = [x_field, y_field]
 
     try:
-        data = list(model.objects.values(*fields))
+        # 根據篩選條件過濾資料
+        queryset = model.objects.all()
+        if filter_conditions:
+            queryset = apply_filter_conditions(queryset, filter_conditions)
+
+        data = list(queryset.values(*fields))
         logger.debug(f"Fetched data for export: {len(data)} records")
 
         if format == 'csv':
@@ -1456,6 +1491,17 @@ def export_data(request):
     except Exception as e:
         logger.error(f"Error in export_data: {e}")
         return JsonResponse({"error": str(e)}, status=500)
+
+def apply_filter_conditions(queryset, filter_conditions):
+    # 假設篩選條件是 {'startDate': '2021-01-01', 'endDate': '2021-12-31'}
+    # 並且模型有一個 'date' 字段
+    if 'startDate' in filter_conditions and 'endDate' in filter_conditions:
+        start_date = filter_conditions['startDate']
+        end_date = filter_conditions['endDate']
+        queryset = queryset.filter(date__range=[start_date, end_date])
+    # 可以根據需要添加更多的篩選條件處理
+    # ...
+    return queryset
 
 def export_to_csv(data, chart_name, fields):
     response = HttpResponse(content_type='text/csv')
@@ -1600,3 +1646,168 @@ def get_stock_data(request):
     data = [{"product_name": row[0], "category_name": row[1], "stock_quantity": row[2]} for row in rows]
     return JsonResponse(data, safe=False)
 
+# 總收益與比較增減 API
+@api_view(['GET'])
+def total_revenue(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                SUM(final_revenue) AS total_revenue,
+                SUM(CASE WHEN last_update >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) THEN final_revenue ELSE 0 END) AS last_month_revenue
+            FROM TEST_Revenue
+        """)
+        result = cursor.fetchone()
+    total_revenue, last_month_revenue = result[0], result[1]
+    growth_rate = ((total_revenue - last_month_revenue) / last_month_revenue * 100) if last_month_revenue else 0
+    return JsonResponse({
+        "total_revenue": total_revenue,
+        "last_month_revenue": last_month_revenue,
+        "growth_rate": growth_rate
+    })
+
+# 最高收益分店 API
+@api_view(['GET'])
+def top_branch(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT branch_name, SUM(final_revenue) AS total_revenue 
+            FROM TEST_Revenue
+            GROUP BY branch_id
+            ORDER BY total_revenue DESC
+            LIMIT 1
+        """)
+        result = cursor.fetchone()
+    return JsonResponse({
+        "branch_name": result[0],
+        "total_revenue": result[1]
+    })
+
+# 最高銷售商品 API
+@api_view(['GET'])
+def top_product(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT product_name, SUM(quantity) AS total_quantity 
+            FROM TEST_Sales
+            GROUP BY product_id
+            ORDER BY total_quantity DESC
+            LIMIT 1
+        """)
+        result = cursor.fetchone()
+    return JsonResponse({
+        "product_name": result[0],
+        "total_quantity": result[1]
+    })
+
+# 低庫存商品數量 API
+@api_view(['GET'])
+def low_stock_products(request):
+    threshold = request.GET.get('threshold', 10)  # 默認門檻為 10
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) AS low_stock_count
+            FROM TEST_Inventory
+            WHERE stock_quantity < %s
+        """, [threshold])
+        result = cursor.fetchone()
+    return JsonResponse({
+        "low_stock_count": result[0]
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_layout(request):
+    try:
+        user = request.user
+        layout_data = request.data.get('layout')
+        
+        # 驗證布局數據
+        is_valid, error_msg = validate_layout_data(layout_data)
+        if not is_valid:
+            return Response({'error': error_msg}, status=400)
+
+        # 保存布局
+        layout, created = UserLayout.objects.update_or_create(
+            user=user,
+            defaults={'layout': layout_data}
+        )
+        
+        return Response({
+            'message': '布局保存成功',
+            'created': created
+        })
+    except Exception as e:
+        return Response({
+            'error': f'保存布局時發生錯誤: {str(e)}'
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_layout(request):
+    try:
+        user = request.user
+        
+        # 從緩存中嘗試獲取佈局
+        cache_key = f'user_layout_{user.id}'
+        cached_layout = cache.get(cache_key)
+        
+        if cached_layout:
+            return Response({
+                'layout': cached_layout,
+                'message': 'Layout retrieved from cache',
+                'cached': True
+            }, status=200)
+            
+        try:
+            user_layout = UserLayout.objects.get(user=user)
+            serializer = UserLayoutSerializer(user_layout)
+            layout_data = serializer.data.get('layout', [])
+            
+            # 驗證佈局數據
+            if not isinstance(layout_data, list):
+                logger.warning(f"用戶 {user.username} 的佈局數據格式無效")
+                return Response({
+                    'layout': [],
+                    'message': '佈局數據格式無效，已重置為預設值',
+                    'reset': True
+                }, status=200)
+                
+            # 將有效的佈局存入緩存
+            cache.set(cache_key, layout_data, timeout=3600)  # 緩存一小時
+            
+            return Response({
+                'layout': layout_data,
+                'message': 'Layout retrieved successfully',
+                'updated_at': user_layout.updated_at
+            }, status=200)
+            
+        except UserLayout.DoesNotExist:
+            return Response({
+                'layout': [],
+                'message': 'No saved layout found'
+            }, status=200)
+            
+    except Exception as e:
+        logger.error(f"獲取佈局時出錯: {str(e)}")
+        return Response({
+            'error': '獲取佈局時發生錯誤'
+        }, status=500)
+
+def validate_layout_data(layout):
+    """驗證布局數據的格式"""
+    if not isinstance(layout, list):
+        return False, "布局必須是列表格式"
+    
+    for item in layout:
+        if not isinstance(item, dict):
+            return False, "布局項目必須是字典格式"
+            
+        required_fields = {'i', 'x', 'y', 'w', 'h'}
+        if not all(field in item for field in required_fields):
+            return False, "布局項目缺少必要欄位"
+            
+        for field in ('x', 'y', 'w', 'h'):
+            if not isinstance(item.get(field), (int, float)):
+                return False, f"欄位 {field} 必須是數字"
+                
+    return True, None
