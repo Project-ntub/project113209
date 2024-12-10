@@ -3,7 +3,7 @@ from django.urls import path
 from . import views as frontend_views
 from .views import get_data  
 from .views import logout_view
-
+from . import views
 app_name = 'frontend'
 
 urlpatterns = [
@@ -24,7 +24,8 @@ urlpatterns = [
     path('user_preferences/', frontend_views.user_preferences_view, name='user_preferences'),
     path('logout/', logout_view, name='logout'),  # 登出的 URL
     path('calendar/events/', frontend_views.get_calendar_events, name='get_calendar_events'),  # 獲取事件資料
-    path('calendar/events/add/', frontend_views.add_calendar_event, name='add_calendar_event')
+    path('calendar/events/add/', frontend_views.add_calendar_event, name='add_calendar_event'),
+    path('api/openai/v1/chat/completions', views.openai_completions, name='openai_completions'),
 ]
 
 

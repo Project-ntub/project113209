@@ -10,6 +10,7 @@ import PreferenceSetting from '@/views/PreferenceSetting.vue';
 import HistoryPage from '@/views/HistoryPage.vue';
 import HistoryDetails from '@/views/HistoryDetails.vue';
 import ResetPasswordPage from '@/views/ResetPasswordPage.vue';
+import EventCalendar from '@/views/frontend/EventCalendar.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -24,6 +25,7 @@ const routes = [
   { path: '/history', name: 'History', component: HistoryPage },
   { path: '/detail/:id', name: 'HistoryDetails', component: HistoryDetails },
   { path: '/resetpassword', name: 'ResetPassword', component: ResetPasswordPage },
+  { path: '/eventcalendar', name: 'EventCalendar', component: EventCalendar },
 ];
 
 const router = createRouter({

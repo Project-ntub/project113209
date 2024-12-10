@@ -3,6 +3,7 @@
     "@schedule-x/theme-default": "^2.5.0",
     "@schedule-x/vue": "^2.4.0",
     "@vue/cli-plugin-eslint": "^5.0.8",
-    "chart.js": "^4.4.4"
+    "chart.js": "^4.4.4",
+    "qalendar": "^3.9.0"
   }
 }

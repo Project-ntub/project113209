@@ -6,40 +6,57 @@
         <span v-if="isSidebarOpen" class="username">{{ username }}</span>
         <span class="toggle-btn" @click="toggleSidebar">☰</span>
       </div>
-      <div class="user-section" @click="toggleUserLinks">
-  <span v-if="isSidebarActive" class="username">{{ username }}</span>
-  <!-- 向右移動的向下箭頭圖示，僅在側邊欄展開時顯示 -->
-  <font-awesome-icon icon="angle-down" class="arrow-icon" v-if="isSidebarActive" />
-</div>
 
-      <!-- User-related links, only visible when the user section is expanded -->
-      <div v-if="showUserLinks" class="user-links">
-        <router-link to="/backend/profile" class="sidebar-link">
-          <span class="icon">👤</span>
-          <span class="text">個人資料</span>
-        </router-link>
-      </div>
-      <!-- General links -->
-      <router-link to="/backend/dashboard" class="sidebar-link">
-        <span class="icon">📈</span>
-        <span class="text">儀錶板管理</span>
-      </router-link>
-      <router-link to="/backend/user-management" class="sidebar-link">
-        <span class="icon">👥</span>
-        <span class="text">用戶管理</span>
-      </router-link>
-      <router-link to="/backend/role-management" class="sidebar-link">
-        <span class="icon">🔧</span>
-        <span class="text">角色管理</span>
-      </router-link>
-      <router-link to="/backend/history" class="sidebar-link">
-        <span class="icon">🕒</span>
-        <span class="text">歷史紀錄</span>
-      </router-link>
-      <button class="sidebar-link logout-btn" @click="confirmLogout">
-        <span class="icon">🚪</span>
-        <span class="text">登出</span>
-      </button>
+      <!-- 側邊欄選單 -->
+      <ul class="menu-list">
+        <!-- 儀表板 -->
+        <li>
+          <router-link to="/backend/dashboard" class="sidebar-link">
+            <font-awesome-icon icon="tachometer-alt" class="icon" />
+            <span class="text" v-if="isSidebarOpen">儀錶板管理</span>
+          </router-link>
+        </li>
+
+        <!-- 用戶管理 -->
+        <li>
+          <router-link to="/backend/user-management" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-users icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">用戶管理</span>
+          </router-link>
+        </li>
+
+        <!-- 角色管理 -->
+        <li>
+          <router-link to="/backend/role-management" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-user-shield icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">角色管理</span>
+          </router-link>
+        </li>
+
+        <!-- 歷史紀錄 -->
+        <li>
+          <router-link to="/backend/history" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-history icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">歷史紀錄</span>
+          </router-link>
+        </li>
+
+        <!-- 個人資訊 -->
+        <li>
+          <router-link to="/backend/profile" class="sidebar-link">
+            <font-awesome-icon icon="fas fa-user icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">個人資訊</span>
+          </router-link>
+        </li>
+
+        <!-- 登出 -->
+        <li>
+          <a href="#" class="sidebar-link logout-btn" @click.prevent="confirmLogout">
+            <font-awesome-icon icon="fas fa-sign-out-alt icon" class="icon" />
+            <span class="text" v-if="isSidebarOpen">登出</span>
+          </a>
+        </li>
+      </ul>
     </div>
 
     <!-- 內容區域 -->
@@ -131,9 +148,8 @@ export default {
 }
 
 .username {
-  margin-left: 10px;
-  font-size: 1.2rem; /* 增大字體，增強可讀性 */
-  color: #ffffff !important; /* 確保字體顏色是白色 */
+  font-size: 25px;
+  color: #fff;
 }
 
 .toggle-btn {
