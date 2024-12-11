@@ -8,14 +8,16 @@ body, html {
 }
 
 .main-container {
-  width: 90vw;
-  max-width: 1200px;
-  margin: 1.5rem auto;
+  width: 1450px;
+  min-height: calc(100vh - 60px); /* 減去頂部導航欄高度 */
+  /* max-width: 1200px; */
+  margin: 0;
+  margin-left: 80px; /* 為左側選單保留空間 */
   padding: 1.5rem;
   background-color: #ffffff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
+  box-shadow: none;
+  border-radius: 0;
+  /* overflow: hidden; */
 }
 
 .header {
@@ -23,6 +25,7 @@ body, html {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  gap: 30px;
 }
 
 .header button {
@@ -34,6 +37,7 @@ body, html {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-weight: bold;
 }
 
 .header button:hover {
@@ -42,8 +46,9 @@ body, html {
 
 .table-container {
   overflow-x: auto;
-  max-height: 60vh;
-  margin-top: 1.5rem;
+  max-height: calc(100vh - 200px);
+  margin: 1.5rem 20px;
+  /* margin-top: 1.5rem; */
 }
 
 .role-table {
@@ -101,7 +106,7 @@ body, html {
 .switch {
   position: relative;
   display: inline-block;
-  width: 2.25rem;
+  width: 2.5rem;
   height: 1.25rem;
 }
 

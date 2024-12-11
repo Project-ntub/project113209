@@ -57,7 +57,9 @@ export default {
       const color = (this.chartConfig.color && this.chartConfig.color.hex) || '#000000';
       const colorPalette = [
         '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+        '#b71c1c', '#0d47a1', '#1b5e20', '#f57f17', '#4a148c',
+        '#006064', '#bf360c', '#33691e', '#3e2723', '#880e4f'
       ];
 
       let data = [];
@@ -286,7 +288,7 @@ export default {
               });
 
               const trace = {
-                x: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.y_data : this.chartConfig.x_data,
+                x: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.x_data : this.chartConfig.x_data,
                 y: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.x_data : this.chartConfig.y_data,
                 type: 'bar',
                 orientation: this.chartConfig.chartType === 'horizontal_bar' ? 'h' : 'v',

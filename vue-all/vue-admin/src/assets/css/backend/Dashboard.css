@@ -13,7 +13,7 @@
   flex-direction: column;
   flex-grow: 1;
   margin: 0;
-  padding: 20px;
+  padding: 10px;
   padding-bottom: 100px;
   background-color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 調整陰影讓它更柔和 */
@@ -45,6 +45,7 @@
   width: 100%;
   padding: 10px 20px;
   margin-bottom: 20px;
+  margin-top: -10px;
 }
 
 .filter-select {
@@ -52,7 +53,7 @@
   padding: 8px 12px;
   font-size: 14px;
   border-radius: 6px;
-  border: 1px solid #e0e4e8;
+  border: 2px solid #e0e4e8;
   background-color: #fff;
   color: #333;
   cursor: pointer;

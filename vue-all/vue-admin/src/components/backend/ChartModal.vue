@@ -393,6 +393,21 @@ export default {
     },
     async fetchChartData() {
       try {
+        const requestData = {
+          table_name: this.chartData.dataSource,
+          x_field: this.chartData.xAxisField,
+          chart_type: this.chartData.chartType,
+          filter_conditions: this.chartData.filterConditions,
+          ordering: this.chartData.ordering,
+          limit: this.chartData.limit
+        };
+
+        if (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo') {
+          // 將 yAxisFields (物件陣列) 轉換為字串陣列
+          requestData.y_fields = this.chartData.yAxisFields.map(field => field.name);
+        } else {
+          requestData.y_field = this.chartData.yAxisField;
+        }
         console.log('發送的請求數據:', this.chartData);
         const data = await fetchChartData(this.chartData);
         console.log('收到的數據:', data);
@@ -400,13 +415,13 @@ export default {
         // 根據圖表類型處理數據
         switch (this.chartData.chartType) {
           case 'treemap':
-            this.chartData.labels = data.labels || [];
-            this.chartData.values = data.values || [];
+            this.chartData.x_data = data.labels || [];
+            this.chartData.y_data = data.values || [];
             this.chartData.parents = data.parents || [];
             break;
           case 'donut':
-            this.chartData.labels = data.labels || data.x_data || [];
-            this.chartData.values = data.values || data.y_data || [];
+            this.chartData.x_data = data.labels || data.x_data || [];
+            this.chartData.y_data = data.values || data.y_data || [];
             if (this.chartData.chartType === 'treemap') {
                 this.chartData.parents = data.parents || [];
             }
@@ -417,8 +432,8 @@ export default {
             });
             break;
           case 'funnel':
-            this.chartData.labels = data.labels || [];
-            this.chartData.values = data.values || [];
+            this.chartData.x_data = data.labels || [];
+            this.chartData.y_data = data.values || [];
             break;
           case 'multi_line':
             this.chartData.x_data = data.x_data || [];

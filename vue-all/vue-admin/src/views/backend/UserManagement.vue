@@ -3,21 +3,41 @@
   <div class="main-container">
     <div class="filter-section">
       <!-- 排序下拉選單 -->
-      <label for="sort-select">排序:</label>
-      <select id="sort-select" v-model="sortBy" @change="applyFilters">
-        <option value="name">姓名</option>
-        <option value="email">電子郵件</option>
-        <option value="department">部門</option>
-        <option value="position">職位</option>
-        <option value="creation-time">建立時間</option>
-        <option value="last-login">最近登入時間</option>
-      </select>
+      <div class="filter-item">
+        <span class="filter-label">排序:</span>
+        <select 
+          id="sort-select" 
+          v-model="sortBy" 
+          @change="applyFilters"
+          class="filter-select"
+        >
+          <option value="name">姓名</option>
+          <option value="email">電子郵件</option>
+          <option value="department">部門</option>
+          <option value="position">職位</option>
+          <option value="creation-time">建立時間</option>
+          <option value="last-login">最近登入時間</option>
+        </select>
+      </div>
       <!-- 部門過濾下拉選單 -->
-      <label for="department-select">部門:</label>
-      <select id="department-select" v-model="departmentFilter" @change="applyFilters">
-        <option value="all">全部</option>
-        <option v-for="department in departments" :key="department" :value="department">{{ department }}</option>
-      </select>
+      <div class="filter-item">
+        <span class="filter-label">部門:</span>
+        <select 
+          id="department-select" 
+          v-model="departmentFilter" 
+          @change="applyFilters"
+          class="filter-select"
+        >
+          <option value="all">全部</option>
+          <option 
+            v-for="department in departments" 
+            :key="department" 
+            :value="department"
+          >
+            {{ department }}
+          </option>
+        </select>
+      </div>
       <!-- 搜尋框 -->
       <input type="text" id="search-box" placeholder="搜尋..." v-model="query" @keydown.enter="applyFilters" />
       <button @click="applyFilters" class="search-btn">搜尋</button>
@@ -173,14 +193,17 @@ export default {
 
 <style scoped>
 .main-container {
-  width: 90vw;
-  max-width: 1200px;
-  margin: 1.5rem auto;
-  padding: 1.5rem;
+  width: 100%;
+  min-height: calc(105vh - 60px);
+  /* height: 100%; */
+  /* max-width: 1200px;  */
+  /* margin: 1.5rem auto; */
+  margin-left: 40px;
+  padding: 1.5rem; 
   background-color: #ffffff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  overflow: hidden;
+  box-shadow: none;
+  border-radius: 0;
+  /* overflow: hidden; */
 }
 
 .filter-section {
@@ -188,7 +211,31 @@ export default {
   gap: 20px;
   align-items: center;
   margin-bottom: 20px;
+  padding: 0 20px;
+  /* margin-left: 20px;  */
+  /* margin-top: -30px; */
 }
+
+/* 排序和部門標籤的容器 */
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 標籤文字樣式 */
+.filter-label {
+  white-space: nowrap;  /* 防止文字換行 */
+  min-width: 40px;     /* 設定最小寬度 */
+}
+
+.filter-select {
+  min-width: 120px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
 
 .search-btn, .pending-approval-btn {
   padding: 0.5rem 1rem;
@@ -197,6 +244,9 @@ export default {
   cursor: pointer;
   color: white;
   font-size: 1rem;
+  min-width: 80px;  /* 設定最小寬度 */
+  /* width: 30%;
+  align-items: center */
 }
 
 .search-btn {
@@ -209,8 +259,11 @@ export default {
 
 .table-container {
   overflow-x: auto;
-  max-height: 60vh;
-  margin-top: 1.5rem;
+  max-height: calc(100vh - 200px);
+  margin: 1.5rem 20px;
+  /* margin-left: 50px; */
+  /* margin-top: 1.5rem; */
+  align-items: center
 }
 
 .user-table {
