@@ -48,6 +48,7 @@ import ChartContainer from '@/Charts/ChartContainer.vue';
 import Modal from '@/components/backend/ChartModal.vue';
 import axios from 'axios';
 import { mapGetters, mapActions } from 'vuex';
+import { fetchChartData } from '@/utils/chartDataProcessor';
 
 export default {
   name: 'HomePage',
@@ -83,74 +84,31 @@ export default {
   methods: {
     ...mapActions(['fetchPermissions']),
     async fetchCharts() {
-      // 獲取圖表配置的函數
       try {
         await this.fetchPermissions(); // 獲取用戶權限
 
-        // 發送請求到後端獲取所有圖表配置
         const response = await axios.get('/api/backend/charts/');
-        // 處理圖表配置，確保圖表類型和欄位名稱為正確格式
         const chartConfigs = response.data.map(chart => ({
           ...chart,
-          chartType: chart.chartType ? chart.chartType.toLowerCase() : 'bar',
+          chartType: chart.chartType?.toLowerCase(),
           dataSource: chart.dataSource || '',
           xAxisField: chart.xAxisField || '',
+          yAxisFields: chart.yAxisFields?.filter(field => field) || [], // 過濾掉 null 或未定義的值
           yAxisField: chart.yAxisField || '',
         }));
 
-        // 為每個圖表配置獲取相應的圖表數據
         const chartsWithData = await Promise.all(chartConfigs.map(async (chart) => {
           try {
-            // 處理過濾條件
-            const filterConditions = typeof chart.filter_conditions === 'string' 
-              ? JSON.parse(chart.filter_conditions || '{}') 
-              : chart.filter_conditions || {};
-
-            let y_field = null;
-            let y_fields = null;
-
-            if (chart.chartType === 'multi_line' || chart.chartType === 'combo') {
-              y_fields = chart.yAxisFields || [];
-            } else {
-              y_field = chart.yAxisField;
-            }
-            // 發送請求到後端獲取動態圖表數據
-            const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
-              table_name: chart.dataSource,
-              x_field: chart.xAxisField,
-              y_field: y_field,
-              y_fields: y_fields,
-              chart_type: chart.chartType,
-              filter_conditions: filterConditions,
-              join_fields: chart.joinFields || []
-            });
-
-            return {
-              ...chart,
-              x_data: dataResponse.data.x_data,
-              y_data: dataResponse.data.y_data,
-              last_updated: dataResponse.data.last_updated,
-              can_export: chart.can_export,
-              can_delete: chart.can_delete,
-              can_edit: chart.can_edit,
-            };
+            const chartData = await fetchChartData(chart);
+            return { ...chart, ...chartData };
           } catch (error) {
             console.error(`獲取圖表 ID ${chart.id} 的數據時出錯:`, error);
-            return {
-              ...chart,
-              x_data: [],
-              y_data: [],
-              last_updated: null,
-              error: '無法獲取數據',
-              can_export: false,
-              can_delete: false,
-              can_edit: false,
-            };
+            return { ...chart, x_data: [], y_data: [], error: '無法獲取數據' };
           }
         }));
 
-        this.charts = chartsWithData; // 儲存獲取到的圖表配置及數據
-        this.applyFilter(); // 應用篩選條件
+        this.charts = chartsWithData;
+        this.applyFilter();
       } catch (error) {
         console.error('獲取圖表配置時出錯:', error);
       }

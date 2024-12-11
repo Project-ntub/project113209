@@ -26,6 +26,9 @@
               <option value="horizontal_bar">橫條圖</option>
               <option value="multi_line">多線折線圖</option>
               <option value="combo">組合式圖表</option>
+              <option value="treemap">樹狀圖</option>
+              <option value="donut">環圈圖</option>
+              <option value="funnel">漏斗圖</option>
               <!-- 更多圖表類型 -->
             </select>
           </div>
@@ -130,6 +133,8 @@ import SelectFilter from '@/components/backend/filters/SelectFilter.vue';
 import CheckboxFilter from '@/components/backend/filters/CheckboxFilter.vue';
 import NumberFilter from '@/components/backend/filters/NumberFilter.vue';
 import DateFilter from '@/components/backend/filters/DateFilter.vue';
+import { fetchChartData } from '@/utils/chartDataProcessor';
+
 
 export default {
   components: {
@@ -169,6 +174,9 @@ export default {
         y_data: [],
         joinFields: [],
         yAxisFields: [],
+        labels: [],     // 用於 treemap、donut、funnel
+        values: [],     // 用於 treemap、donut、funnel
+        parents: [],    // 用於 treemap
         color: {
           hex: '#000000',
         },
@@ -384,75 +392,39 @@ export default {
       this.fetchChartData();
     },
     async fetchChartData() {
-      if (!this.chartData.dataSource || !this.chartData.xAxisField) {
-        console.error('資料來源和 X 軸欄位必須設置');
-        return;
-      }
-
-      // 根據圖表類型設置 y_field 和 y_fields
-      let y_field = null;
-      let y_fields = null;
-
-      console.log('chartData.yAxisFields:', this.chartData.yAxisFields);
-
-      if (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo') {
-        if (!this.chartData.yAxisFields || this.chartData.yAxisFields.length < 2) {
-          console.error('請選擇至少兩個 Y 軸欄位');
-          return;
-        }
-        y_fields = this.chartData.yAxisFields.map(field => field.name).filter(name => name);
-        console.log('生成的 y_fields:', y_fields);
-        if (!y_fields || y_fields.length < 2) {
-          console.error('請選擇至少兩個 Y 軸欄位');
-          return;
-        }
-      } else {
-        y_field = this.chartData.yAxisField;
-        if (!y_field) {
-          console.error('Y 軸欄位必須設置');
-          return;
-        }
-      }
-
       try {
-        // 構建請求數據
-        let requestData = {
-          table_name: this.chartData.dataSource,
-          x_field: this.chartData.xAxisField,
-          filter_conditions: this.chartData.filterConditions,
-          chart_type: this.chartData.chartType,
-          ordering: this.chartData.ordering,
-          limit: this.chartData.limit,
-        };
-
-        if (this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo') {
-          requestData['y_fields'] = y_fields;
-        } else {
-          requestData['y_field'] = y_field;
-        }
-
-        // 發送請求到後端獲取動態圖表數據
-        const response = await axios.post('/api/backend/dynamic-chart-data/', requestData);
-        const responseData = response.data;
-        this.chartData.last_updated = responseData.last_updated || null;
-
-        // 根據不同的圖表類型，處理返回的數據
-        if (this.chartData.chartType === 'multi_line') {
-          this.chartData.x_data = responseData.x_data;
-          this.chartData.y_data = responseData.y_data; // y_data 是一個對象，鍵為 y_field 名稱
-        } else if (this.chartData.chartType === 'combo') {
-          this.chartData.x_data = responseData.x_data;
-          this.chartData.y_data_bar = responseData.y_data_bar;
-          this.chartData.y_data_line = responseData.y_data_line;
-          this.chartData.y_field_bar = responseData.y_field_bar;
-          this.chartData.y_field_line = responseData.y_field_line;
-        } else {
-          this.chartData.x_data = responseData.x_data;
-          this.chartData.y_data = responseData.y_data;
+        const data = await fetchChartData(this.chartData);
+        
+        // 根據圖表類型處理數據
+        switch (this.chartData.chartType) {
+          case 'treemap':
+            this.chartData.labels = data.labels || [];
+            this.chartData.values = data.values || [];
+            this.chartData.parents = data.parents || [];
+            break;
+          case 'donut':
+            this.chartData.labels = data.labels || [];
+            this.chartData.values = data.values || [];
+            break;
+          case 'funnel':
+            this.chartData.labels = data.labels || [];
+            this.chartData.values = data.values || [];
+            break;
+          case 'multi_line':
+            this.chartData.x_data = data.x_data || [];
+            this.chartData.y_data = data.y_data || {};
+            break;
+          case 'combo':
+            this.chartData.x_data = data.x_data || [];
+            this.chartData.y_data_bar = data.y_data_bar || [];
+            this.chartData.y_data_line = data.y_data_line || [];
+            break;
+          default:
+            this.chartData.x_data = data.x_data || [];
+            this.chartData.y_data = data.y_data || [];
         }
       } catch (error) {
         console.error('獲取圖表數據時出錯:', error);
-        alert('獲取圖表數據時出錯，請檢查後端日誌。');
       }
     },
     async loadChartConfig() {

@@ -8,6 +8,7 @@ import xlsxwriter
 import plotly.graph_objects as go
 from io import BytesIO
 from openpyxl import Workbook
+from datetime import datetime
 from datetime import timedelta
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
@@ -34,10 +35,16 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermiss
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
 from app113209.models import (User, Module, Role, RoleUser, RolePermission, UserHistory, 
                              UserPreferences, ChartConfiguration, TEST_Inventory, 
                              TEST_Revenue, TEST_Sales, TEST_Products, TEST_Stores, 
-                             Branch, UserLayout)
+                             Branch, UserLayout, BranchInventoryTotals)
 from app113209.serializers import (UserSerializer, ModuleSerializer, RoleSerializer, 
                                    RolePermissionSerializer, UserHistorySerializer,
                                    ChartConfigurationSerializer, SalesDataSerializer,
@@ -744,6 +751,64 @@ MODEL_MAPPING = {
     # 如有其他模型，請繼續添加
 }
 
+@api_view(['GET'])
+def calculate_card_data(request):
+    try:
+        # 計算營業額總計
+        total_revenue = TEST_Revenue.objects.aggregate(total=Sum('final_revenue'))['total'] or 0
+
+        # 計算上月 (以 last_update 為依據) 營業額
+        # 確保本月是幾月
+        now = datetime.now()
+        if now.month == 1:
+            last_month = 12
+            year = now.year - 1
+        else:
+            last_month = now.month - 1
+            year = now.year
+
+        # 使用 year, last_month 來過濾上個月資料
+        last_month_revenue = TEST_Revenue.objects.filter(
+            last_update__year=year,
+            last_update__month=last_month
+        ).aggregate(total=Sum('final_revenue'))['total'] or 0
+
+        # 營業額增長率
+        growth_rate = ((total_revenue - last_month_revenue) / last_month_revenue * 100) if last_month_revenue else 0
+
+        top_product = TEST_Sales.objects.values('product_id').annotate(total_sales=Sum('quantity')).order_by('-total_sales').first()
+        if top_product:
+            # 根據 product_id 找到商品名稱
+            product_obj = get_object_or_404(TEST_Products, product_id=top_product['product_id'])
+            top_product_name = product_obj.product_name
+            top_product_sales = top_product['total_sales']
+        else:
+            top_product_name = "N/A"
+            top_product_sales = 0
+
+        # 最佳分店     
+        top_branch = TEST_Revenue.objects.values('branch_id').annotate(total_revenue=Sum('final_revenue')).order_by('-total_revenue').first()
+        if top_branch:
+            # 根據 branch_id 找到分店名稱
+            # 假設 TEST_Stores 有 branch_id 和 branch_name 欄位
+            branch_obj = get_object_or_404(Branch, branch_id=top_branch['branch_id'])
+            top_branch_name = branch_obj.branch_name
+            top_branch_revenue = top_branch['total_revenue']
+        else:
+            top_branch_name = "N/A"
+            top_branch_revenue = 0
+
+
+        return JsonResponse({
+            "total_revenue": total_revenue,
+            "growth_rate": growth_rate,
+            "top_product": {"name": top_product_name, "sales": top_product_sales},
+            "top_branch": {"name": top_branch_name, "revenue": top_branch_revenue}
+        })
+    except Exception as e:
+        logger.error(f"Error calculating card data: {e}")
+        return JsonResponse({"error": "Error calculating card data"}, status=500)
+
 @api_view(['POST'])
 def dynamic_chart_data(request):
     chart_type = request.data.get('chart_type')
@@ -892,6 +957,13 @@ def dynamic_chart_data(request):
                 'values': [float(item['value']) for item in aggregated_data],
                 'hole': 0.4  # 控制環圈的大小
             }
+
+        elif chart_type == "funnel":
+            funnel_data = queryset.values(x_field).annotate(y_sum=Sum(y_field)).order_by('-value')
+            response_data = {
+                'labels': [item[x_field] for item in funnel_data],
+                'values': [float(item['value']) for itme in funnel_data]
+            }
             
         elif chart_type == 'horizontal_bar':
             # 修改横條圖的數據處理
@@ -935,6 +1007,35 @@ def dynamic_chart_data(request):
     except Exception as e:
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
+#新增生成更專業圖表的函數
+def create_profeesional_chart(chart_type, x_data, y_data, **kwargs):
+    try:
+        if chart_type == 'dount':
+            fig = go.Figure(data =[
+                go.Pie(labels=x_data, values=y_data, hole=kwargs.get('hole', 0.4))
+            ])
+        elif chart_type == 'treemap':
+            fig = go.Figure(data=[
+                go.Treemap(labels=x_data, values=y_data, parents=kwargs.get('parent', [''] * len(x_data)))
+            ])
+        elif chart_type == 'funnel':
+            fig = go.Figure(data=[
+                go.Funnel(y=x_data, x=y_data)
+            ])
+        else:
+            fig=go.Figure()
+        
+        fig.update_layout(
+            title=kwargs.get('title', '圖表'),
+            margin=dict(l=40, r=40, t=40, b=40),
+            paper_bgcolor='white',
+            font=dict(size=12)
+        )
+        return fig
+    except Exception as e:
+        logger.error(f"Error creating prefessional chart: {e}")
+        return go.Figure()
 
 def get_select_related_fields(field_name):
     if not field_name or not isinstance(field_name, str):
@@ -1426,7 +1527,7 @@ def validate_lookup(model, lookup):
             if field.is_relation:
                 current_model = field.related_model
             else:
-                # 如果不是关联字段，且不是最后一个部分，则路径无效
+                # 如果不是關聯字段，且不是最後一個部分，則路徑無效
                 if part != parts[-1]:
                     return False
         except FieldDoesNotExist:
@@ -1440,7 +1541,7 @@ def export_data(request):
     chart_config = request.data.get('chartConfig', {})
     table_name = chart_config.get('data_source', '')
     export_all = request.data.get('export_all', False)
-    format = request.data.get('format')
+    format = chart_config.get('format')
     chart_name = chart_config.get('name', 'chart')
 
     x_field = chart_config.get('x_axis_field')
@@ -1476,6 +1577,21 @@ def export_data(request):
         data = list(queryset.values(*fields))
         logger.debug(f"Fetched data for export: {len(data)} records")
 
+                # 在這裡增加對 warehouse_name 的處理 (假設您已定義 BranchInventoryTotals 模型)
+        # 確認 fields 中有 'warehouse_id' 欄位才需要這步驟
+        if 'warehouse_id' in fields:
+            for row in data:
+                warehouse_id = row.get('warehouse_id')
+                if warehouse_id:
+                    branch_totals = BranchInventoryTotals.objects.filter(warehouse_id=warehouse_id).first()
+                    if branch_totals:
+                        # 先確認 'warehouse_name' 是否在 fields 中，若無可自行append或依需求處理
+                        # 如果您希望匯出檔案中也要有此欄位，記得在 fields 中加上 'warehouse_name'
+                        # 例如:
+                        if 'warehouse_name' not in fields:
+                            fields.append('warehouse_name')
+                        row['warehouse_name'] = branch_totals.warehouse_name
+
         if format == 'csv':
             response = export_to_csv(data, chart_name, fields)
         elif format == 'excel':
@@ -1493,14 +1609,27 @@ def export_data(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 def apply_filter_conditions(queryset, filter_conditions):
-    # 假設篩選條件是 {'startDate': '2021-01-01', 'endDate': '2021-12-31'}
-    # 並且模型有一個 'date' 字段
-    if 'startDate' in filter_conditions and 'endDate' in filter_conditions:
+    # 日期範圍篩選
+    if 'startDate' in filter_conditions and 'endDate' in filter_conditions and filter_conditions['startDate'] and filter_conditions['endDate']:
         start_date = filter_conditions['startDate']
         end_date = filter_conditions['endDate']
+        # 假設模型中有 date 欄位
         queryset = queryset.filter(date__range=[start_date, end_date])
-    # 可以根據需要添加更多的篩選條件處理
-    # ...
+
+    # 商品名稱篩選（局部匹配）
+    if 'productName' in filter_conditions and filter_conditions['productName']:
+        # 假設模型中有 product_name 欄位
+        product_name = filter_conditions['productName']
+        queryset = queryset.filter(product_name__icontains=product_name)
+
+    # 店名篩選（局部匹配）
+    if 'storeName' in filter_conditions and filter_conditions['storeName']:
+        # 假設模型中有 store_name 欄位
+        store_name = filter_conditions['storeName']
+        queryset = queryset.filter(store_name__icontains=store_name)
+
+    # 可依需求再添加更多條件
+
     return queryset
 
 def export_to_csv(data, chart_name, fields):
@@ -1533,34 +1662,66 @@ def export_to_excel(data, chart_name, fields):
     return response
 
 
+# 在程式一開始（或函式外）先註冊字型
+pdfmetrics.registerFont(TTFont('NotoSansCJKtc', font_path))
+
 def export_to_pdf(data, chart_name, fields):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
-    p.setFont("NotoSansTC", 12)  # 使用已註冊的字體名稱
-    p.drawString(100, 750, f"{chart_name}")
 
-    # 寫入表頭
-    header = " | ".join(fields)
-    p.drawString(100, 730, header)
-    y_position = 710
+    # 使用剛註冊的字型顯示中文
+    p.setFont("NotoSansCJKtc", 16)
+    p.drawString(50, 750, chart_name)
+
+    table_data = [fields]
     for row in data:
-        row_data = " | ".join([str(row.get(field, '')) for field in fields])
-        p.drawString(100, y_position, row_data)
-        y_position -= 20
-        if y_position < 50:  # 新增頁面
-            p.showPage()
-            p.setFont("NotoSansTC", 12)
-            p.drawString(100, 750, f"{chart_name} (續)")
-            p.drawString(100, 730, header)
-            y_position = 710
+        row_list = [str(row.get(field, '')) for field in fields]
+        table_data.append(row_list)
 
-    p.showPage()
-    p.save()
-    buffer.seek(0)
-    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    table = Table(table_data, hAlign='LEFT')
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightblue),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('FONTNAME', (0,0), (-1,0), 'NotoSansCJKtc'), #表頭字型
+        ('FONTNAME', (0,1), (-1,-1), 'NotoSansCJKtc'), #表身字型
+        ('FONTSIZE', (0,0), (-1,0), 12),
+        ('BOTTOMPADDING', (0,0), (-1,0), 10),
+        ('BACKGROUND', (0,1), (-1,-1), colors.whitesmoke),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+    ]))
+
+    doc_buffer = BytesIO()
+    doc = SimpleDocTemplate(doc_buffer, pagesize=letter)
+
+    story = []
+    # 使用 Paragraph 時也可指定字型樣式
+    from reportlab.lib.styles import getSampleStyleSheet
+    styles = getSampleStyleSheet()
+    styles['Normal'].fontName = 'NotoSansCJKtc'
+    styles['Normal'].fontSize = 12
+    styles['Heading1'].fontName = 'NotoSansCJKtc'
+
+    story.append(Paragraph(f"<b>{chart_name}</b>", styles['Heading1']))
+    story.append(Spacer(1, 20))
+    story.append(table)
+
+    doc.build(story)
+    doc_buffer.seek(0)
+
+    response = HttpResponse(doc_buffer.read(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{chart_name}.pdf"'
     return response
 
+@api_view(['GET'])
+def get_product_names(request):
+    product_names = TEST_Products.objects.values_list('product_name', flat=True).distinct()
+    return Response(list(product_names))
+
+@api_view(['GET'])
+def get_store_names(request):
+    branch_names = Branch.objects.values_list('branch_name', flat=True).distinct()
+    return Response(list(branch_names))
 
 # 另一個資料庫的測試資料
 

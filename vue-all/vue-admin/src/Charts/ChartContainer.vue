@@ -49,18 +49,27 @@
       @reload-charts="$emit('reload-charts')"
     />
   </div>
+
+  <ExportFilterModal 
+    v-if="isExportModalVisible"
+    :chartConfig="localChartConfig"
+    @close="isExportModalVisible = false"
+    @export="handleExport"
+  />
 </template>
 
 <script>
 import axios from 'axios';
 import PlotlyChart from '@/components/backend/PlotlyChart.vue';
 import ChartModal from '@/components/backend/ChartModal.vue';
+import ExportFilterModal from '@/components/backend/ExportFilterModal.vue';
 import { mapGetters } from 'vuex';
 
 export default {
   components: {
     PlotlyChart,
-    ChartModal
+    ChartModal,
+    ExportFilterModal 
   },
   props: {
     chartConfig: Object, // 接收圖表配置
@@ -74,6 +83,8 @@ export default {
       showMenu: false, // 控制菜單的顯示與隱藏
       isZoomModalVisible: false, // 控制縮放視窗的顯示與隱藏
       isEditModalVisible: false, // 控制編輯視窗的顯示與隱藏
+      isExportModalVisible: false, // 控制匯出篩選視窗
+      exportFormat: '', // 紀錄當前要匯出的格式
       localChartConfig: { ...this.chartConfig }, // 本地圖表配置，方便修改
     };
   },
@@ -143,7 +154,14 @@ export default {
       this.localChartConfig = updatedConfig;
     },
     async exportChart(format) {
-      // 匯出圖表的函數，支援多種格式
+      // 不直接匯出，先顯示篩選視窗
+      this.exportFormat = format;
+      this.isExportModalVisible = true;
+    },
+    async handleExport(filters) {
+      console.log('handleExport triggered with filters:', filters);
+      // 使用者在 ExportFilterModal 輸入的篩選條件
+      this.isExportModalVisible = false;
       try {
         const response = await axios.post('/api/backend/export-data/', {
           chartConfig: {
@@ -152,25 +170,27 @@ export default {
             data_source: this.localChartConfig.dataSource,
             x_axis_field: this.localChartConfig.xAxisField,
             y_axis_field: this.localChartConfig.yAxisField,
-            filter_conditions: this.localChartConfig.filter_conditions,
+            filter_conditions: filters, // 使用使用者選擇的過濾條件
+            // 添加新的圖表類型所需的額外配置
+            labels: this.localChartConfig.labels,
+            parents: this.localChartConfig.parents,
+            values: this.localChartConfig.values,
           },
-          format: format,
-          export_all: true  // 設置為匯出所有字段
+          format: this.exportFormat,
+          export_all: true
         }, { responseType: 'blob' });
 
-        // 生成下載連結並自動點擊下載
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${format}`);
+        link.setAttribute('download', `${this.localChartConfig.name || 'exported-file'}.${this.exportFormat}`);
         document.body.appendChild(link);
         link.click();
         link.remove();
 
-        // 記錄匯出操作
         this.$emit('export-history', {
           chartName: this.localChartConfig.name,
-          format: format,
+          format: this.exportFormat,
           timestamp: new Date().toLocaleString()
         });
       } catch (error) {

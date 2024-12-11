@@ -94,5 +94,9 @@ urlpatterns = [
     path('dashboard/revenue/', api_views.get_revenue_data, name='get_revenue_data'),
     path('dashboard/sales/', api_views.get_sales_data, name='get_sales_data'),
     path('dashboard/stock/', api_views.get_stock_data, name='get_stock_data'),
+    path('dashboard/card-data/', api_views.calculate_card_data, name='calculate_card_data'),
+
+    path('get-product-names/', api_views.get_product_names, name='get_product_names'),
+    path('get-store-names/', api_views.get_store_names, name='get_store_names'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

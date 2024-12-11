@@ -11,15 +11,18 @@ import Plotly from 'plotly.js-dist';
 
 export default {
   props: ['chartConfig'],
+  
   data() {
     return {
       lastUpdated: ''
     };
   },
+  
   mounted() {
     this.renderChart();
     window.addEventListener('resize', this.renderChart);
   },
+  
   watch: {
     chartConfig: {
       handler(newConfig) {
@@ -32,31 +35,30 @@ export default {
       deep: true
     }
   },
+  
   beforeUnmount() {
     window.removeEventListener('resize', this.renderChart);
   },
+  
   methods: {
     renderChart() {
       const chartEl = this.$refs.chart;
       if (!chartEl) {
-        console.error('無法取得圖表的引用（chartEl），請檢查範本中的 ref 是否正確。');
+        console.error('無法取得圖表的引用（chartEl）');
         return;
       }
 
-      const color = (this.chartConfig.color && this.chartConfig.color.hex) || '#000000'; // 提取颜色值
+      // 檢查圖表配置是否存在
+      if (!this.chartConfig) {
+        console.error('圖表配置未定義');
+        return;
+      }
+
+      const color = (this.chartConfig.color && this.chartConfig.color.hex) || '#000000';
       const colorPalette = [
-        '#1f77b4',  // muted blue
-        '#ff7f0e',  // safety orange
-        '#2ca02c',  // cooked asparagus green
-        '#d62728',  // brick red
-        '#9467bd',  // muted purple
-        '#8c564b',  // chestnut brown
-        '#e377c2',  // raspberry yogurt pink
-        '#7f7f7f',  // middle gray
-        '#bcbd22',  // curry yellow-green
-        '#17becf'   // blue-teal
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
       ];
-      const threshold = this.chartConfig.threshold;
 
       let data = [];
       const layout = {
@@ -71,109 +73,194 @@ export default {
         },
         autosize: true,
       };
-      const config = {
-        displaylogo: false,
-        responsive: true,
-        modeBarButtonsToRemove: [
-          'select2d',
-          'lasso2d',
-          'autoScale2d',
-        ]
-      };
 
-      if (this.chartConfig.chartType === 'multi_line') {
-        let traces = [];
-        const x_data = this.chartConfig.x_data;
-        const y_data = this.chartConfig.y_data;
-        
-        let colorIndex = 0;
-        
-        for (const [y_field, y_values] of Object.entries(y_data)) {
-          traces.push({
-            x: x_data,
-            y: y_values,
-            type: 'scatter',
-            mode: 'lines',
-            name: y_field,
-            line: { color: colorPalette[colorIndex % colorPalette.length] },
-          });
-          colorIndex++; 
-        }
-        data = traces;
-      } else if (this.chartConfig.chartType === 'heatmap') {
-        data = [{
-          z: this.chartConfig.z_data,
-          x: this.chartConfig.x_data,
-          y: this.chartConfig.y_data,
-          type: 'heatmap',
-        }];
-      } else if (this.chartConfig.chartType === 'combo') {
-        const trace1 = {
-          x: this.chartConfig.x_data,
-          y: this.chartConfig.y_data_bar,
-          type: 'bar',
-          name: this.chartConfig.y_field_bar || '柱狀圖數據',
-          marker: { color: colorPalette[0] },
-          yaxis: 'y1',
-        };
-        const trace2 = {
-          x: this.chartConfig.x_data,
-          y: this.chartConfig.y_data_line,
-          type: 'scatter',
-          mode: 'lines+markers',
-          name: this.chartConfig.y_field_line || '折線圖數據',
-          line: { color: colorPalette[1] },
-          yaxis: 'y2',
-        };
-        data = [trace1, trace2];
-        layout.yaxis = { title: this.chartConfig.y_field_bar || 'Y 軸' };
-        layout.yaxis2 = {
-          title: this.chartConfig.y_field_line || 'Y 軸',
-          overlaying: 'y',
-          side: 'right',
-        };
-      } else if (this.chartConfig.chartType === 'horizontal_bar') {
-        let marker = { color: color };
-        if (threshold !== null && threshold !== undefined) {
-          const colors = this.chartConfig.x_data.map(value => value >= threshold ? 'red' : 'blue');
-          marker = { color: colors };
-        }
-        data = [{
-          x: this.chartConfig.x_data,
-          y: this.chartConfig.y_data,
-          type: 'bar',
-          orientation: 'h',
-          marker: marker,
-        }];
-      } else {
-        // 默認處理
-        if (this.chartConfig.chartType === 'pie') {
-          data = [{
-            labels: this.chartConfig.x_data,
-            values: this.chartConfig.y_data,
-            type: 'pie',
-            marker: {
-              colors: colorPalette.slice(0, this.chartConfig.x_data.length),
-            },
-          }];
-        } else {
-          let marker = { color: color };
-          if (threshold !== null && threshold !== undefined) {
-            const colors = this.chartConfig.y_data.map(value => value >= threshold ? 'red' : 'blue');
-            marker = { color: colors };
+      // 根據圖表類型創建適當的數據結構
+      try {
+        switch (this.chartConfig.chartType) {
+          case 'multi_line': {
+            let traces = [];
+            const x_data = this.chartConfig.x_data || [];
+            const y_data = this.chartConfig.y_data || {};
+            
+            if (Array.isArray(x_data) && typeof y_data === 'object') {
+              let colorIndex = 0;
+              for (const [y_field, y_values] of Object.entries(y_data)) {
+                if (Array.isArray(y_values)) {
+                  traces.push({
+                    x: x_data,
+                    y: y_values,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: y_field,
+                    line: { color: colorPalette[colorIndex % colorPalette.length] },
+                  });
+                  colorIndex++;
+                }
+              }
+              data = traces;
+            }
+            break;
           }
 
-          data = [{
-            x: this.chartConfig.x_data,
-            y: this.chartConfig.y_data,
-            type: this.chartConfig.chartType || 'bar',
-            marker: marker,
-            line: { color: color },
-          }];
-        }
-      }
+          case 'combo': {
+            if (Array.isArray(this.chartConfig.x_data) &&
+                Array.isArray(this.chartConfig.y_data_bar) &&
+                Array.isArray(this.chartConfig.y_data_line)) {
+              const trace1 = {
+                x: this.chartConfig.x_data,
+                y: this.chartConfig.y_data_bar,
+                type: 'bar',
+                name: this.chartConfig.y_field_bar || '柱狀圖數據',
+                marker: { color: colorPalette[0] },
+                yaxis: 'y1',
+              };
+              const trace2 = {
+                x: this.chartConfig.x_data,
+                y: this.chartConfig.y_data_line,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: this.chartConfig.y_field_line || '折線圖數據',
+                line: { color: colorPalette[1] },
+                yaxis: 'y2',
+              };
+              data = [trace1, trace2];
+              layout.yaxis2 = {
+                title: this.chartConfig.y_field_line || 'Y 軸',
+                overlaying: 'y',
+                side: 'right',
+              };
+            }
+            break;
+          }
 
-      Plotly.newPlot(chartEl, data, layout, config);
+          case 'treemap': {
+            if (Array.isArray(this.chartConfig.labels) && 
+                Array.isArray(this.chartConfig.values) && 
+                Array.isArray(this.chartConfig.parents)) {
+              data = [{
+                type: 'treemap',
+                labels: this.chartConfig.labels,
+                parents: this.chartConfig.parents,
+                values: this.chartConfig.values,
+                textinfo: "label+value",
+                marker: {
+                  colors: colorPalette.slice(0, this.chartConfig.labels.length || 0)
+                }
+              }];
+            } else {
+              console.error('Treemap 所需的數據格式不正確');
+            }
+            break;
+          }
+
+          case 'donut': {
+            if (Array.isArray(this.chartConfig.labels) && 
+                Array.isArray(this.chartConfig.values)) {
+              data = [{
+                type: 'pie',
+                labels: this.chartConfig.labels,
+                values: this.chartConfig.values,
+                hole: 0.4,
+                marker: {
+                  colors: colorPalette.slice(0, this.chartConfig.labels.length || 0)
+                }
+              }];
+            } else {
+              console.error('Donut 所需的數據格式不正確');
+            }
+            break;
+          }
+
+          case 'funnel': {
+            if (Array.isArray(this.chartConfig.labels) && 
+                Array.isArray(this.chartConfig.values)) {
+              data = [{
+                type: 'funnel',
+                y: this.chartConfig.labels,
+                x: this.chartConfig.values,
+                textinfo: "value+percent",
+                marker: {
+                  colors: colorPalette.slice(0, this.chartConfig.labels.length || 0)
+                }
+              }];
+            } else {
+              console.error('Funnel 所需的數據格式不正確');
+            }
+            break;
+          }
+
+          case 'horizontal_bar': {
+            if (Array.isArray(this.chartConfig.x_data) && 
+                Array.isArray(this.chartConfig.y_data)) {
+              let marker = { color: color };
+              if (this.chartConfig.threshold != null) {
+                const colors = this.chartConfig.y_data.map(value => 
+                  value >= this.chartConfig.threshold ? 'red' : 'blue'
+                );
+                marker = { color: colors };
+              }
+              data = [{
+                x: this.chartConfig.x_data,
+                y: this.chartConfig.y_data,
+                type: 'bar',
+                orientation: 'h',
+                marker: marker,
+              }];
+            }
+            break;
+          }
+
+          case 'pie': {
+            if (Array.isArray(this.chartConfig.x_data) && 
+                Array.isArray(this.chartConfig.y_data)) {
+              data = [{
+                labels: this.chartConfig.x_data,
+                values: this.chartConfig.y_data,
+                type: 'pie',
+                marker: {
+                  colors: colorPalette.slice(0, this.chartConfig.x_data.length || 0)
+                }
+              }];
+            }
+            break;
+          }
+
+          default: {
+            // 處理基本圖表類型（bar, line 等）
+            if (Array.isArray(this.chartConfig.x_data) && 
+                Array.isArray(this.chartConfig.y_data)) {
+              let marker = { color: color };
+              if (this.chartConfig.threshold != null) {
+                const colors = this.chartConfig.y_data.map(value => 
+                  value >= this.chartConfig.threshold ? 'red' : 'blue'
+                );
+                marker = { color: colors };
+              }
+
+              data = [{
+                x: this.chartConfig.x_data,
+                y: this.chartConfig.y_data,
+                type: this.chartConfig.chartType || 'bar',
+                marker: marker,
+                line: { color: color },
+              }];
+            }
+          }
+        }
+
+        // 只有在有效數據時才渲染圖表
+        if (data.length > 0) {
+          Plotly.newPlot(chartEl, data, layout, {
+            displaylogo: false,
+            responsive: true,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d']
+          });
+        } else {
+          console.error('沒有有效的圖表數據可供渲染');
+        }
+      } catch (error) {
+        console.error('渲染圖表時發生錯誤:', error);
+      }
     }
   }
 };

@@ -3,6 +3,7 @@
   <div class="dashboard-page">
     <!-- 頂部導航欄，顯示標題 -->
     <TopNavbar title="✨ 儀表板管理 ✨" />
+
     <div class="dashboard-container">
       <br />
       <br />
@@ -25,6 +26,28 @@
         <!-- 用戶介面預覽模態視窗 -->
         <UserInterfacePreviewModal v-if="showPreviewModal" @close="showPreviewModal = false" />
       </div>
+
+      <!-- 卡片區域 -->
+      <div class="cards-container">
+        <div class="info-card" v-for="card in summaryCards" :key="card.id">
+          <div class="card-icon">
+            <font-awesome-icon icon="database" v-if="card.title.includes('總營業額')" />
+            <font-awesome-icon icon="chart-line" v-else-if="card.title.includes('增長率')" />
+            <font-awesome-icon icon="shopping-basket" v-else-if="card.title.includes('商品')" />
+            <font-awesome-icon icon="building" v-else-if="card.title.includes('分店')" />
+          </div>
+          <span class="card-category">{{ card.title }}</span>
+          <h3 class="card-title">{{ card.value }}</h3>
+          <p class="card-subtitle">
+            <span v-if="card.title.includes('商品')">最暢銷商品</span>
+            <span v-else-if="card.title.includes('分店')">最佳分店</span>
+            <span v-else>更新時間：現在</span>
+          </p>
+        </div>
+      </div>
+      <!-- 在卡片和圖表間加上距離 -->
+      <div style="margin-top: 30px;"></div>
+
 
       <div class="charts">
         <!-- 渲染篩選後的圖表 -->
@@ -61,6 +84,7 @@ import Modal from '@/components/backend/ChartModal.vue';
 import UserInterfacePreviewModal from '@/components/backend/UserInterfacePreviewModal.vue'; 
 import axios from 'axios';
 import { mapGetters, mapActions } from 'vuex';
+import { fetchChartData } from '@/utils/chartDataProcessor';
 
 export default {
   name: 'DashboardManager',
@@ -74,6 +98,7 @@ export default {
     return {
       charts: [], // 儲存所有圖表配置
       filteredCharts: [], // 儲存經過篩選的圖表
+      summaryCards: [], // 初始化為空陣列
       showChartModal: false, // 控制新增圖表模態視窗的顯示與隱藏
       showPreviewModal: false, // 控制預覽角色介面模態視窗的顯示與隱藏
       isEditing: false, // 判斷是否為編輯模式
@@ -93,88 +118,74 @@ export default {
     this.fetchCharts().then(() => {
       this.applyFilter(); // 初始載入時應用過濾
     });
+    this.fetchSummaryData(); // 加載卡片數據
   },
   methods: {
     ...mapActions(['fetchPermissions']),
     async fetchCharts() {
-      // 獲取圖表配置的函數
       try {
         await this.fetchPermissions(); // 獲取用戶權限
 
-        // 發送請求到後端獲取所有圖表配置
+        // 獲取圖表基本配置
         const response = await axios.get('/api/backend/charts/');
-        // 處理圖表配置，確保圖表類型和欄位名稱為正確格式
         const chartConfigs = response.data.map(chart => ({
           ...chart,
-          chartType: chart.chartType ? chart.chartType.toLowerCase() : 'bar',
+          chartType: chart.chartType?.toLowerCase(),
           dataSource: chart.dataSource || '',
           xAxisField: chart.xAxisField || '',
+          yAxisFields: chart.yAxisFields?.filter(field => field) || [], // 過濾掉 null 或未定義的值
           yAxisField: chart.yAxisField || '',
         }));
 
-        console.log('獲取到的圖表配置:', chartConfigs);
-
-        // 為每個圖表配置獲取相應的圖表數據
+        // 獲取每個圖表的數據
         const chartsWithData = await Promise.all(chartConfigs.map(async (chart) => {
           try {
-            // 處理過濾條件
-            const filterConditions = typeof chart.filter_conditions === 'string' 
-              ? JSON.parse(chart.filter_conditions || '{}') 
-              : chart.filter_conditions || {};
-
-            let y_field = null;
-            let y_fields = null;
-
-            if (chart.chartType === 'multi_line' || chart.chartType === 'combo') {
-              y_fields = chart.yAxisFields || [];
-            } else {
-              y_field = chart.yAxisField;
-            }
-            // 發送請求到後端獲取動態圖表數據
-            const dataResponse = await axios.post('/api/backend/dynamic-chart-data/', {
-              table_name: chart.dataSource,
-              x_field: chart.xAxisField,
-              y_field: y_field,
-              y_fields: y_fields,
-              chart_type: chart.chartType,
-              filter_conditions: filterConditions,
-              join_fields: chart.joinFields || []
-            });
-
-            console.log(`圖表 ID ${chart.id} 的數據:`, dataResponse.data);
-
-            return {
-              ...chart,
-              x_data: dataResponse.data.x_data,
-              y_data: dataResponse.data.y_data,
-              last_updated: dataResponse.data.last_updated,
-              can_export: chart.can_export,
-              can_delete: chart.can_delete,
-              can_edit: chart.can_edit,
-            };
+            const chartData = await fetchChartData(chart);
+            return { ...chart, ...chartData };
           } catch (error) {
             console.error(`獲取圖表 ID ${chart.id} 的數據時出錯:`, error);
-            return {
-              ...chart,
-              x_data: [],
-              y_data: [],
-              last_updated: null,
-              error: '無法獲取數據',
-              can_export: false,
-              can_delete: false,
-              can_edit: false,
-            };
+            return { ...chart, x_data: [], y_data: [], error: '無法獲取數據' };
           }
         }));
 
-        console.log('包含數據的圖表配置:', chartsWithData);
-
-        this.charts = chartsWithData; // 儲存獲取到的圖表配置及數據
-        this.applyFilter(); // 應用篩選條件
-        console.log('圖表數量:', this.charts.length);
-        console.log('圖表詳細:', this.charts);
+        this.charts = chartsWithData;
+        this.applyFilter();
       } catch (error) {
         console.error('獲取圖表配置時出錯:', error);
+      }
+    },
+    async fetchSummaryData() {
+      try {
+        const response = await axios.get('/api/backend/dashboard/card-data/');
+        const data = response.data;
+
+        // 將數據轉換為卡片需要的格式
+        this.summaryCards = [
+          {
+            id: 1,
+            title: "總營業額",
+            value: data.total_revenue.toLocaleString('zh-TW'),
+          },
+          {
+            id: 2,
+            title: "營業額增長率",
+            value: `${data.growth_rate.toFixed(2)}%`,
+          },
+          {
+            id: 3,
+            title: "最暢銷商品",
+            value: `${data.top_product.name} (${data.top_product.sales})`,
+          },
+          {
+            id: 4,
+            title: "最佳分店",
+            value: `${data.top_branch.name} (${data.top_branch.revenue})`,
+          },
+        ];
+      } catch (error) {
+        console.error('獲取摘要數據時出錯:', error);
+        // 若發生錯誤，設置 summaryCards 為空陣列
+        this.summaryCards = [];
       }
     },
     openPreviewModal() {
@@ -290,7 +301,7 @@ export default {
     async onReloadCharts() {
       // 重新載入圖表配置的函數
       await this.fetchCharts();
-    }
+    },
   },
   watch: {
     filterType() { // 監視 filterType 的變化
