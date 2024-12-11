@@ -16,6 +16,26 @@
       <!-- <button @click="openChartModal(false)">新增圖表</button> -->
     </div>
 
+    <!-- 卡片區域 -->
+    <div class="cards-container">
+      <div class="info-card" v-for="card in summaryCards" :key="card.id">
+        <div class="card-icon">
+          <font-awesome-icon icon="database" v-if="card.title.includes('總營業額')" />
+          <font-awesome-icon icon="chart-line" v-else-if="card.title.includes('增長率')" />
+          <font-awesome-icon icon="shopping-basket" v-else-if="card.title.includes('商品')" />
+          <font-awesome-icon icon="building" v-else-if="card.title.includes('分店')" />
+        </div>
+        <span class="card-category">{{ card.title }}</span>
+        <h3 class="card-title">{{ card.value }}</h3>
+        <p class="card-subtitle">
+          <span v-if="card.title.includes('商品')">最暢銷商品</span>
+          <span v-else-if="card.title.includes('分店')">最佳分店</span>
+          <span v-else>更新時間：現在</span>
+        </p>
+      </div>
+    </div>
+
+
     <div class="charts">
       <!-- 渲染篩選後的圖表 -->
       <div v-for="chart in filteredCharts" :key="chart.id" class="chart-wrapper">
@@ -64,6 +84,7 @@ export default {
       showChartModal: false, // 控制新增圖表模態視窗的顯示與隱藏
       isEditing: false, // 判斷是否為編輯模式
       selectedChartId: null, // 選定的圖表ID，若為新增則為 null
+      summaryCards: [], // 添加卡片數據數組
       filterType: 'all', // 當前的篩選類型
       isSidebarOpen: localStorage.getItem('sidebarOpen') === 'true', // 側邊欄的開啟狀態
     };
@@ -80,6 +101,7 @@ export default {
     this.fetchCharts().then(() => {
       this.applyFilter(); // 初始載入時應用過濾
     });
+    this.fetchSummaryData(); // 加載卡片數據
   },
   methods: {
     ...mapActions(['fetchPermissions']),
@@ -111,6 +133,38 @@ export default {
         this.applyFilter();
       } catch (error) {
         console.error('獲取圖表配置時出錯:', error);
+      }
+    },
+    async fetchSummaryData() {
+      try {
+        const response = await axios.get('/api/backend/dashboard/card-data/');
+        const data = response.data;
+
+        this.summaryCards = [
+          {
+            id: 1,
+            title: "總營業額",
+            value: data.total_revenue.toLocaleString('zh-TW'),
+          },
+          {
+            id: 2,
+            title: "營業額增長率",
+            value: `${data.growth_rate.toFixed(2)}%`,
+          },
+          {
+            id: 3,
+            title: "最暢銷商品",
+            value: `${data.top_product.name} (${data.top_product.sales})`,
+          },
+          {
+            id: 4,
+            title: "最佳分店",
+            value: `${data.top_branch.name} (${data.top_branch.revenue})`,
+          },
+        ];
+      } catch (error) {
+        console.error('獲取摘要數據時出錯:', error);
+        this.summaryCards = [];
       }
     },
     openChartModal(editing, chartId = null) {

@@ -936,14 +936,17 @@ def dynamic_chart_data(request):
             response_data['y_field_line'] = y_field_line
         elif chart_type == 'treemap':
             # 樹狀圖數據處理
-            hierarchical_data = queryset.values(x_field).annotate(
+            aggregated_data = queryset.values(x_field).annotate(
                 value=Sum(y_field)
             ).order_by('-value')
             
+            # 確保所有值都被正確轉換為適當的格式
             response_data = {
-                'labels': [item[x_field] for item in hierarchical_data],
-                'parents': [''] * len(hierarchical_data),  # 根層級
-                'values': [float(item['value']) for item in hierarchical_data],
+                'x_data': [str(item[x_field]) for item in aggregated_data],  # x_data 作為備選
+                'y_data': [float(item['value'] or 0) for item in aggregated_data],  # y_data 作為備選
+                'labels': [str(item[x_field]) for item in aggregated_data],
+                'values': [float(item['value'] or 0) for item in aggregated_data],
+                'parents': [''] * len(aggregated_data)  # 為每個數據點添加空的父節點
             }
             
         elif chart_type == 'donut':
@@ -953,9 +956,10 @@ def dynamic_chart_data(request):
             ).order_by('-value')
             
             response_data = {
-                'labels': [item[x_field] for item in aggregated_data],
-                'values': [float(item['value']) for item in aggregated_data],
-                'hole': 0.4  # 控制環圈的大小
+                'x_data': [str(item[x_field]) for item in aggregated_data],  # x_data 作為備選
+                'y_data': [float(item['value'] or 0) for item in aggregated_data],  # y_data 作為備選
+                'labels': [str(item[x_field]) for item in aggregated_data],
+                'values': [float(item['value'] or 0) for item in aggregated_data]
             }
 
         elif chart_type == "funnel":

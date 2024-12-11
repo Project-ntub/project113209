@@ -393,8 +393,10 @@ export default {
     },
     async fetchChartData() {
       try {
+        console.log('發送的請求數據:', this.chartData);
         const data = await fetchChartData(this.chartData);
-        
+        console.log('收到的數據:', data);
+
         // 根據圖表類型處理數據
         switch (this.chartData.chartType) {
           case 'treemap':
@@ -403,8 +405,16 @@ export default {
             this.chartData.parents = data.parents || [];
             break;
           case 'donut':
-            this.chartData.labels = data.labels || [];
-            this.chartData.values = data.values || [];
+            this.chartData.labels = data.labels || data.x_data || [];
+            this.chartData.values = data.values || data.y_data || [];
+            if (this.chartData.chartType === 'treemap') {
+                this.chartData.parents = data.parents || [];
+            }
+            console.log('Processed chart data:', {
+                labels: this.chartData.labels,
+                values: this.chartData.values,
+                parents: this.chartData.parents
+            });
             break;
           case 'funnel':
             this.chartData.labels = data.labels || [];
@@ -587,9 +597,9 @@ export default {
 <style scoped>
 .chart-modal-container {
   display: flex;
-  flex-direction: row; /* 讓設定視窗在左邊，預覽視窗在右邊 */
-  justify-content: flex-start;
-  align-items: flex-start;
+  flex-direction: row-reverse; /* 讓設定視窗在左邊，預覽視窗在右邊 */
+  justify-content: center;
+  align-items: stretch;
   position: fixed;
   top: 0;
   left: 0;
@@ -598,10 +608,11 @@ export default {
   backdrop-filter: blur(5px);
   background: rgba(0, 0, 0, 0.4);
   z-index: 1000;
-  overflow-y: auto;
-  gap: 40px; /* 調整間距，讓兩個視窗之間有適當的空間 */
-  padding-left: 200px; /* 確保左邊的設定窗口有空間 */
-  margin-left: 50px; /* 將整個容器右移 */
+  /* overflow-y: auto; */
+  gap: 20px; /* 調整間距，讓兩個視窗之間有適當的空間 */
+  padding: 20px;
+  /* padding-left: 200px; 確保左邊的設定窗口有空間 */
+  /* margin-left: 50px; 將整個容器右移 */
 }
 
 .chart-modal {
@@ -609,23 +620,30 @@ export default {
   padding: 10px;
   border-radius: 8px;
   width: 30%;
-  max-width: 450px;
+  height: calc(100vh - 40px); /* 設定固定高度 */
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  /* max-width: 450px;
   max-height: 80vh;
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.3s ease-in-out; */
 }
 
 .chart-preview-container {
   background: #ffffff;
-  padding: 10px;
+  padding: 20px;
   border-radius: 8px;
-  width: 40%;
-  max-width: 600px;
-  max-height: 80vh;
+  width: 60%;
+  height: calc(100vh - 40px); /* 設定固定高度 */
+  /* max-width: 600px;
+  max-height: 80vh; */
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-  overflow-y: auto;
-  animation: fadeIn 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  /* overflow-y: auto;
+  animation: fadeIn 0.3s ease-in-out; */
 }
 
 @keyframes fadeIn {
@@ -645,6 +663,12 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+}
+
+.chart-modal-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
 }
 
 .chart-modal-header h2 {
@@ -667,9 +691,12 @@ export default {
 }
 
 .chart-modal-body {
-  display: flex;
+  /* display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 10px; */
+  flex: 1;
+  overflow-y: auto; /* 設定區可以滾動 */
+  padding-right: 10px; /* 為滾動條預留空間 */
 }
 
 .chart-content-settings {
@@ -680,7 +707,8 @@ export default {
 }
 
 .setting {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .btn-save,
@@ -713,11 +741,38 @@ export default {
 }
 
 .chart-preview {
-  border: 1px solid #ccc;
+  /* border: 1px solid #ccc;
   padding: 10px;
   border-radius: 6px;
   height: 100%;
+  background: #fafafa; */
+  flex: 1;
+  padding: 15px;
+  border-radius: 6px;
   background: #fafafa;
+  overflow: hidden; /* 防止圖表溢出 */
+}
+
+.chart-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chart-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.chart-modal-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.chart-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.chart-modal-header {
+  margin-bottom: 20px;
 }
 
 .footer-left {

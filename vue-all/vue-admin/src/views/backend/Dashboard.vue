@@ -8,24 +8,30 @@
       <br />
       <br />
       <!-- 下拉選單來選擇圖表類型 -->
-      <div class="top-left-controls">
-        <select @change="showDashboard($event.target.value)">
+      <div class="controls-wrapper">
+        <select class="filter-select" @change="showDashboard($event.target.value)">
           <option value="all">🌈 所有圖表</option>
           <option value="sales">💹 銷售額</option>
           <option value="revenue">💰 營業額</option>
           <option value="inventory">📦 庫存量</option>
         </select>
+        
+        <div class="control-buttons">
+          <button v-if="canAddChart" 
+                  @click="openChartModal(false)" 
+                  class="control-btn add-btn">
+            <span class="btn-icon">➕</span>
+            <span class="btn-text">新增圖表</span>
+          </button>
+          <button @click="openPreviewModal" 
+                  class="control-btn preview-btn">
+            <span class="btn-icon">👀</span>
+            <span class="btn-text">預覽角色介面</span>
+          </button>
+        </div>
       </div>
-
-      <!-- 新增圖表和預覽角色介面按鈕 -->
-      <div class="button-group">
-        <!-- 新增圖表按鈕，只有有權限的用戶才能看到 -->
-        <button v-if="canAddChart" @click="openChartModal(false)">➕ 新增圖表</button>
-        <!-- 預覽角色介面按鈕 -->
-        <button @click="openPreviewModal">👀 預覽角色介面</button>
         <!-- 用戶介面預覽模態視窗 -->
         <UserInterfacePreviewModal v-if="showPreviewModal" @close="showPreviewModal = false" />
-      </div>
 
       <!-- 卡片區域 -->
       <div class="cards-container">
@@ -300,7 +306,7 @@ export default {
     },
     async onReloadCharts() {
       // 重新載入圖表配置的函數
-      await this.fetchCharts();
+      this.fetchCharts(); // 直接調用 fetchCharts 方法
     },
   },
   watch: {

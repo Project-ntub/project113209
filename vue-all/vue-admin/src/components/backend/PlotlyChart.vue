@@ -134,95 +134,234 @@ export default {
           }
 
           case 'treemap': {
-            if (Array.isArray(this.chartConfig.labels) && 
-                Array.isArray(this.chartConfig.values) && 
-                Array.isArray(this.chartConfig.parents)) {
-              data = [{
-                type: 'treemap',
-                labels: this.chartConfig.labels,
-                parents: this.chartConfig.parents,
-                values: this.chartConfig.values,
-                textinfo: "label+value",
-                marker: {
-                  colors: colorPalette.slice(0, this.chartConfig.labels.length || 0)
-                }
-              }];
-            } else {
-              console.error('Treemap 所需的數據格式不正確');
-            }
-            break;
+              // 檢查數據是否存在
+              if (this.chartConfig.x_data && this.chartConfig.y_data) {
+                  data = [{
+                      type: 'treemap',
+                      labels: this.chartConfig.x_data,
+                      values: this.chartConfig.y_data,
+                      parents: new Array(this.chartConfig.x_data.length).fill('Total'), // 添加一個父層級
+                      branchvalues: 'total',  // 設置為 total 模式
+                      textinfo: "label+value+percent",  // 顯示標籤、數值和百分比
+                      hovertemplate: '<b>%{label}</b><br>金額: $%{value}<br>占比: %{percentParent:.1%}<extra></extra>',
+                      marker: {
+                          colors: colorPalette,
+                          line: {
+                              width: 2
+                          }
+                      },
+                  }];
+
+                  // 專業的樹狀圖布局
+                  layout.showlegend = false;
+                  layout.height = 600;
+                  layout.margin = { l: 0, r: 0, b: 0, t: 30, pad: 4 };
+                  layout.treemapcolorway = colorPalette;  // 使用自定義顏色
+              }
+              break;
           }
 
           case 'donut': {
-            if (Array.isArray(this.chartConfig.labels) && 
-                Array.isArray(this.chartConfig.values)) {
-              data = [{
-                type: 'pie',
-                labels: this.chartConfig.labels,
-                values: this.chartConfig.values,
-                hole: 0.4,
-                marker: {
-                  colors: colorPalette.slice(0, this.chartConfig.labels.length || 0)
-                }
-              }];
-            } else {
-              console.error('Donut 所需的數據格式不正確');
-            }
-            break;
+              if (this.chartConfig.x_data && this.chartConfig.y_data) {
+                  data = [{
+                      type: 'pie',
+                      labels: this.chartConfig.x_data,
+                      values: this.chartConfig.y_data,
+                      hole: 0.6,  // 加大中間空心
+                      textposition: 'outside',  // 文字標籤放在外面
+                      textinfo: "label+percent",
+                      hoverinfo: "label+value+percent",
+                      pull: 0.02,  // 輕微分離各個扇形
+                      marker: {
+                          colors: colorPalette,
+                          line: {
+                              color: 'white',
+                              width: 2
+                          }
+                      },
+                      insidetextorientation: 'radial'  // 放射狀的文字方向
+                  }];
+
+                  // 在中間添加總計數值
+                  const total = this.chartConfig.y_data.reduce((a, b) => a + b, 0);
+                  layout.annotations = [{
+                      font: {
+                          size: 20,
+                          color: '#333'
+                      },
+                      showarrow: false,
+                      text: `總計<br>${total.toLocaleString('zh-TW')}`,
+                      x: 0.5,
+                      y: 0.5
+                  }];
+
+                  layout.showlegend = true;
+                  layout.height = 500;
+                  layout.legend = {
+                      orientation: 'h',
+                      y: -0.2,
+                      x: 0.5,
+                      xanchor: 'center'
+                  };
+              }
+              break;
           }
 
           case 'funnel': {
-            if (Array.isArray(this.chartConfig.labels) && 
-                Array.isArray(this.chartConfig.values)) {
-              data = [{
-                type: 'funnel',
-                y: this.chartConfig.labels,
-                x: this.chartConfig.values,
-                textinfo: "value+percent",
-                marker: {
-                  colors: colorPalette.slice(0, this.chartConfig.labels.length || 0)
-                }
-              }];
-            } else {
-              console.error('Funnel 所需的數據格式不正確');
-            }
-            break;
+              if (this.chartConfig.x_data && this.chartConfig.y_data) {
+                  data = [{
+                      type: 'funnel',
+                      y: this.chartConfig.x_data,  // 使用名稱作為Y軸
+                      x: this.chartConfig.y_data,   // 使用數值作為X軸
+                      textposition: "inside",
+                      textinfo: "value+percent initial",
+                      opacity: 0.85,
+                      marker: {
+                          color: colorPalette,
+                          line: {
+                              width: 2,
+                              color: 'white'
+                          }
+                      },
+                      connector: {
+                          line: {
+                              color: "royalblue",
+                              width: 1
+                          }
+                      },
+                      hoverinfo: 'name+percent previous+percent total',
+                  }];
+
+                  // 專業的漏斗圖布局
+                  layout.showlegend = true;
+                  layout.height = 600;
+                  layout.margin = { l: 150, r: 0, b: 0, t: 30, pad: 4 };
+                  layout.funnelmode = "stack";
+                  layout.legend = {
+                      orientation: 'h',
+                      y: -0.2
+                  };
+              }
+              break;
           }
 
+          // case 'horizontal_bar': {
+          //   if (Array.isArray(this.chartConfig.x_data) && 
+          //       Array.isArray(this.chartConfig.y_data)) {
+          //     let marker = { color: color };
+          //     if (this.chartConfig.threshold != null) {
+          //       const colors = this.chartConfig.y_data.map(value => 
+          //         value >= this.chartConfig.threshold ? 'red' : 'blue'
+          //       );
+          //       marker = { color: colors };
+          //     }
+          //     data = [{
+          //       x: this.chartConfig.x_data,
+          //       y: this.chartConfig.y_data,
+          //       type: 'bar',
+          //       orientation: 'h',
+          //       marker: marker,
+          //     }];
+          //   }
+          //   break;
+          // }
+
+          case 'bar':
           case 'horizontal_bar': {
             if (Array.isArray(this.chartConfig.x_data) && 
                 Array.isArray(this.chartConfig.y_data)) {
-              let marker = { color: color };
-              if (this.chartConfig.threshold != null) {
-                const colors = this.chartConfig.y_data.map(value => 
-                  value >= this.chartConfig.threshold ? 'red' : 'blue'
-                );
-                marker = { color: colors };
-              }
-              data = [{
-                x: this.chartConfig.x_data,
-                y: this.chartConfig.y_data,
+              
+              // 獲取極值
+              const { highest, lowest } = this.getExtremeValues(this.chartConfig.y_data, 3);
+              const extremeIndices = [...highest, ...lowest].map(item => item.index);
+              
+              // 生成顏色數組
+              const colors = this.chartConfig.y_data.map((value, index) => {
+                if (highest.some(h => h.index === index)) {
+                  return '#FF4136'; // 高值用紅色
+                } else if (lowest.some(l => l.index === index)) {
+                  return '#0074D9'; // 低值用藍色
+                }
+                return color; // 其他用默認顏色
+              });
+
+              const trace = {
+                x: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.y_data : this.chartConfig.x_data,
+                y: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.x_data : this.chartConfig.y_data,
                 type: 'bar',
-                orientation: 'h',
-                marker: marker,
-              }];
+                orientation: this.chartConfig.chartType === 'horizontal_bar' ? 'h' : 'v',
+                marker: {
+                  color: colors,
+                  line: {
+                    color: 'white',
+                    width: 1
+                  }
+                },
+                text: this.chartConfig.y_data.map((value, index) => {
+                  if (extremeIndices.includes(index)) {
+                    return value.toLocaleString('zh-TW');
+                  }
+                  return '';
+                }),
+                textposition: 'outside',
+                hovertemplate: '%{y}: %{x}<extra></extra>'
+              };
+
+              data = [trace];
+
+              // 為極值添加標註
+              layout.annotations = [
+                ...highest.map(({ value, index }) => ({
+                  x: this.chartConfig.chartType === 'horizontal_bar' ? value : this.chartConfig.x_data[index],
+                  y: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.x_data[index] : value,
+                  text: '🔺',
+                  showarrow: false,
+                  font: { size: 16 },
+                  yshift: this.chartConfig.chartType === 'horizontal_bar' ? 0 : 20,
+                  xshift: this.chartConfig.chartType === 'horizontal_bar' ? 20 : 0
+                })),
+                ...lowest.map(({ value, index }) => ({
+                  x: this.chartConfig.chartType === 'horizontal_bar' ? value : this.chartConfig.x_data[index],
+                  y: this.chartConfig.chartType === 'horizontal_bar' ? this.chartConfig.x_data[index] : value,
+                  text: '🔻',
+                  showarrow: false,
+                  font: { size: 16 },
+                  yshift: this.chartConfig.chartType === 'horizontal_bar' ? 0 : -20,
+                  xshift: this.chartConfig.chartType === 'horizontal_bar' ? -20 : 0
+                }))
+              ];
             }
             break;
           }
 
           case 'pie': {
-            if (Array.isArray(this.chartConfig.x_data) && 
-                Array.isArray(this.chartConfig.y_data)) {
-              data = [{
-                labels: this.chartConfig.x_data,
-                values: this.chartConfig.y_data,
-                type: 'pie',
-                marker: {
-                  colors: colorPalette.slice(0, this.chartConfig.x_data.length || 0)
-                }
-              }];
-            }
-            break;
+              if (this.chartConfig.x_data && this.chartConfig.y_data) {
+                  data = [{
+                      type: 'pie',
+                      labels: this.chartConfig.x_data,
+                      values: this.chartConfig.y_data,
+                      hole: 0,  // 無空心
+                      textposition: 'inside',  // 文字標籤放在內部
+                      textinfo: "percent",  // 只顯示百分比
+                      hoverinfo: "label+value+percent",
+                      marker: {
+                          colors: colorPalette,
+                          line: {
+                              color: 'white',
+                              width: 1
+                          }
+                      }
+                  }];
+
+                  layout.showlegend = true;
+                  layout.height = 450;
+                  layout.legend = {
+                      orientation: 'v',
+                      y: 1,
+                      x: 1.1
+                  };
+              }
+              break;
           }
 
           default: {
@@ -261,6 +400,21 @@ export default {
       } catch (error) {
         console.error('渲染圖表時發生錯誤:', error);
       }
+    },
+    getExtremeValues(values, count = 3) {
+      if (!Array.isArray(values) || values.length === 0) return { highest: [], lowest: [] };
+      
+      // 創建帶索引的數組
+      const indexed = values.map((value, index) => ({ value, index }));
+      
+      // 排序
+      const sorted = [...indexed].sort((a, b) => b.value - a.value);
+      
+      // 獲取最高和最低的幾個值
+      const highest = sorted.slice(0, count);
+      const lowest = sorted.slice(-count).reverse();
+      
+      return { highest, lowest };
     }
   }
 };
