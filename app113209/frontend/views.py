@@ -621,5 +621,3 @@ def logout_view(request):
     return JsonResponse({'message': '成功登出'}, status=200)
 
 
-
-
