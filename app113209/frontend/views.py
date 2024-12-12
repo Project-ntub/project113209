@@ -40,15 +40,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 
-
-
 from django.http import JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
 
-# 假設你有一個模型來存日曆事件
+
+from django.db.models import Q
 
 # app113209/frontend/views.py
 from django.http import JsonResponse
@@ -63,47 +62,47 @@ from app113209.models import CalendarEvent
 import json
 
 # 獲取日曆事件的視圖，處理 GET 請求
-def get_calendar_events(request):
-    if request.method == 'GET':
-        try:
-            events = CalendarEvent.objects.all()  # 查詢所有事件
-            event_list = [
-                {
-                    "id": event.id,
-                    "title": event.title,
-                    "start": event.start.isoformat(),  # 使用 ISO 格式返回時間
-                    "end": event.end.isoformat(),
-                    "description": event.description,
-                }
-                for event in events
-            ]
-            return JsonResponse(event_list, safe=False)  # 返回事件列表的 JSON 數據
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+# def get_calendar_events(request):
+#     if request.method == 'GET':
+#         try:
+#             events = CalendarEvent.objects.all() 
+#             event_list = [
+#                 {
+#                     "id": event.id,
+#                     "title": event.title,
+#                     "start": event.start.isoformat(), 
+#                     "end": event.end.isoformat(),
+#                     "description": event.description,
+#                 }
+#                 for event in events
+#             ]
+#             return JsonResponse(event_list, safe=False)  
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 # 新增事件的視圖
-@csrf_exempt  # 如果有 CSRF 問題，可以使用這個裝飾器（僅供測試環境）
-def add_calendar_event(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            new_event = CalendarEvent.objects.create(
-                title=data.get('title'),
-                start=data.get('start'),
-                end=data.get('end'),
-                description=data.get('description', '')
-            )
-            return JsonResponse({
-                "id": new_event.id,
-                "title": new_event.title,
-                "start": new_event.start.isoformat(),
-                "end": new_event.end.isoformat(),
-                "description": new_event.description,
-            }, status=201)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+# @csrf_exempt 
+# def add_calendar_event(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             new_event = CalendarEvent.objects.create(
+#                 title=data.get('title'),
+#                 start=data.get('start'),
+#                 end=data.get('end'),
+#                 description=data.get('description', '')
+#             )
+#             return JsonResponse({
+#                 "id": new_event.id,
+#                 "title": new_event.title,
+#                 "start": new_event.start.isoformat(),
+#                 "end": new_event.end.isoformat(),
+#                 "description": new_event.description,
+#             }, status=201)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=400)
+#     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 # @csrf_exempt
@@ -131,13 +130,6 @@ def add_calendar_event(request):
 #         except CalendarEvent.DoesNotExist:
 #             return JsonResponse({'error': 'Event not found'}, status=404)
 #     return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-
-
-
-
-
-
 
 
 
@@ -596,7 +588,7 @@ def user_profile(request):
         return JsonResponse({'success': True, 'message': '資料更新成功'}, status=200)
 
 # 過濾數據
-from django.contrib.auth.decorators import login_required
+
 from app113209.models import DataModel  # 假設有一個 DataModel 存儲數據
 
 @login_required
@@ -620,4 +612,112 @@ def logout_view(request):
     logout(request)  # 清除 session
     return JsonResponse({'message': '成功登出'}, status=200)
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from datetime import datetime
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_calendar_events(request):
+    try:
+        events = CalendarEvent.objects.filter(user=request.user)
+        event_list = [
+            {
+                "id": event.id,
+                "title": event.title or "未命名事件",
+                "start": event.start.isoformat() if event.start else None,
+                "end": event.end.isoformat() if event.end else None,
+                "description": event.description or "",
+                "privacy": event.privacy or "public",
+            }
+            for event in events if event.start and event.end
+        ]
+        print("後端返回的事件：", event_list)  # 調試輸出
+        return Response(event_list, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_calendar_event(request, event_id):
+    try:
+        event = CalendarEvent.objects.get(id=event_id, user=request.user)
+        data = request.data
+
+        # 確保 start 和 end 的數據正確並轉換為 datetime
+        start = data.get('start')
+        end = data.get('end')
+        if start:
+            event.start = datetime.fromisoformat(start)
+        if end:
+            event.end = datetime.fromisoformat(end)
+
+        event.title = data.get('title', event.title)
+        event.description = data.get('description', event.description)
+        event.save()
+        return Response({
+            "id": event.id,
+            "title": event.title,
+            "start": event.start.isoformat(),
+            "end": event.end.isoformat(),
+            "description": event.description,
+        }, status=status.HTTP_200_OK)
+    except ValueError as e:
+        return Response({'error': f'日期格式錯誤: {str(e)}'}, status=400)
+    except CalendarEvent.DoesNotExist:
+        return Response({'error': '事件不存在或無權限'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# 新增事件的視圖
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_calendar_event(request):
+    if request.method == 'POST':
+        try:
+            data = request.data  # 確保使用 DRF 的 request.data
+            # 解析日期時間字串為 datetime 物件
+            start = datetime.fromisoformat(data.get('start'))
+            end = datetime.fromisoformat(data.get('end'))
+
+            # 新增事件
+            new_event = CalendarEvent.objects.create(
+                user=request.user,
+                title=data.get('title'),
+                start=start,
+                end=end,
+                description=data.get('description', ''),
+                privacy=data.get('privacy', 'public'),
+            )
+
+            # 回傳成功的事件資料
+            return Response({
+                "id": new_event.id,
+                "title": new_event.title,
+                "start": new_event.start.isoformat(),
+                "end": new_event.end.isoformat(),
+                "description": new_event.description,
+                "privacy": new_event.privacy,
+            }, status=201)
+        except ValueError as e:
+            return Response({'error': f'日期格式錯誤: {str(e)}'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    return Response({'error': 'Method not allowed'}, status=405)
+
+# 刪除事件的視圖
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_calendar_event(request, event_id):
+    try:
+        event = CalendarEvent.objects.get(id=event_id, user=request.user)
+        event.delete()
+        return Response({'message': '事件刪除成功！'}, status=status.HTTP_200_OK)
+    except CalendarEvent.DoesNotExist:
+        return Response({'error': '事件不存在或無權限'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
