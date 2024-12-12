@@ -3,14 +3,14 @@
   <div>
     <div class="profile-container">
       <div class="profile-row">
-        <div v-if="!showModal">
+        <!-- <div v-if="!showModal">
           <label for="name">姓名：</label>
           <input type="text" id="name" v-model="profile.name" disabled>
-        </div>
-        <div v-else>
+        </div> -->
+        <!-- <div v-else>
           <label for="modal-name">姓名：</label>
           <input type="text" id="modal-name" v-model="editProfile.name">
-        </div>
+        </div> -->
 
         <div v-if="!showModal">
           <label for="username">帳號：</label>
@@ -83,7 +83,7 @@ export default {
   data() {
     return {
       profile: {
-        name: '',
+        // name: '',
         username: '',
         department: '',
         position: '',
@@ -92,7 +92,7 @@ export default {
         created: ''
       },
       editProfile: {
-        name: '',
+        // name: '',
         username: '',
         department: '',
         position: '',

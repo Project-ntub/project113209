@@ -59,7 +59,7 @@ const routes = [
   { path: '/backend/register', name: 'BackendRegister', component: Register, meta: { requiresAuth: false } },
   { path: '/backend/forgetpassword', name: 'BackendForgetPassword', component: ForgetPassword, meta: { requiresAuth: false } },
   { path: '/backend/management', name: 'BackendManagement', component: Management, meta: { requiresAuth: true } },
-  { path: '/backend/dashboard', name: '儀表板管理', component: Dashboard, meta: { requiresAuth: true } },
+  { path: '/backend/dashboard', name: '儀錶板管理', component: Dashboard, meta: { requiresAuth: true } },
   { path: '/backend/user-management', name: '用戶管理', component: UserManagement, meta: { requiresAuth: true } },
   { path: '/backend/role-management', name: '角色管理', component: RoleManagement, meta: { requiresAuth: true } },
   { path: '/backend/role-management/create', name: '新增角色', component: RoleFormPage, props: true, meta: { requiresAuth: true } },

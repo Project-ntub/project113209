@@ -101,7 +101,8 @@ export default {
               x_field: chart.xAxisField,
               y_field: chart.yAxisField,
               filter_conditions: filterConditions,
-              join_fields: chart.join_fields || []
+              join_fields: chart.join_fields || [],
+              chart_type: chart.chartType || 'bar'
             });
 
             return {

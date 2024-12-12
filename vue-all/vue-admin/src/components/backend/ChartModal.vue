@@ -26,9 +26,9 @@
               <option value="horizontal_bar">橫條圖</option>
               <option value="multi_line">多線折線圖</option>
               <option value="combo">組合式圖表</option>
-              <option value="treemap">樹狀圖</option>
+              <!-- <option value="treemap">樹狀圖</option> -->
               <option value="donut">環圈圖</option>
-              <option value="funnel">漏斗圖</option>
+              <!-- <option value="funnel">漏斗圖</option> -->
               <!-- 更多圖表類型 -->
             </select>
           </div>
@@ -414,11 +414,11 @@ export default {
 
         // 根據圖表類型處理數據
         switch (this.chartData.chartType) {
-          case 'treemap':
-            this.chartData.x_data = data.labels || [];
-            this.chartData.y_data = data.values || [];
-            this.chartData.parents = data.parents || [];
-            break;
+          // case 'treemap':
+          //   this.chartData.x_data = data.labels || [];
+          //   this.chartData.y_data = data.values || [];
+          //   this.chartData.parents = data.parents || [];
+          //   break;
           case 'donut':
             this.chartData.x_data = data.labels || data.x_data || [];
             this.chartData.y_data = data.values || data.y_data || [];
@@ -431,10 +431,10 @@ export default {
                 parents: this.chartData.parents
             });
             break;
-          case 'funnel':
-            this.chartData.x_data = data.labels || [];
-            this.chartData.y_data = data.values || [];
-            break;
+          // case 'funnel':
+          //   this.chartData.x_data = data.labels || [];
+          //   this.chartData.y_data = data.values || [];
+          //   break;
           case 'multi_line':
             this.chartData.x_data = data.x_data || [];
             this.chartData.y_data = data.y_data || {};

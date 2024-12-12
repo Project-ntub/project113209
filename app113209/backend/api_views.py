@@ -812,7 +812,7 @@ def calculate_card_data(request):
 @api_view(['POST'])
 def dynamic_chart_data(request):
     chart_type = request.data.get('chart_type')
-    if chart_type not in ['bar', 'line', 'pie', 'horizontal_bar', 'multi_line', 'combo', 'treemap', 'donut', 'funnel']:
+    if chart_type not in ['bar', 'line', 'pie', 'horizontal_bar', 'multi_line', 'combo', 'donut']:
         logger.error("未支援的 chart_type 或 chart_type 未提供")
         return JsonResponse({'error': 'chart_type 未提供或不支援'}, status=400)
 
@@ -934,20 +934,6 @@ def dynamic_chart_data(request):
             response_data['y_data_line'] = y_data_line
             response_data['y_field_bar'] = y_field_bar
             response_data['y_field_line'] = y_field_line
-        elif chart_type == 'treemap':
-            # 樹狀圖數據處理
-            aggregated_data = queryset.values(x_field).annotate(
-                value=Sum(y_field)
-            ).order_by('-value')
-            
-            # 確保所有值都被正確轉換為適當的格式
-            response_data = {
-                'x_data': [str(item[x_field]) for item in aggregated_data],  # x_data 作為備選
-                'y_data': [float(item['value'] or 0) for item in aggregated_data],  # y_data 作為備選
-                'labels': [str(item[x_field]) for item in aggregated_data],
-                'values': [float(item['value'] or 0) for item in aggregated_data],
-                'parents': [''] * len(aggregated_data)  # 為每個數據點添加空的父節點
-            }
             
         elif chart_type == 'donut':
             # 環圈圖數據處理
@@ -960,13 +946,6 @@ def dynamic_chart_data(request):
                 'y_data': [float(item['value'] or 0) for item in aggregated_data],  # y_data 作為備選
                 'labels': [str(item[x_field]) for item in aggregated_data],
                 'values': [float(item['value'] or 0) for item in aggregated_data]
-            }
-
-        elif chart_type == "funnel":
-            funnel_data = queryset.values(x_field).annotate(value=Sum(y_field)).order_by('-value')
-            response_data = {
-                'labels': [item[x_field] for item in funnel_data],
-                'values': [float(item['value']) for item in funnel_data]
             }
             
         elif chart_type == 'horizontal_bar':

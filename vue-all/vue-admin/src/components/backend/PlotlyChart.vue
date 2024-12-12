@@ -135,34 +135,6 @@ export default {
             break;
           }
 
-          case 'treemap': {
-              // 檢查數據是否存在
-              if (this.chartConfig.x_data && this.chartConfig.y_data) {
-                  data = [{
-                      type: 'treemap',
-                      labels: this.chartConfig.x_data,
-                      values: this.chartConfig.y_data,
-                      parents: new Array(this.chartConfig.x_data.length).fill('Total'), // 添加一個父層級
-                      branchvalues: 'total',  // 設置為 total 模式
-                      textinfo: "label+value+percent",  // 顯示標籤、數值和百分比
-                      hovertemplate: '<b>%{label}</b><br>金額: $%{value}<br>占比: %{percentParent:.1%}<extra></extra>',
-                      marker: {
-                          colors: colorPalette,
-                          line: {
-                              width: 2
-                          }
-                      },
-                  }];
-
-                  // 專業的樹狀圖布局
-                  layout.showlegend = false;
-                  layout.height = 600;
-                  layout.margin = { l: 0, r: 0, b: 0, t: 30, pad: 4 };
-                  layout.treemapcolorway = colorPalette;  // 使用自定義顏色
-              }
-              break;
-          }
-
           case 'donut': {
               if (this.chartConfig.x_data && this.chartConfig.y_data) {
                   data = [{
@@ -209,43 +181,43 @@ export default {
               break;
           }
 
-          case 'funnel': {
-              if (this.chartConfig.x_data && this.chartConfig.y_data) {
-                  data = [{
-                      type: 'funnel',
-                      y: this.chartConfig.x_data,  // 使用名稱作為Y軸
-                      x: this.chartConfig.y_data,   // 使用數值作為X軸
-                      textposition: "inside",
-                      textinfo: "value+percent initial",
-                      opacity: 0.85,
-                      marker: {
-                          color: colorPalette,
-                          line: {
-                              width: 2,
-                              color: 'white'
-                          }
-                      },
-                      connector: {
-                          line: {
-                              color: "royalblue",
-                              width: 1
-                          }
-                      },
-                      hoverinfo: 'name+percent previous+percent total',
-                  }];
+          // case 'funnel': {
+          //     if (this.chartConfig.x_data && this.chartConfig.y_data) {
+          //         data = [{
+          //             type: 'funnel',
+          //             y: this.chartConfig.x_data,  // 使用名稱作為Y軸
+          //             x: this.chartConfig.y_data,   // 使用數值作為X軸
+          //             textposition: "inside",
+          //             textinfo: "value+percent initial",
+          //             opacity: 0.85,
+          //             marker: {
+          //                 color: colorPalette,
+          //                 line: {
+          //                     width: 2,
+          //                     color: 'white'
+          //                 }
+          //             },
+          //             connector: {
+          //                 line: {
+          //                     color: "royalblue",
+          //                     width: 1
+          //                 }
+          //             },
+          //             hoverinfo: 'name+percent previous+percent total',
+          //         }];
 
-                  // 專業的漏斗圖布局
-                  layout.showlegend = true;
-                  layout.height = 600;
-                  layout.margin = { l: 150, r: 0, b: 0, t: 30, pad: 4 };
-                  layout.funnelmode = "stack";
-                  layout.legend = {
-                      orientation: 'h',
-                      y: -0.2
-                  };
-              }
-              break;
-          }
+          //         // 專業的漏斗圖布局
+          //         layout.showlegend = true;
+          //         layout.height = 600;
+          //         layout.margin = { l: 150, r: 0, b: 0, t: 30, pad: 4 };
+          //         layout.funnelmode = "stack";
+          //         layout.legend = {
+          //             orientation: 'h',
+          //             y: -0.2
+          //         };
+          //     }
+          //     break;
+          // }
 
           // case 'horizontal_bar': {
           //   if (Array.isArray(this.chartConfig.x_data) && 
