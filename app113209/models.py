@@ -397,6 +397,7 @@ class TEST_Revenue(models.Model):
     tax_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     final_revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     last_update = models.DateTimeField(auto_now=True)
+    transaction_date = models.DateField(null=True)  # 新增交易日期欄位
 
     class Meta:
         db_table = 'TEST_Revenue'

@@ -754,23 +754,25 @@ MODEL_MAPPING = {
 @api_view(['GET'])
 def calculate_card_data(request):
     try:
+        now = datetime.now()
+        current_year = now.year
+        current_month = now.month
+
         # 計算營業額總計
         total_revenue = TEST_Revenue.objects.aggregate(total=Sum('final_revenue'))['total'] or 0
 
-        # 計算上月 (以 last_update 為依據) 營業額
-        # 確保本月是幾月
-        now = datetime.now()
-        if now.month == 1:
+
+        if current_month == 1:
             last_month = 12
-            year = now.year - 1
+            last_year = current_year - 1
         else:
-            last_month = now.month - 1
-            year = now.year
+            last_month = current_month - 1
+            last_year = current_year
 
         # 使用 year, last_month 來過濾上個月資料
         last_month_revenue = TEST_Revenue.objects.filter(
-            last_update__year=year,
-            last_update__month=last_month
+            transaction_date__year=last_year,
+            transaction_date__month=last_month
         ).aggregate(total=Sum('final_revenue'))['total'] or 0
 
         # 營業額增長率
@@ -812,7 +814,10 @@ def calculate_card_data(request):
 @api_view(['POST'])
 def dynamic_chart_data(request):
     chart_type = request.data.get('chart_type')
-    if chart_type not in ['bar', 'line', 'pie', 'horizontal_bar', 'multi_line', 'combo', 'donut']:
+    if chart_type not in ['bar', 'line', 'pie', 'horizontal_bar', 
+                          'multi_line', 'combo', 'donut', 
+                          'stacked_bar', 'grouped_bar', 'area', 
+                          'scatter']:
         logger.error("未支援的 chart_type 或 chart_type 未提供")
         return JsonResponse({'error': 'chart_type 未提供或不支援'}, status=400)
 
@@ -947,7 +952,76 @@ def dynamic_chart_data(request):
                 'labels': [str(item[x_field]) for item in aggregated_data],
                 'values': [float(item['value'] or 0) for item in aggregated_data]
             }
+
+        elif chart_type == 'grouped_bar':
+            # 分組條形圖的數據處理
+            if not y_fields or len(y_fields) < 2:
+                return JsonResponse({'error': '分組條形圖需要至少兩個 y_fields'}, status=400)
             
+            aggregated_data = {}
+            x_data = []
+            
+            for y_field in y_fields:
+                data = queryset.values(x_field).annotate(
+                    value=Sum(y_field)
+                ).order_by(x_field)
+                
+                if not x_data:
+                    x_data = [item[x_field] for item in data]
+                
+                aggregated_data[y_field] = [float(item['value'] or 0) for item in data]
+            
+            response_data = {
+                'x_data': x_data,
+                'y_data': aggregated_data,
+                'groups': y_fields
+            }
+
+        elif chart_type == 'stacked_bar':
+            # 堆疊條形圖的數據處理
+            if not y_fields or len(y_fields) < 2:
+                return JsonResponse({'error': '堆疊條形圖需要至少兩個 y_fields'}, status=400)
+            
+            data = queryset.values(x_field).annotate(
+                **{y_field: Sum(y_field) for y_field in y_fields}
+            ).order_by(x_field)
+            
+            response_data = {
+                'x_data': [item[x_field] for item in data],
+                'y_data': {
+                    y_field: [float(item[y_field] or 0) for item in data]
+                    for y_field in y_fields
+                },
+                'stacks': y_fields
+            }
+
+        elif chart_type == 'area':
+            # 區域圖的數據處理
+            aggregated_data = queryset.values(x_field).annotate(
+                value=Sum(y_field)
+            ).order_by(x_field)
+            
+            response_data = {
+                'x_data': [item[x_field] for item in aggregated_data],
+                'y_data': [float(item['value'] or 0) for item in aggregated_data],
+                'fill': True
+            }
+
+        elif chart_type == 'scatter':
+            # 散點圖的數據處理
+            if not y_field:
+                return JsonResponse({'error': '散點圖需要 y_field'}, status=400)
+            
+            data = queryset.values(x_field, y_field)
+            
+            response_data = {
+                'x_data': [float(item[x_field]) if item[x_field] is not None else 0 
+                        for item in data],
+                'y_data': [float(item[y_field]) if item[y_field] is not None else 0 
+                        for item in data],
+                'mode': 'markers'
+            }
+
         elif chart_type == 'horizontal_bar':
             # 修改横條圖的數據處理
             aggregated_data = queryset.values(x_field).annotate(
@@ -991,34 +1065,46 @@ def dynamic_chart_data(request):
         logger.error(f"Error in dynamic_chart_data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
-#新增生成更專業圖表的函數
-def create_profeesional_chart(chart_type, x_data, y_data, **kwargs):
+def validate_and_convert_numeric_data(data, field_name):
+    """驗證並轉換數值型數據"""
     try:
-        if chart_type == 'dount':
-            fig = go.Figure(data =[
-                go.Pie(labels=x_data, values=y_data, hole=kwargs.get('hole', 0.4))
-            ])
-        elif chart_type == 'treemap':
-            fig = go.Figure(data=[
-                go.Treemap(labels=x_data, values=y_data, parents=kwargs.get('parent', [''] * len(x_data)))
-            ])
-        elif chart_type == 'funnel':
-            fig = go.Figure(data=[
-                go.Funnel(y=x_data, x=y_data)
-            ])
-        else:
-            fig=go.Figure()
-        
-        fig.update_layout(
-            title=kwargs.get('title', '圖表'),
-            margin=dict(l=40, r=40, t=40, b=40),
-            paper_bgcolor='white',
-            font=dict(size=12)
-        )
-        return fig
+        return float(data) if data is not None else 0
+    except (ValueError, TypeError):
+        logger.warning(f"欄位 {field_name} 的值 '{data}' 無法轉換為數值")
+        return 0
+
+def aggregate_data_by_field(queryset, x_field, y_field, aggregation_type='sum'):
+    """根據指定欄位聚合數據"""
+    try:
+        if aggregation_type == 'sum':
+            return queryset.values(x_field).annotate(
+                value=Sum(y_field)
+            ).order_by(x_field)
+        # 可以添加其他聚合類型（平均值、最大值等）
+        return None
     except Exception as e:
-        logger.error(f"Error creating prefessional chart: {e}")
-        return go.Figure()
+        logger.error(f"數據聚合錯誤: {e}")
+        return None
+
+def process_time_series_data(data, time_field, value_field, 
+                           interval='day', fill_gaps=True):
+    """處理時間序列數據"""
+    try:
+        # 將數據按時間間隔分組
+        grouped_data = defaultdict(float)
+        for item in data:
+            time_key = get_time_key(item[time_field], interval)
+            grouped_data[time_key] += float(item[value_field] or 0)
+        
+        # 填充缺失的時間點
+        if fill_gaps:
+            grouped_data = fill_time_gaps(grouped_data, interval)
+        
+        return grouped_data
+    except Exception as e:
+        logger.error(f"時間序列數據處理錯誤: {e}")
+        return {}
+
 
 def get_select_related_fields(field_name):
     if not field_name or not isinstance(field_name, str):

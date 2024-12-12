@@ -306,7 +306,7 @@ export default {
     },
     async onReloadCharts() {
       // 重新載入圖表配置的函數
-      this.fetchCharts(); // 直接調用 fetchCharts 方法
+      await this.fetchCharts(); 
     },
   },
   watch: {

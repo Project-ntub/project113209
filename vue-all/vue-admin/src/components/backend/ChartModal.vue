@@ -19,16 +19,17 @@
           <div class="setting">
             <label for="chart-type">圖表類型</label>
             <select id="chart-type" v-model="chartData.chartType">
-              <option value="bar">柱狀圖</option>
+              <option value="bar">直條圖</option>
               <option value="line">折線圖</option>
               <option value="pie">餅圖</option>
-              <!-- <option value="heatmap">熱力圖</option> -->
+              <!-- <option value="grouped_bar">分組條形圖</option>
+              <option value="stacked_bar">堆疊條形圖</option>
+              <option value="area">區域圖</option>
+              <option value="scatter">散點圖</option> -->
               <option value="horizontal_bar">橫條圖</option>
               <option value="multi_line">多線折線圖</option>
               <option value="combo">組合式圖表</option>
-              <!-- <option value="treemap">樹狀圖</option> -->
-              <option value="donut">環圈圖</option>
-              <!-- <option value="funnel">漏斗圖</option> -->
+              <option value="donut">環型圖</option>
               <!-- 更多圖表類型 -->
             </select>
           </div>
@@ -62,8 +63,7 @@
           </div>
 
           <!-- 多個 Y 軸欄位選擇 -->
-          <div class="setting" v-if="chartData.chartType === 'multi_line' || chartData.chartType === 'combo'">
-            <label for="y-axis-fields">Y 軸欄位（可多重選擇，至少選兩個）</label>
+          <div class="setting" v-if="['multi_line', 'combo', 'stacked_bar', 'grouped_bar'].includes(chartData.chartType)">            <label for="y-axis-fields">Y 軸欄位（可多重選擇，至少選兩個）</label>
             <multiselect
               id="y-axis-fields"
               v-model="chartData.yAxisFields"
@@ -472,6 +472,7 @@ export default {
           filterConditions: config.filterConditions || {},
           ordering: config.ordering || [],
           limit: config.limit || null,
+          color: config.color ? { hex: config.color } : { hex: '#000000' }
         };
         console.log('更新後的 chartData:', this.chartData); // 調試輸出
 
@@ -563,9 +564,12 @@ export default {
         x_axis_field: this.chartData.xAxisField,
         y_axis_field: this.chartData.yAxisField,
         y_axis_fields:
-          this.chartData.chartType === 'multi_line' || this.chartData.chartType === 'combo'
-            ? this.chartData.yAxisFields.map(field => field.name)
-            : [],
+          (this.chartData.chartType === 'multi_line' ||
+          this.chartData.chartType === 'combo' ||
+          this.chartData.chartType === 'stacked_bar' ||
+          this.chartData.chartType === 'grouped_bar')
+          ? this.chartData.yAxisFields.map(field => field.name)
+          : [],
         filter_conditions: this.chartData.filterConditions,
         ordering: this.chartData.ordering,
         limit: this.chartData.limit,
@@ -579,7 +583,7 @@ export default {
           .then(async () => {
             alert('圖表已成功更新！');
             await this.$store.dispatch('fetchPermissions'); // 刷新權限
-            this.$emit('reload-charts');
+            await this.$emit('reload-charts');
             this.closeModal();
           })
           .catch(error => {
