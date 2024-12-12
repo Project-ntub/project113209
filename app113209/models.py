@@ -7,16 +7,16 @@ import pyotp
 # app113209/frontend/models.py
 from django.db import models
 
-class CalendarEvent(models.Model):
-    title = models.CharField(max_length=255)
-    start = models.DateTimeField()
-    end = models.DateTimeField()
-    description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+# class CalendarEvent(models.Model):
+#     title = models.CharField(max_length=255)
+#     start = models.DateTimeField()
+#     end = models.DateTimeField()
+#     description = models.TextField(blank=True, null=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.title
+#     def __str__(self):
+#         return self.title
 
 
 
@@ -427,6 +427,24 @@ class SalesData(models.Model):
 class StockData(models.Model):
     product_name = models.CharField(max_length=100)
     stock_quantity = models.IntegerField()
+
+# 行事曆
+
+
+User = get_user_model()  # 使用自定義的 User 模型
+
+class CalendarEvent(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 關聯自定義用戶模型
+    title = models.CharField(max_length=255)
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+    description = models.TextField(blank=True, null=True)
+    color = models.CharField(max_length=50, default='blue')
+    privacy = models.CharField(max_length=10, choices=[('public', '公開'), ('private', '私人')], default='public')
+
+    def __str__(self):
+        return self.title
+
 
 class BranchInventoryTotals(models.Model):
     id = models.AutoField(primary_key=True)
