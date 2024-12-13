@@ -1610,7 +1610,7 @@ def export_data(request):
     chart_config = request.data.get('chartConfig', {})
     table_name = chart_config.get('data_source', '')
     export_all = request.data.get('export_all', False)
-    format = chart_config.get('format')
+    format = request.data.get('format')
     chart_name = chart_config.get('name', 'chart')
 
     x_field = chart_config.get('x_axis_field')
@@ -1687,9 +1687,8 @@ def apply_filter_conditions(queryset, filter_conditions):
 
     # 商品名稱篩選（局部匹配）
     if 'productName' in filter_conditions and filter_conditions['productName']:
-        # 假設模型中有 product_name 欄位
         product_name = filter_conditions['productName']
-        queryset = queryset.filter(product_name__icontains=product_name)
+        queryset = queryset.filter(product__product_name__icontains=product_name)
 
     # 店名篩選（局部匹配）
     if 'storeName' in filter_conditions and filter_conditions['storeName']:

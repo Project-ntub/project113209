@@ -119,12 +119,32 @@ methods: {
   .form-group {
     margin-bottom: 15px;
   }
-  .modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-  }
   .modal-buttons button {
-    margin-left: 10px;
-  }
+  margin-left: 10px;
+  padding: 10px 15px; /* 統一內邊距，確保高度一致 */
+  font-size: 14px; /* 統一字體大小 */
+  border-radius: 5px; /* 統一按鈕圓角 */
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child {
+  background-color: #007bff; /* 設置取消按鈕的背景色 */
+  color: white; /* 取消按鈕字體顏色 */
+  border: none;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #0056b3; /* 設置取消按鈕的懸停顏色 */
+}
+
+.modal-buttons button:last-child {
+  background-color: #28a745; /* 設置匯出按鈕的背景色 */
+  color: white; /* 匯出按鈕字體顏色 */
+  border: none;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #218838; /* 設置匯出按鈕的懸停顏色 */
+}
   </style>
   

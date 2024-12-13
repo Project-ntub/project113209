@@ -74,7 +74,8 @@ export default {
         xaxis: {
           title: this.chartConfig.xAxisField || 'X 軸',
           tickangle: -45,
-          automargin: true,    
+          automargin: true,
+          textposition: 'inside',    
           tickfont: {
             size: 10  // 調整字體大小
           },
@@ -86,14 +87,16 @@ export default {
         },
         yaxis: {
           title: this.chartConfig.yAxisField || 'Y 軸',
-          automargin: true
+          automargin: true,
+          size: 10,
         },
         margin: {
           l: 80,   // 左邊距
           r: 50,   // 右邊距
-          b: 100,  // 底部邊距，為長標籤留空間
-          t: 50    // 頂部邊距
+          b: 50,  // 底部邊距，為長標籤留空間
+          t: 100    // 頂部邊距
         },
+        // height: Math.max(500, this.chartConfig.y_data.length * 30),
         autosize: true,
       };
 
