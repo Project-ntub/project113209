@@ -19,7 +19,6 @@ urlpatterns = [
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/', api_views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
     # Vue.js will handle all paths starting from here
     path('', TemplateView.as_view(template_name='index.html'), name='frontend'),
    
