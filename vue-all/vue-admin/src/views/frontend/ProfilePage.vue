@@ -3,82 +3,84 @@
     <div class="profile-card">
       <h3 v-if="!isEditing">個人資料</h3>
       <h3 v-if="isEditing">編輯個人資料</h3>
-      <div v-if="!isEditing" class="profile-info">
-        <div class="form-row">
-          <div class="form-group">
-            <label>用戶名稱：</label>
-            <p>{{ userData.username || 'N/A' }}</p>
+      <div class="scrollable-content">
+        <div v-if="!isEditing" class="profile-info">
+          <div class="form-row">
+            <div class="form-group">
+              <label>用戶名稱：</label>
+              <p>{{ userData.username || 'N/A' }}</p>
+            </div>
+            <div class="form-group">
+              <label>部門：</label>
+              <p>{{ userData.department_id || 'N/A' }}</p>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>職位：</label>
+              <p>{{ userData.position_id || 'N/A' }}</p>
+            </div>
+            <div class="form-group">
+              <label>電話：</label>
+              <p>{{ userData.phone || 'N/A' }}</p>
+            </div>
           </div>
           <div class="form-group">
-            <label>部門：</label>
-            <p>{{ userData.department_id || 'N/A' }}</p>
+            <label>電子郵件：</label>
+            <p>{{ userData.email || 'N/A' }}</p>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>職位：</label>
-            <p>{{ userData.position_id || 'N/A' }}</p>
-          </div>
-          <div class="form-group">
-            <label>電話：</label>
-            <p>{{ userData.phone || 'N/A' }}</p>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>電子郵件：</label>
-          <p>{{ userData.email || 'N/A' }}</p>
-        </div>
-        <button class="edit-button" @click="editProfile">編輯</button>
-      </div>
-
-      <div v-if="isEditing" class="edit-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="username">用戶名稱：</label>
-            <input type="text" v-model="editData.username" />
-          </div>
-          <div class="form-group">
-            <label for="department">部門：</label>
-            <input type="text" v-model="editData.department_id" disabled />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="position">職位：</label>
-            <input type="text" v-model="editData.position_id" disabled />
-          </div>
-          <div class="form-group">
-            <label for="phone">電話：</label>
-            <input type="tel" v-model="editData.phone" @input="validatePhone" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="email">電子郵件：</label>
-          <input type="email" v-model="editData.email" />
+          <button class="edit-button" @click="editProfile">編輯</button>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="currentPassword">當前密碼：</label>
-            <input type="password" v-model="editData.currentPassword" />
+        <div v-if="isEditing" class="edit-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="username">用戶名稱：</label>
+              <input type="text" v-model="editData.username" />
+            </div>
+            <div class="form-group">
+              <label for="department">部門：</label>
+              <input type="text" v-model="editData.department_id" disabled />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="position">職位：</label>
+              <input type="text" v-model="editData.position_id" disabled />
+            </div>
+            <div class="form-group">
+              <label for="phone">電話：</label>
+              <input type="tel" v-model="editData.phone" @input="validatePhone" />
+            </div>
           </div>
           <div class="form-group">
-            <label for="newPassword">新密碼：</label>
-            <input type="password" v-model="editData.newPassword" />
+            <label for="email">電子郵件：</label>
+            <input type="email" v-model="editData.email" />
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="currentPassword">當前密碼：</label>
+              <input type="password" v-model="editData.currentPassword" />
+            </div>
+            <div class="form-group">
+              <label for="newPassword">新密碼：</label>
+              <input type="password" v-model="editData.newPassword" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">確認新密碼：</label>
+            <input type="password" v-model="editData.confirmPassword" />
+          </div>
+          <p class="password-requirements">
+            密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。
+          </p>
+          <div class="button-container">
+            <button @click="saveProfile" class="save">保存</button>
+            <button @click="cancelEdit" class="cancel">取消</button>
+          </div>
+          <p v-if="errorMessage" class="feedback">{{ errorMessage }}</p>
         </div>
-        <div class="form-group">
-          <label for="confirmPassword">確認新密碼：</label>
-          <input type="password" v-model="editData.confirmPassword" />
-        </div>
-        <p class="password-requirements">
-          密碼必須包含至少8個字符，且包括大小寫字母、數字和特殊字符。
-        </p>
-        <div class="button-container">
-          <button @click="saveProfile" class="save">保存</button>
-          <button @click="cancelEdit" class="cancel">取消</button>
-        </div>
-        <p v-if="errorMessage" class="feedback">{{ errorMessage }}</p>
       </div>
     </div>
   </div>
@@ -205,13 +207,13 @@ export default {
 </script>
 
 <style scoped>
-/* .profile-container {
+.profile-container {
   display: flex;
   justify-content: center;
   padding: 40px;
   background-color: #f9fafc;
-  min-height: calc(100vh - 80px); 
-} */
+  min-height: calc(100vh - 80px);
+}
 
 .profile-card {
   background-color: #ffffff;
@@ -223,7 +225,14 @@ export default {
   max-height: 90vh; /* 卡片最大高度為視窗高度 */
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* 確保按鈕在底部 */
+  justify-content: space-between;
+  overflow: hidden; /* 防止超出卡片的部分顯示 */
+}
+
+.scrollable-content {
+  overflow-y: auto; /* 垂直方向可滾動 */
+  max-height: calc(90vh - 80px); /* 根據卡片最大高度調整內容最大高度 */
+  padding-right: 10px; /* 防止滾動條遮擋文字 */
 }
 
 .profile-info,
@@ -239,8 +248,8 @@ export default {
 }
 
 .form-group {
-  flex: 1 1 calc(33.33% - 20px); /* 每個欄位占三分之一寬度，並考慮間距 */
-  min-width: 200px; /* 防止過窄 */
+  flex: 1 1 calc(33.33% - 20px);
+  min-width: 200px;
 }
 
 label {
@@ -298,7 +307,18 @@ button {
   text-align: center;
 }
 .profile-card p {
-  font-size: 18px; /* 文字內容大小 */
-  color: #666; /* 文字顏色 */
+  font-size: 18px;
+  color: #666;
 }
 </style>
+
+
+
+
+
+
+
+
+
+
+
